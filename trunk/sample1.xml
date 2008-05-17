@@ -1,0 +1,41 @@
+<?xml version="1.0" standalone="no" ?>
+<stage id="sample1" start="north">
+
+    <escgrid id="northeast" x="0" y="0" z="0" prev="east" next="east">
+        <angle x="-45" y="90" z="0">
+            <grid id="northwest_esc1" x="0" y="0" z="0" prev="north" next="east" />
+        </angle>
+        <angle x="-45" y="180" z="0">
+            <grid id="northwest_esc2" x="0" y="0" z="0" prev="north" next="east" />
+        </angle>
+    </escgrid>
+
+    <escgrid id="center" x="1" y="0" z="1" prev="east" next="east">
+        <angle x="-45" y="90" z="0">
+            <grid id="center_esc" x="1" y="0" z="1" prev="east" next="north" />
+        </angle>
+    </escgrid>
+
+    <grid id="southeast" x="2" y="0" z="0" prev="east" next="east" />
+
+    <t_grid id="east" x="1" y="0" z="0" prev="northeast" next="southeast" next2="center" />
+
+    <escgrid id="north" x="-1" y="-1" z="1" prev="northwest" next="northwest">
+        <angle x="-45" y="90" z="0">
+            <t_grid id="north_esc1" x="0" y="0" z="1" prev="center" next="northwest" next2="northeast" />
+        </angle>
+        <angle x="-45" y="180" z="0">
+            <grid id="north_esc2" x="-1" y="0" z="0" prev="northwest" next="northeast" />
+        </angle>
+    </escgrid>
+
+    <hole id="northwest" x="-1" y="-1" z="2" prev="north" next="north">
+        <angle x="-45" y="90" z="0">
+            <hole id="northwest_esc1" x="0" y="0" z="2" prev="north" next="north" />
+        </angle>
+        <angle x="-45" y="180" z="0">
+            <hole id="northwest_esc2" x="-1" y="0" z="1" prev="north" next="north" />
+        </angle>
+    </hole>
+
+</stage>
