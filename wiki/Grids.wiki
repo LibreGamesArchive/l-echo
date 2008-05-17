@@ -4,21 +4,25 @@ Grids are the platforms.  They are implemented as linked-lists/webs that change 
 
 Implemented:
 
-* grid          -Normal grids
+ *  grid          -Normal grids
 
-* escgrid       -Grids that change position and neighbors depending on the angle of the camera.  "esc"'s are the alter egos of the "escgrid"'s, and they can be any grid pointer.  Oh, and they stand for Escher-grid, but "esc" is just a abbreviation.
+ *  escgrid       -Grids that change position and neighbors depending on the angle of the camera.  "esc"'s are the alter egos of the "escgrid"'s, and they can be any grid pointer.  Oh, and they stand for Escher-grid, but "esc" is just a abbreviation.
 
-* t_grid        -Normal grids, except they link with 3 neighbors instead of the normal two.  "grid"'s don't have variable neighbors since there can only be a max of 4 anyways (well, unless you can convince me that there is a clever scenario with 5 neighbors).
+ *  t_grid        -Normal grids, except they link with 3 neighbors instead of the normal two.  "grid"'s don't have variable neighbors since there can only be a max of 4 anyways (well, unless you can convince me that there is a clever scenario with 5 neighbors).
 
-* hole          -Yep, those pesky holes.  Right now they are implemented as just "escgrid"'s that return a special pointer as its neighbor if it isn't "esc"-ing.  Of course, there are two problems with this approach:
-# All perspective falls has to be hard coded.
-# All "if-you-don't-see-it-it-doesn't-exist" "esc"-ing has to be hard coded.
-Right now, there isn't much we can do about it, since *I* would prefer speed to cleanliness.
+ *  hole          -Yep, those pesky holes.  Right now they are implemented as just "escgrid"'s that return a special pointer as its neighbor if it isn't "esc"-ing.  Of course, there are two problems with this approach:
+ # All perspective falls has to be hard coded.
+ # All "if-you-don't-see-it-it-doesn't-exist" "esc"-ing has to be hard coded.
+ Right now, there isn't much we can do about it, since *I* would prefer speed to cleanliness.
 
 To be implemented:
 
-* absent_grid   -A "grid" that exists if isn't seen.  Same problem with the hole; all "esc"-ing has to be hard coded.
+ *  absent_grid   -A "grid" that exists if isn't seen.  Same problem with the hole; all "esc"-ing has to be hard coded.
 
-* launcher      -The opposite of the hole, it launches the character.  However, if we implement it also as an escgrid, it will suffer the same problems as hole.
+ *  launcher      -The opposite of the hole, it launches the character.  However, if we implement it also as an escgrid, it will suffer the same problems as hole.
 
-* x_grid        -Same as t_grid but has 4 neighbors
+ *  x_grid        -Same as t_grid but has 4 neighbors
+
+Wishlist:
+
+ *  dsided_grid   -Double-sided grid, like in Super Mario Galaxy.  In this case, you would fall onto the other side of the grid with a hole.
