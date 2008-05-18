@@ -17,6 +17,8 @@ Implemented:
 
 To be implemented:
 
+ *  stair         -A grid that slopes up in a given direction.  And that's it.
+
  *  absent_grid   -A "grid" that exists if isn't seen.  Same problem with the hole; all "esc"-ing has to be hard coded.
 
  *  launcher      -The opposite of the hole, it launches the character.  However, if we implement it also as an escgrid, it will suffer the same problems as hole.
