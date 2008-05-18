@@ -6,7 +6,7 @@ Implemented:
 
  *  grid          -Normal grids
 
- *  escgrid       -Grids that change position and neighbors depending on the angle of the camera.  "esc"'s are the alter egos of the "escgrid"'s, and they can be any grid pointer.  Oh, and they stand for Escher-grid, but "esc" is just a abbreviation.
+ *  escgrid       -Grids that change position and neighbors depending on the angle of the camera.  "esc"'s are the alter egos of the "escgrid"'s, and they can be any grid pointer, with angles as keys (right now angles use a internal class called vector3f, but that could change fast to OpenGL's vec3).  Oh, and they stand for Escher-grid, but "esc" is just a abbreviation.
 
  *  t_grid        -Normal grids, except they link with 3 neighbors instead of the normal two.  "grid"'s don't have variable neighbors since there can only be a max of 4 anyways (well, unless you can convince me that there is a clever scenario with 5 neighbors).
 
