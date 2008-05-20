@@ -1,0 +1,26 @@
+<?xml version="1.0" standalone="no" ?>
+<stage name="perspective existence" start="h1" goals="1">
+	<grid id="h1" x="3" y="0" z="0" prev="h2" next="h2" />
+	<grid id="h2" x="2" y="0" z="0" prev="h1" next="h3" />
+	<escgrid id="h3" x="1" y="0" z="0" prev="h2" next="h2">
+		<angle x="-10" y="-25" z="0">
+			<grid id="h3_esc" x="1" y="0" z="0" prev="h2" next="exist" />
+		</angle>
+	</escgrid>
+	
+	<grid id="exist" x="0" y="0" z="0" prev="h3" next="h4" nodraw="1"/>
+	
+	<escgrid id="h4" x="-1" y="0" z="0" prev="h5" next="h5">
+		<angle x="-10" y="-25" z="0">
+			<grid id="h4_esc" x="-1" y="0" z="0" prev="exist" next="h5" />
+		</angle>
+	</escgrid>
+	<grid id="h5" x="-2" y="0" z="0" prev="h4" next="h6" />
+	<grid id="h6" x="-3" y="0" z="0" prev="h5" next="h5" goal="1"/>
+	
+	<stair id="block" x="-1" y="0.5f" z="2" prev="NONE" next="NONE">
+		<angle x="0" y="0.2f" z="0" />
+		<angle x="0.5f" y="0" z="0.5f"/>
+	</stair>
+</stage>
+

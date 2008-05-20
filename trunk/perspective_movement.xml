@@ -1,0 +1,36 @@
+<?xml version="1.0" standalone="no" ?>
+<stage name="perspective movement" start="south1" goals="1">
+
+    <grid id="south1" x="-2" y = "0" z="1" prev="south2" next="south2"/>
+    <grid id="south2" x="-1" y = "0" z="1" prev="south1" next="south3"/>
+    <grid id="south3" x="0" y = "0" z="1" prev="south2" next="south4"/>
+    <grid id="south4" x="1" y = "0" z="1" prev="south3" next="east1"/>
+
+    <stair id="east1" x="1" y="0.5f" z="0" prev="south4" next="east2">
+        <angle x="0" y="0.5f" z="-0.5f" />
+        <angle x="0.5f" y="0" z="0"/>
+    </stair>
+    <stair id="east2" x="1" y="1.5f" z="-1" prev="east1" next="north1">
+        <angle x="0" y="0.5f" z="-0.5f" />
+        <angle x="0.5f" y="0" z="0"/>
+    </stair>
+
+    <grid id="north1" x="1" y="2" z="-2" prev="east2" next="north2" />
+    <escgrid id="north2" x="0" y="2" z="-2" prev="north1" next="north1">
+        <angle x="-40" y="65" z="0">
+            <grid id="north2_esc" x="0" y="2" z="-2" prev="north1" next="west2" />
+        </angle>
+    </escgrid>
+
+    <escgrid id="west1" x="-4" y="0" z="-3" prev="west2" next="west2" goal="1">
+        <angle x="-40" y="65" z="0">
+            <grid id="west1_esc" x="-2" y="2" z="-2" prev="west2" next="west2" goal="1"/>
+        </angle>
+    </escgrid>
+    <escgrid id="west2" x="-3" y="0" z="-3" prev="west1" next="west1">
+        <angle x="-40" y="65" z="0">
+            <grid id="west2_esc" x="-1" y="2" z="-2" prev="north2" next="west1" />
+        </angle>
+    </escgrid>
+
+</stage>
