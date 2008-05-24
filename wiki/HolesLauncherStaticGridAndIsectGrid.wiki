@@ -1,0 +1,20 @@
+#summary Current way to implement those pesky holes and launchers with "static_grids" and "isect_grids"
+
+= The Problem =
+
+Implement holes and launchers.
+
+As easy as that sounds, if you follow the conventional method, there are two roadblocks:
+1) If you want to have physics checking with collision and stuff, fuhgeddaboutit.  echo_ns, the body responsible for the character (yeah, I may need to move all that code to a seperate class), isn't implemented like that.  Besides, it would cause a O(n) iteration thru all the grids.
+2) In the real game, the character doesn't move with the world when he/she's in the air.  Oh wait...I guess that would be an advantage.  But reason #1 is good enough for me to try other options.
+
+
+= My Implementation =
+
+My way of going around this is by introducing static_grids and isect_grids.  Let's start with static_grid, which is the parent class of isect_grid:
+
+static_grid is a grid that remains in the same place on the screen no matter what.  Remember, almost all methods in grid give the current angle, so all static_grid has to do is to rotate the "normal position" (when the camera is at [0, 0, 0]) with the camera angle.
+
+isect_grid extends that.  When a hole::get_next is called, it will get all the "levels" below it in the form of a map (float to a set of grid pointers).  This map is registered at load time.  Then it will construct a linked list of isect_grids for each level, returning the first one, the one nearest to it.  And here's where the magic happens.
+
+What the isect_grid does, is that it knows the grids in each level (levels of escs are registered under the root escgrid).  When isect_grid::get_next is called, it will look at the finally position of itself (remember, it is a descendant of static_grid, it will change its position 
