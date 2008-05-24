@@ -21,4 +21,4 @@ What the isect_grid does, is that it knows the grids in each level (levels of es
 
 The base position of the isect_grid is pretty much the only diffs between holes and launchers.  Holes would just have the isect_grids start right below it, while launchers would have a constant parabola in the direction it faces.
 
-That's my thoughts.  Any other implementations? Comment, or better yet, implement it yourself!  Revision 15 and on (versions 0.0.7+) has static_grids and isect_grids.
+That's my thoughts.  Any other implementations? Comment, or better yet, implement it yourself!  Revision 15 and on (versions 0.0.7+) have static_grids and isect_grids.
