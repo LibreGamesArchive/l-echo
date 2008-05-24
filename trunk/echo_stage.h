@@ -17,17 +17,21 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <set>
 #include <map>
 #include <string>
+#include <vector>
 
 #include <grid.h>
 #include <echo_math.h>
-#include <string>
 
 #ifndef __ECHO_CLASS_STAGE__
 #define __ECHO_CLASS_STAGE__
 
 typedef std::map<std::string, grid*> STAGE_MAP;
+typedef std::set<grid*> GRID_PTR_SET;
+typedef std::vector<GRID_PTR_SET*> GPS_VEC;
+typedef std::map<float, GRID_PTR_SET*> LEVEL_MAP;
 
 class stage
 {
@@ -36,10 +40,17 @@ class stage
         grid* start;
         std::string name;
         int num_goals;
+	
+	LEVEL_MAP* levels;
+	
     public:
         stage();
         stage(grid* my_start, std::string my_name, int my_num_goals);
         void add(std::string id, grid* ptr);
+	void add_pos(vector3f pos, grid* g);
+	GRID_PTR_SET* get_level(vector3f pos);
+	LEVEL_MAP* get_levels_lower_than(float y);
+	void dump_levels();
         grid* get(std::string id);
         void draw(vector3f angle);
 

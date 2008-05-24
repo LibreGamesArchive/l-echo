@@ -27,11 +27,13 @@
 stage::stage()
 {
     grids = new STAGE_MAP();
+    levels = new LEVEL_MAP();
 }
 
 stage::stage(grid* my_start, std::string my_name, int my_num_goals)
 {
     grids = new STAGE_MAP();
+    levels = new LEVEL_MAP();
     start = my_start;
     name = my_name;
     num_goals = my_num_goals;
@@ -40,6 +42,40 @@ stage::stage(grid* my_start, std::string my_name, int my_num_goals)
 void stage::add(std::string id, grid* ptr)
 {
     grids->insert(STAGE_MAP::value_type(id, ptr));
+}
+
+GRID_PTR_SET* stage::get_level(vector3f pos)
+{
+	LEVEL_MAP::iterator it = levels->find(pos.y);
+	if(it == levels->end())
+		return(NULL);
+	return(it->second);
+}
+
+void stage::add_pos(vector3f pos, grid* g)
+{
+	GRID_PTR_SET* set = get_level(pos);
+	if(set)
+	{
+		set->insert(g);
+	}
+	else
+	{
+		set = new GRID_PTR_SET();
+		set->insert(g);
+		levels->insert(LEVEL_MAP::value_type(pos.y, set));
+	}
+}
+
+void stage::dump_levels()
+{
+	LEVEL_MAP::iterator it = levels->begin(), end = levels->end();
+	std::cout << "levels: " << std::endl;
+	while(it != end)
+	{
+		std::cout << it->first << ": size: " << it->second->size() << std::endl;
+		it++;
+	}
 }
 
 grid* stage::get(std::string id)
@@ -91,3 +127,19 @@ int stage::get_num_goals()
 {
     return(num_goals);
 }
+
+LEVEL_MAP* stage::get_levels_lower_than(float y)
+{
+	LEVEL_MAP::iterator it = levels->begin(), end = levels->end();
+	LEVEL_MAP* ret = new LEVEL_MAP();
+	while(it != end)
+	{
+		if(it->first >= y)
+			goto RET;
+		ret->insert(LEVEL_MAP::value_type(it->first, it->second));
+		it++;
+	}
+	RET:
+	return(ret);
+}
+

@@ -24,6 +24,8 @@
 #include <hole.h>
 #include <grid.h>
 #include <escgrid.h>
+#include <static_grid.h>
+#include <isect_grid.h>
 #include <echo_math.h>
 #include <echo_loader.h>
 #include <echo_ns.h>
@@ -54,7 +56,6 @@ static int window;
 static int my_width, my_height;
 static int start_frame, name_display = NAME_DISPLAY_MAX;
 static vector3f esc_angle1(-45, 90, 0), esc_angle2(-45, 180, 0);
-static stage* my_stage;
 static char* message = MSG_READY;
 static char* counter;
 
@@ -67,11 +68,24 @@ static void set_proj(int w, int h);
 
 int main(int argc, char **argv)
 {
+    init_math();
+
     char* fname = argc >= 2 ? argv[1] : const_cast<char*>("sample1.xml");
-    my_stage = load_stage(fname);
+    echo_ns::current_stage = load_stage(fname);
 
-	echo_ns::setup_char(my_stage->get_start());
-
+	
+	
+	vector3f* vec = new vector3f(1, 2, 2);
+	vector3f* angle = vec->angle_xy();
+	angle->dump();
+	std::cout << std::endl;
+	vector3f* norm = vec->neg_rotate_yx(*angle);
+	norm->dump();
+	std::cout << std::endl;
+	vector3f* back = norm->rotate_xy(*angle);
+	back->dump();
+	std::cout << std::endl;
+	
 	init(argc, argv, 640, 480);
 	glutMainLoop();
 	return(1);
@@ -191,10 +205,10 @@ void display()
             name_display--;
         }
         //std::cout << my_stage->get_name() << std::endl;
-        draw_string(-5, 0, const_cast<char*>(my_stage->get_name().c_str()));
+        draw_string(-5, 0, const_cast<char*>(echo_ns::current_stage->get_name().c_str()));
     }
 
-    int goals_left = my_stage->get_num_goals() - echo_ns::num_goals;
+    int goals_left = echo_ns::current_stage->get_num_goals() - echo_ns::num_goals;
     //std::cout << "num_goals: " << echo_ns::num_goals << std::endl;
     if(goals_left)
     {
@@ -211,7 +225,7 @@ void display()
 	glRotatef(-echo_ns::angle.x, 1, 0, 0);
 	glRotatef(-echo_ns::angle.y, 0, 1, 0);
 
-	my_stage->draw(echo_ns::angle);
+	echo_ns::draw();
 
 	vector3f* vec = echo_ns::step_char();
 	if(vec)
@@ -244,6 +258,7 @@ void key(unsigned char key, int x, int y)
 	    if(message == MSG_READY)
 	    {
             message = MSG_START;
+	    echo_ns::init();
             name_display--;
 	    }
         else

@@ -233,3 +233,12 @@ void grid::draw_goal(vector3f angle)
     }
 }
 
+int grid::is_pt_on(vector3f angle, vector3f pt)
+{
+	vector3f pos = get_info(angle)->pos;
+	//(pos - pt).dump();
+	//std::cout << std::endl;
+	return(ABS(pos.y - pt.y) < EPSILON && ABS(pos.x - pt.x) < HALF_GRID
+				&& ABS(pos.z - pt.z) < HALF_GRID);
+}
+

@@ -24,6 +24,7 @@
 #include <hole.h>
 #include <echo_math.h>
 #include <grid.h>
+#include <isect_grid.h>
 
 hole::hole() : escgrid()
 {
@@ -95,3 +96,29 @@ grid* hole::get_real_prev()
 {
 	return(real_prev);
 }
+grid* hole::get_next(vector3f angle, grid* current)
+{
+	grid* esc = get_esc(angle);
+	if(esc)
+		return(esc->get_next(angle, current));
+	vector3f pos = get_info(angle)->pos;
+	LEVEL_MAP* levels = echo_ns::current_stage->get_levels_lower_than(pos.y);
+	LEVEL_MAP::iterator it = levels->begin(), end = (levels->end())--;
+	isect_grid* begin = NULL;
+	grid* temp = echo_ns::hole_grid;
+	while(it != end)
+	{
+		grid_info_t* info = new(grid_info_t);
+		info->pos.set(pos.x, it->first, pos.z);
+		//info->pos.dump();
+		//std::cout << std::endl;
+		begin = new isect_grid(info, NULL, temp, angle, it->second);
+		temp->set_real_prev(begin);
+		//echo_ns::current_stage->add("add", begin);
+		temp = begin;
+		it++;
+	}
+	begin->set_real_prev(this);
+	return(begin);
+}
+

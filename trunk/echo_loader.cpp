@@ -67,10 +67,10 @@ class t_functor : public functor
         }
 };
 
-typedef std::vector<functor> GRID_PTR_SET;
-typedef std::map<std::string, GRID_PTR_SET*> DEPENDENCY_MAP;
+typedef std::vector<functor> FUNCTOR_VEC;
+typedef std::map<std::string, FUNCTOR_VEC*> DEPENDENCY_MAP;
 
-static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, int add_to_map);
+static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot);
 
 stage* load_stage(const char* file_name)
 {
@@ -83,20 +83,22 @@ stage* load_stage(const char* file_name)
         TiXmlNode* child = NULL;
         while(child = root->IterateChildren(child))
         {
-            parse_grid(child->ToElement(), ret, map, 1);
+            parse_grid(child->ToElement(), ret, map, NULL);
         }
         ret->set_start(ret->get(root->Attribute("start")));
         ret->set_name(*(new std::string(root->Attribute("name"))));
         int num_goals = 0;
         root->QueryIntAttribute("goals", &num_goals);
         ret->set_num_goals(num_goals);
+
         std::cout << "is map empty?: " << map->empty() << std::endl;
+	ret->dump_levels();
         return(ret);
     }
     return(NULL);
 }
 
-static GRID_PTR_SET* dep_set(DEPENDENCY_MAP* map, char* id)
+static FUNCTOR_VEC* dep_set(DEPENDENCY_MAP* map, char* id)
 {
     std::string s1(id);
 	DEPENDENCY_MAP::iterator it = map->find(s1);
@@ -109,7 +111,7 @@ static GRID_PTR_SET* dep_set(DEPENDENCY_MAP* map, char* id)
 
 static void add(DEPENDENCY_MAP* map, char* id, functor f)
 {
-	GRID_PTR_SET* set = dep_set(map, id);
+	FUNCTOR_VEC* set = dep_set(map, id);
 	if(set)
 	{
 	    std::cout << "dep set for " << id << " found, adding"<< std::endl;
@@ -118,7 +120,7 @@ static void add(DEPENDENCY_MAP* map, char* id, functor f)
 	else
 	{
 	    std::cout << "dep set for " << id << " NOT found, adding"<< std::endl;
-		set = new GRID_PTR_SET();
+		set = new FUNCTOR_VEC();
 		set->push_back(f);
 		map->insert(DEPENDENCY_MAP::value_type(id, set));
 	}
@@ -136,7 +138,7 @@ static void add(DEPENDENCY_MAP* map, char* id, grid* obj, void (grid::*funcp)(gr
 	add(map, id, f);
 }
 
-static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, int add_to_map)
+static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot)
 {
     std::cout << std::endl;
     const char* type = txe->Value();
@@ -184,7 +186,7 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, int a
                 child->QueryFloatAttribute("x", &each_angle->x);
                 child->QueryFloatAttribute("y", &each_angle->y);
                 child->QueryFloatAttribute("z", &each_angle->z);
-                grid* each_esc = parse_grid(child->FirstChild()->ToElement(), st, map, 0);
+                grid* each_esc = parse_grid(child->FirstChild()->ToElement(), st, map, escroot ? escroot : (escgrid*)new_grid);
                 ((escgrid*)new_grid)->add(each_angle, each_esc);
                 child = child->NextSiblingElement();
             }
@@ -203,7 +205,7 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, int a
                 child->QueryFloatAttribute("x", &each_angle->x);
                 child->QueryFloatAttribute("y", &each_angle->y);
                 child->QueryFloatAttribute("z", &each_angle->z);
-                grid* each_esc = parse_grid(child->FirstChild()->ToElement(), st, map, 0);
+                grid* each_esc = parse_grid(child->FirstChild()->ToElement(), st, map, escroot ? escroot : (escgrid*)new_grid);
                 ((hole*)new_grid)->add(each_angle, each_esc);
                 child = child->NextSiblingElement();
             }
@@ -254,11 +256,11 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, int a
             std::cout << "it's invisible!" <<std::endl;
         }
     }
-    GRID_PTR_SET* deps = dep_set(map, name);
+    FUNCTOR_VEC* deps = dep_set(map, name);
     if(deps)
     {
 	    std::cout << "deps found for: " << name << std::endl;
-	    GRID_PTR_SET::iterator it = deps->begin(), end = deps->end();
+	    FUNCTOR_VEC::iterator it = deps->begin(), end = deps->end();
 	    while(it != end)
 	    {
             it->call(new_grid);
@@ -269,7 +271,22 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, int a
     }
     else
         std::cout << "deps not found for: " << name << std::endl;
-    if(add_to_map)
+    int noland = 0;
+    if(txe->Attribute("noland"))
+    {
+	    txe->QueryIntAttribute("noland", &noland);
+	    if(noland)
+		    std::cout << "it's not land-able!" <<std::endl;
+    }
+    if(!escroot)
+    {
         st->add(name, new_grid);
+	if(!noland)
+		st->add_pos(info->pos, new_grid);
+    }
+    else if(!noland)
+    {
+        st->add_pos(info->pos, escroot);
+    }
     return(new_grid);
 }
