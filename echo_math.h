@@ -19,7 +19,7 @@
 
 #define PI			    3.1415926f
 #define TWOPI			6.2831853f
-#define EPSILON 		8e-3f
+#define EPSILON 		5e-2f
 #define ABS(x)			((x) >= 0 ? (x) : -(x))
 #define TO_RAD(x)		((x) / 180.0f * PI)
 #define TO_DEG(x)		((x) / PI * 180.0f)
@@ -42,13 +42,22 @@ class vector3f
 		vector3f(float my_x, float my_y, float my_z);
 		~vector3f(){}
 		void set(vector3f copy_from);
+		void set(float my_x, float my_y, float my_z);
 		int operator ==(vector3f v);
+		int operator !=(vector3f v);
 		int angle_similar(vector3f v);
 		void dump();
 		float length();
+		vector3f* angle_xy();
+		vector3f* rotate_xy(vector3f rot);
+		//vector3f* rotate_yx(vector3f rot);
+		//vector3f* neg_rotate_xy(vector3f rot);
+		vector3f* neg_rotate_yx(vector3f rot);
 		vector3f normalize_angle();
 		vector3f negate();
+		float dist(vector3f other);
 
+		vector3f operator *(float f);
 		vector3f operator +(vector3f vec);
 		vector3f operator -(vector3f vec);
 };
@@ -64,6 +73,9 @@ typedef struct
 line3f;
 #endif
 
+float echo_sin(int deg);
+float echo_cos(int deg);
+void init_math();
 void dump_line3f(line3f ln);
 int operator ==(line3f ln1, line3f ln2);
 

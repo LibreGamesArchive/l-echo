@@ -19,6 +19,7 @@
 
 #include <echo_math.h>
 #include <grid.h>
+#include <echo_stage.h>
 
 #ifndef __ECHO_NS__
 #define __ECHO_NS__
@@ -32,11 +33,15 @@ namespace echo_ns
 	extern int paused;
 	extern int num_goals;
 	extern float grid1per, grid2per, startper;
+	
+	extern stage* current_stage;
 
 	void toggle_pause();
 	void kill_char();
 	void setup_char(grid* g1);
 	vector3f* step_char();
+	void draw();
+	void init();
 };
 #endif
 

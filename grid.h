@@ -78,9 +78,11 @@ class grid
 		virtual void toggle_goal(vector3f angle);
 		virtual int is_goal(vector3f angle);
 		virtual void set_as_goal();
-		
+
 		virtual int should_draw();
 		virtual void set_draw(int draw);
+
+        virtual int is_pt_on(vector3f angle, vector3f pt);
 
 		void draw_goal(vector3f angle);
 };
