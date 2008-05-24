@@ -12,7 +12,7 @@ Implemented:
 
  *  hole          -See HolesLauncherStaticGridAndIsectGrid
 
- *  stair         -A grid that slopes up in a given direction.  And that's it.
+ *  stair         -A grid that takes in vectors for its width and direction, basically can be used as anything, like obstacles.
 
 To be implemented:
 
