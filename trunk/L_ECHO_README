@@ -1,0 +1,18 @@
+Ok, listen up.  This is a development build!  No guarantees.
+
+To control:
+
+Arrow Keys to control the perspective
+P          to start/pause/resume
+
+This program is under GPLv3.
+
+Oh, and you may need OpenGL (in every DirectX if you're using Windows) and GLUT (Windows binaries here: http://www.xmission.com/~nate/glut.html)
+
+That is all.
+
+L-Echo (C) 2008 Jeff Chien
+
+echochrome is a trademark of Sony Computer Entertainment Inc. © 2008 Sony Computer Entertainment Inc.
+
+"PlayStation?", "PLAYSTATION" and "PS" Family logo are registered trademarks of Sony Computer Entertainment Inc. 
