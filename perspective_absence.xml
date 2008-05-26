@@ -5,9 +5,9 @@
 	<grid id="h3" x="1" y="0" z="0" prev="h2" next="hole" />
 	
 	<hole id="hole" x="0" y="0" z="0" prev="h3" next="h4">
-		<angle x="-10" y="-25" z="0">
+		<range x_min="-10" x_max="-15" y_min="-25" y_max="-35" z_min="0" z_max="0">
 			<grid id="hole_esc" x="0" y="0" z="0" prev="h3" next="h4" />
-		</angle>
+		</range>
 	</hole>
 	
 	<grid id="h4" x="-1" y="0" z="0" prev="hole" next="h5" />

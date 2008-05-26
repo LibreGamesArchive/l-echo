@@ -52,10 +52,10 @@ void escgrid::delete_table()
 			//std::cout << "lol1";
 			delete[] escs;
 		}
-		if(vecs)
+		if(ranges)
 		{
 			//std::cout << "lol2";
-			delete[] vecs;
+			delete[] ranges;
 		}
 	}
 }
@@ -65,26 +65,26 @@ void escgrid::init(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info
 {
 	grid::init(my_normal_info, my_normal_prev, my_normal_next);
 	num_esc = 1;
-	vecs = new vector3f*[1];
+	ranges = new angle_range*[1];
 	escs = new grid*[1];
 	delete_at_deconstruct = 1;
-	vecs[0] = my_escangle;
+	ranges[0] = VECPTR_TO_RANGE(my_escangle);
 	escs[0] = new grid(my_esc_info, my_esc_prev, my_esc_next);
 }
 
 void escgrid::init(grid_info_t* my_info, grid* my_prev, grid* my_next)
 {
     grid::init(my_info, my_prev, my_next);
-	vecs = NULL;
+	ranges = NULL;
 	escs = NULL;
 	delete_at_deconstruct = 1;
 	num_esc = 0;
 }
 
-void escgrid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f** my_escvecs, grid** my_escs, int my_num_escs)
+void escgrid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, angle_range** my_escranges, grid** my_escs, int my_num_escs)
 {
 	grid::init(my_info, my_prev, my_next);
-	vecs = my_escvecs;
+	ranges = my_escranges;
 	escs = my_escs;
 	delete_at_deconstruct = 0;
 	num_esc = my_num_escs;
@@ -97,29 +97,32 @@ escgrid::~escgrid()
 
 void escgrid::add(vector3f* vec, grid* esc)
 {
+	add(VECPTR_TO_RANGE(vec), esc);
+}
+
+void escgrid::add(angle_range* range, grid* esc)
+{
 	//delete_table();
 	//*
-	vector3f** new_vecs = new vector3f*[num_esc + 1];
+	angle_range** new_ranges = new angle_range*[num_esc + 1];
 	grid** new_escs = new grid*[num_esc + 1];
 	if(escs)
 	{
 		int each = 0;
 		while(each < num_esc)
 		{
-			new_vecs[each] = vecs[each];
+			new_ranges[each] = ranges[each];
 			new_escs[each] = escs[each];
 			each++;
 		}
 		delete_table();
 	}
-	new_vecs[num_esc] = vec;
-	new_escs[num_esc] = esc;
 	escs = new_escs;
-   	vecs = new_vecs;
+   	ranges = new_ranges;
 	// */
 	if(am_goal)
 		esc->set_as_goal();
-	vecs[num_esc] = vec;
+	ranges[num_esc] = range;
 	escs[num_esc] = esc;
 	num_esc++;
 }
@@ -129,7 +132,7 @@ grid* escgrid::get_esc(vector3f angle)
 	int each = 0;
 	while(each < num_esc)
 	{
-		if(escs[each] && vecs[each]->angle_similar(angle))
+		if(escs[each] && ranges[each]->is_vec_in(angle))
 		{
 			return(escs[each]);
 		}

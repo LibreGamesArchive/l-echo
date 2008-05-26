@@ -185,3 +185,19 @@ vector3f* vector3f::neg_rotate_yx(vector3f rot)
 	return(ret);
 }
 
+angle_range::angle_range(vector3f* my_v1, vector3f* my_v2)
+{
+	v1 = my_v1;
+	v2 = my_v2;
+}
+
+//is b in between a and c?
+#define IN_BETWEEN(a,b,c) (((a) <= (b) && (b) <= (c)) || ((c) <= (b) && (b) <= (a)))
+
+int angle_range::is_vec_in(vector3f v)
+{
+	return(IN_BETWEEN(v1->x, v.x, v2->x) 
+		&& IN_BETWEEN(v1->y, v.y, v2->y)
+		&& IN_BETWEEN(v1->z, v.z, v2->z));
+}
+

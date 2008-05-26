@@ -33,10 +33,10 @@ class hole : public escgrid
 		hole(grid_info_t* my_info, grid* my_prev, grid* my_next);
 		hole(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info_t* my_esc_info
 			, grid* my_normal_prev, grid* my_esc_prev, grid* my_normal_next, grid* my_esc_next);
-		hole(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f** my_escvecs, grid** my_escs, int my_num_escs);
+		hole(grid_info_t* my_info, grid* my_prev, grid* my_next, angle_range** my_escranges, grid** my_escs, int my_num_escs);
 		void init(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info_t* my_esc_info
 			, grid* my_normal_prev, grid* my_esc_prev, grid* my_normal_next, grid* my_esc_next);
-		void init(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f** my_escvecs, grid** my_escs, int my_num_escs);
+		void init(grid_info_t* my_info, grid* my_prev, grid* my_next, angle_range** my_escranges, grid** my_escs, int my_num_escs);
 		void init(grid_info_t* my_info, grid* my_prev, grid* my_next);
 
 		virtual ~hole();

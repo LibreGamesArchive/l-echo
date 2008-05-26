@@ -37,9 +37,9 @@ hole::hole(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info_t* my_e
 	init(my_escangle, my_normal_info, my_esc_info, my_normal_prev, my_esc_prev, my_normal_next, my_esc_next);
 }
 
-hole::hole(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f** my_escvecs, grid** my_escs, int my_num_escs)
+hole::hole(grid_info_t* my_info, grid* my_prev, grid* my_next, angle_range** my_escranges, grid** my_escs, int my_num_escs)
 {
-	init(my_info, my_prev, my_next, my_escvecs, my_escs, my_num_escs);
+	init(my_info, my_prev, my_next, my_escranges, my_escs, my_num_escs);
 }
 
 hole::hole(grid_info_t* my_info, grid* my_prev, grid* my_next)
@@ -55,9 +55,9 @@ void hole::init(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info_t*
 	real_next = my_normal_next;
 }
 
-void hole::init(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f** my_escvecs, grid** my_escs, int my_num_escs)
+void hole::init(grid_info_t* my_info, grid* my_prev, grid* my_next, angle_range** my_escranges, grid** my_escs, int my_num_escs)
 {
-	escgrid::init(my_info, echo_ns::hole_grid, echo_ns::hole_grid, my_escvecs, my_escs, my_num_escs);
+	escgrid::init(my_info, echo_ns::hole_grid, echo_ns::hole_grid, my_escranges, my_escs, my_num_escs);
 	real_prev = my_prev;
 	real_next = my_next;
 }
@@ -103,22 +103,26 @@ grid* hole::get_next(vector3f angle, grid* current)
 		return(esc->get_next(angle, current));
 	vector3f pos = get_info(angle)->pos;
 	LEVEL_MAP* levels = echo_ns::current_stage->get_levels_lower_than(pos.y);
-	LEVEL_MAP::iterator it = levels->begin(), end = (levels->end())--;
-	isect_grid* begin = NULL;
-	grid* temp = echo_ns::hole_grid;
-	while(it != end)
+	if(levels->size() > 0)
 	{
-		grid_info_t* info = new(grid_info_t);
-		info->pos.set(pos.x, it->first, pos.z);
-		//info->pos.dump();
-		//std::cout << std::endl;
-		begin = new isect_grid(info, NULL, temp, angle, it->second);
-		temp->set_real_prev(begin);
-		//echo_ns::current_stage->add("add", begin);
-		temp = begin;
-		it++;
+		LEVEL_MAP::iterator it = levels->begin(), end = (levels->end())--;
+		isect_grid* begin = NULL;
+		grid* temp = echo_ns::hole_grid;
+		while(it != end)
+		{
+			grid_info_t* info = new(grid_info_t);
+			info->pos.set(pos.x, it->first, pos.z);
+			//info->pos.dump();
+			//std::cout << std::endl;
+			begin = new isect_grid(info, NULL, temp, angle, it->second);
+			temp->set_real_prev(begin);
+			//echo_ns::current_stage->add("add", begin);
+			temp = begin;
+			it++;
+		}
+		begin->set_real_prev(this);
+		return(begin);
 	}
-	begin->set_real_prev(this);
-	return(begin);
+	return(echo_ns::hole_grid);
 }
 
