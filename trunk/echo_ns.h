@@ -17,6 +17,7 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <echo_character.h>
 #include <echo_math.h>
 #include <grid.h>
 #include <echo_stage.h>
@@ -27,21 +28,21 @@ namespace echo_ns
 {
 	extern grid* hole_grid;
 	extern vector3f angle;
-	extern grid* start;
-	extern grid* grid1;
-	extern grid* grid2;
-	extern int paused;
-	extern int num_goals;
-	extern float grid1per, grid2per, startper;
-	
 	extern stage* current_stage;
+	extern echo_char* main_char;
 
+	void init(stage* st);
+	void start();
+	
 	void toggle_pause();
+	int is_paused();
 	void kill_char();
 	void setup_char(grid* g1);
 	vector3f* step_char();
 	void draw();
-	void init();
+	void reset();
+	int num_goals_reached();
+	int goals_left();
 };
 #endif
 

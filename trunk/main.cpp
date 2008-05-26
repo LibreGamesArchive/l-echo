@@ -68,12 +68,10 @@ static void set_proj(int w, int h);
 
 int main(int argc, char **argv)
 {
-    init_math();
-
-    char* fname = argc >= 2 ? argv[1] : const_cast<char*>("sample1.xml");
-    echo_ns::current_stage = load_stage(fname);
-
+	init_math();
 	
+	char* fname = argc >= 2 ? argv[1] : const_cast<char*>("sample1.xml");
+	echo_ns::init(load_stage(fname));
 	
 	vector3f* vec = new vector3f(1, 2, 2);
 	vector3f* angle = vec->angle_xy();
@@ -103,14 +101,14 @@ void init(int argc, char **argv, int w, int h)
 	glutReshapeFunc(&resize);
 	glutKeyboardFunc(&key);
 	glutSpecialFunc(&spec_key);
-
+	
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClearDepth(1.0);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
-
+	
 	glLineWidth(2.5);
-
+	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	/*
@@ -120,16 +118,16 @@ void init(int argc, char **argv, int w, int h)
 	glEnable(GL_COLOR);
 	glShadeModel(GL_FLAT);
 	// */
-
+	
 	set_proj(w, h);
 }
 
 void resize(int w, int h)
 {
 	if(h == 0)	h = 1;
-
+	
 	glViewport(0, 0, w, h);
-
+	
 	set_proj(w, h);
 }
 
@@ -137,96 +135,95 @@ static void set_proj(int w, int h)
 {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-
-    my_width = w;
-    my_height = h;
-
+	
+	my_width = w;
+	my_height = h;
+	
 	if (w <= h)	glOrtho(-5.0, 5.0, -5.0 * (GLfloat) h / (GLfloat) w, 5.0 * (GLfloat) h / (GLfloat) w, -10.0, 10.0);
 	else		glOrtho(-5.0 * (GLfloat) w / (GLfloat) h, 5.0 * (GLfloat) w / (GLfloat) h, -5.0, 5.0, -10.0, 10.0);
-
+	
 	glMatrixMode(GL_MODELVIEW);
 }
 
 //copied from http://lighthouse3d.com/opengl/glut/index.php?bmpfontortho
 void draw_message_string(float x, float y, char *string)
 {
-    char *c = string;
-    while(*c != '\0')
-    {
-        glRasterPos2f(x, y);
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
-        x += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c) / 18.0f;
-        c++;
-    }
+	char *c = string;
+	while(*c != '\0')
+	{
+		glRasterPos2f(x, y);
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+		x += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c) / 18.0f;
+		c++;
+	}
 }
 
 void draw_string(float x, float y, char *string)
 {
-    char *c = string;
-    while(*c != '\0')
-    {
-        glRasterPos2f(x, y);
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
-        x += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c) / 36.0f;
-        c++;
-    }
+	char *c = string;
+	while(*c != '\0')
+	{
+		glRasterPos2f(x, y);
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+		x += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c) / 36.0f;
+		c++;
+	}
 }
 
 void display()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
-
-    glColor3f(0, 0, 0);
-
+	
+	glColor3f(0, 0, 0);
+	
 	if(message == MSG_START)
 	{
-	    glColor4f(0, 0, 0, 1.0f - start_frame * 1.0f / START_MAX);
-	    if(start_frame > START_MAX)
-            message = MSG_BLANK;
-        else
-            start_frame++;
+		glColor4f(0, 0, 0, 1.0f - start_frame * 1.0f / START_MAX);
+		if(start_frame > START_MAX)
+			message = MSG_BLANK;
+		else
+			start_frame++;
 	}
 	else if(message == MSG_PAUSE)
 	{
-        glColor4f(0, 0, 0, 0.4f * sin(TO_RAD(start_frame)) + 0.6f);
-        start_frame += 10;
+		glColor4f(0, 0, 0, 0.4f * sin(TO_RAD(start_frame)) + 0.6f);
+		start_frame += 10;
 	}
-
+	
 	draw_message_string(-4, -4.5f, message);
-
-    if(name_display > 0)
-    {
-        glColor3f(0, 0, 0);
-
-        if(name_display < NAME_DISPLAY_MAX)
-        {
-            glColor4f(0, 0, 0, name_display * 1.0f / NAME_DISPLAY_MAX);
-            name_display--;
-        }
-        //std::cout << my_stage->get_name() << std::endl;
-        draw_string(-5, 0, const_cast<char*>(echo_ns::current_stage->get_name().c_str()));
-    }
-
-    int goals_left = echo_ns::current_stage->get_num_goals() - echo_ns::num_goals;
-    //std::cout << "num_goals: " << echo_ns::num_goals << std::endl;
-    if(goals_left)
-    {
-        //Yeah, I really should check the number of chars I need...
-        counter = new char[10];
-        sprintf(counter, COUNTER_HEAD, goals_left);
-    }
-    else
-        counter = SUCCESS;
-
-    glColor3f(0, 0, 0);
-    draw_string(-3, -4, counter);
-
+	
+	if(name_display > 0)
+	{
+		glColor3f(0, 0, 0);
+		
+		if(name_display < NAME_DISPLAY_MAX)
+		{
+			glColor4f(0, 0, 0, name_display * 1.0f / NAME_DISPLAY_MAX);
+			name_display--;
+		}
+		//std::cout << my_stage->get_name() << std::endl;
+		draw_string(-5, 0, const_cast<char*>(echo_ns::current_stage->get_name().c_str()));
+	}
+	
+	int goals_left = echo_ns::goals_left();
+	if(goals_left)
+	{
+		//Yeah, I really should check the number of chars I need...
+		counter = new char[(int)log(ABS(goals_left)) + 10];
+		sprintf(counter, COUNTER_HEAD, goals_left);
+	}
+	else
+		counter = SUCCESS;
+	
+	glColor3f(0, 0, 0);
+	draw_string(-3, -4, counter);
+	
 	glRotatef(-echo_ns::angle.x, 1, 0, 0);
 	glRotatef(-echo_ns::angle.y, 0, 1, 0);
-
+	
 	echo_ns::draw();
-
+	
 	vector3f* vec = echo_ns::step_char();
 	if(vec)
 	{
@@ -238,9 +235,9 @@ void display()
 		glTranslatef(vec->x, vec->y + 0.25, vec->z);
 		glutSolidSphere(0.1, 8, 8);
 	}
-
+	
 	glutSwapBuffers();
-
+	
 	echo_sleep(30000);
 }
 
@@ -254,31 +251,21 @@ void key(unsigned char key, int x, int y)
 	}
 	else if(key == 'p')
 	{
-	    start_frame = 0;
-	    if(message == MSG_READY)
-	    {
-            message = MSG_START;
-	    echo_ns::init();
-            name_display--;
-	    }
-        else
-        {
-            if(!echo_ns::paused)
-                message = MSG_PAUSE;
-            else
-                message = MSG_BLANK;
-        }
-	    echo_ns::toggle_pause();
-	}
-	else if(key == 'l')
-	{
-		std::cout << "locking to angle1" << std::endl;
-		echo_ns::angle.set(esc_angle1);
-	}
-	else if(key == ',')
-	{
-		std::cout << "locking to angle2" << std::endl;
-		echo_ns::angle.set(esc_angle2);
+		start_frame = 0;
+		if(message == MSG_READY)
+		{
+			message = MSG_START;
+			echo_ns::start();
+			name_display--;
+		}
+		else
+		{
+			if(!echo_ns::is_paused())
+				message = MSG_PAUSE;
+			else
+				message = MSG_BLANK;
+			echo_ns::toggle_pause();
+		}
 	}
 	else if(key == 'a')
 	{
@@ -289,29 +276,6 @@ void key(unsigned char key, int x, int y)
 	else if(key == 'k')
 	{
 		echo_ns::kill_char();
-	}
-	else if(key == 'c')
-	{
-		std::cout << "grid1 + grid2: " << std::endl;
-		if(echo_ns::grid1)
-		{
-			echo_ns::grid1->dump();
-		}
-		else                std::cout << "NULL";
-		std::cout << std::endl;
-		if(echo_ns::grid2)
-		{
-			echo_ns::grid2->dump();
-			grid* grid2next = echo_ns::grid2->get_next(echo_ns::angle, echo_ns::grid2);
-			if(grid2next)
-			{
-				std::cout << std::endl;
-				grid2next->dump();
-			}
-			std::cout << std::endl;
-		}
-		else                std::cout << "NULL";
-		std::cout << std::endl;
 	}
 }
 

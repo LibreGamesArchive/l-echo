@@ -73,6 +73,21 @@ typedef struct
 line3f;
 #endif
 
+#ifndef __ECHO_ANGLE_RANGE__
+#define __ECHO_ANGLE_RANGE__
+class angle_range
+{
+	protected:
+		vector3f* v1;
+		vector3f* v2;
+	public:
+		angle_range(vector3f* my_v1, vector3f* my_v2);
+		int is_vec_in(vector3f v);
+};
+#endif
+
+#define VECPTR_TO_RANGE(v)    (new angle_range(v, v))
+
 float echo_sin(int deg);
 float echo_cos(int deg);
 void init_math();

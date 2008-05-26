@@ -48,28 +48,28 @@ static int has_line(line3f* ptr, line3f line)
 
 void draw_hole(vector3f pos)
 {
-    glColor3f(0, 0, 0);
+	glColor3f(0, 0, 0);
 	glPushMatrix();
 	glTranslatef(pos.x, pos.y + 0.03, pos.z);
 	glBegin(GL_QUADS);
-    glVertex3f(0, 0, HALF_GRID);
-    glVertex3f(HALF_GRID, 0, 0);
-    glVertex3f(0, 0, -HALF_GRID);
-    glVertex3f(-HALF_GRID, 0, 0);
+	glVertex3f(0, 0, HALF_GRID);
+	glVertex3f(HALF_GRID, 0, 0);
+	glVertex3f(0, 0, -HALF_GRID);
+	glVertex3f(-HALF_GRID, 0, 0);
 	glEnd();
 	glPopMatrix();
 }
 
 void draw_launcher(vector3f pos)
 {
-    glColor3f(0, 0, 0);
+	glColor3f(0, 0, 0);
 	glPushMatrix();
 	glTranslatef(pos.x, pos.y + 0.03, pos.z);
 	glBegin(GL_LINE_LOOP);
-    glVertex3f(0, 0, HALF_GRID);
-    glVertex3f(HALF_GRID, 0, 0);
-    glVertex3f(0, 0, -HALF_GRID);
-    glVertex3f(-HALF_GRID, 0, 0);
+	glVertex3f(0, 0, HALF_GRID);
+	glVertex3f(HALF_GRID, 0, 0);
+	glVertex3f(0, 0, -HALF_GRID);
+	glVertex3f(-HALF_GRID, 0, 0);
 	glEnd();
 	glPopMatrix();
 }
@@ -108,7 +108,7 @@ void draw_n_lines(line3f* my_lines, vector3f angle, grid** others, int num_other
 			each_lines++;
 		}
 		draw_line(my_lines[each]);
-		NODRAW:
+	NODRAW:
 		each++;
 	}
 	delete[] lines;
@@ -116,21 +116,21 @@ void draw_n_lines(line3f* my_lines, vector3f angle, grid** others, int num_other
 
 void draw_rect(vector3f p1, vector3f p2, vector3f p3, vector3f p4)
 {
-    glColor3f(1, 1, 1);
-    glBegin(GL_QUADS);
-    glVertex3f(p1.x, p1.y, p1.z);
-    glVertex3f(p2.x, p2.y, p2.z);
-    glVertex3f(p3.x, p3.y, p3.z);
-    glVertex3f(p4.x, p4.y, p4.z);
-    glEnd();
+	glColor3f(1, 1, 1);
+	glBegin(GL_QUADS);
+	glVertex3f(p1.x, p1.y, p1.z);
+	glVertex3f(p2.x, p2.y, p2.z);
+	glVertex3f(p3.x, p3.y, p3.z);
+	glVertex3f(p4.x, p4.y, p4.z);
+	glEnd();
 }
 
 void draw_goal_gfx(vector3f pos, float goal_angle)
 {
-    glColor3f(0.25f, 0.25f, 0.25f);
-    glPushMatrix();
+	glColor3f(0.25f, 0.25f, 0.25f);
+	glPushMatrix();
 	glTranslatef(pos.x, pos.y + 0.5f, pos.z);
 	glRotatef(goal_angle, 0, 1, 0);
-    glutSolidTorus(0.05f, 0.4f, 8, 8);
-    glPopMatrix();
+	glutSolidTorus(0.05f, 0.4f, 8, 8);
+	glPopMatrix();
 }

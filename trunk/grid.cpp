@@ -89,7 +89,7 @@ static void dump_lines(line3f* ptr)
 
 grid::~grid()
 {
-	//*
+	/*
 	if(neighbors)
 	{
 		delete[] neighbors;

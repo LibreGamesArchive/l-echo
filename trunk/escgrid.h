@@ -27,7 +27,7 @@ class escgrid : public grid
 	protected:
 		int num_esc;
 		int delete_at_deconstruct;
-		vector3f** vecs;
+		angle_range** ranges;
 		grid** escs;
 
 	public:
@@ -37,10 +37,11 @@ class escgrid : public grid
 			, grid* my_normal_prev, grid* my_esc_prev, grid* my_normal_next, grid* my_esc_next);
 		void init(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info_t* my_esc_info
 			, grid* my_normal_prev, grid* my_esc_prev, grid* my_normal_next, grid* my_esc_next);
-		void init(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f** my_escvecs, grid** my_escs, int my_num_escs);
+		void init(grid_info_t* my_info, grid* my_prev, grid* my_next, angle_range** my_escranges, grid** my_escs, int my_num_escs);
 		void init(grid_info_t* my_info, grid* my_prev, grid* my_next);
 
 		void add(vector3f* vec, grid* esc);
+		void add(angle_range* range, grid* esc);
 
 		virtual ~escgrid();
 		virtual grid_info_t* get_info(vector3f angle);
@@ -49,7 +50,7 @@ class escgrid : public grid
 		virtual void draw(vector3f angle);
 		virtual int equals(grid* g, vector3f angle);
 
-        virtual void set_as_goal();
+		virtual void set_as_goal();
 
 		virtual void toggle_goal(vector3f angle);
 		virtual int is_goal(vector3f angle);
