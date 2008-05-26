@@ -1,0 +1,4 @@
+<?xml version="1.0" standalone="no" ?>
+<stage name="simple" start="grid" goals="0">
+    <grid id="grid" x="0" y="0" z="0" prev="NONE" next="NONE" />
+</stage>

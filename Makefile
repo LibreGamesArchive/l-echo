@@ -21,7 +21,7 @@ w32: $(OBJFILES)
 	i586-mingw32msvc-g++ *.OBJ win/*.OBJ tinyxml/*.OBJ glut32.lib -lGL -lGLU -g3 -Wall -o l-echo.exe
 
 clean:
-	rm *.o *.OBJ l-echo.exe l-echo *~ || echo
+	rm *.o *.OBJ l-echo.exe l-echo lin/*.o win/*.OBJ *~ || echo
 
 clean-all: clean
 	rm tinyxml/*.o tinyxml/*.OBJ || echo
