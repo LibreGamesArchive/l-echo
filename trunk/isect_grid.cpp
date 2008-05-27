@@ -49,7 +49,8 @@ grid* isect_grid::get_next(vector3f angle, grid* current)
 	float delta_y = level_y - prev_pos.y;
 	if((delta_y > 0 && vec.y < 0) || (delta_y < 0 && vec.y > 0))
 		return(grid::get_next(angle, current));
-	vec = vec * (delta_y / vec.y);
+	if(vec.y != 0)
+		vec = vec * (delta_y / vec.y);
 	vector3f end_pt = prev_pos + vec;
 	/*
 	std::cout << "end_pt: " << std::endl;

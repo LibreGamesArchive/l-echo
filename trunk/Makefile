@@ -1,7 +1,7 @@
 CXXFLAGS = -I./ -I../include -DTIXML_USE_STL -g3 -Wall
 TINYXML_USE_STL := YES
 
-CPPFILES  := $(wildcard *.cpp)
+CPPFILES  := $(wildcard *.cpp) $(wildcard tinyxml/*.cpp)
 
 LINFILES  := $(wildcard lin/*.cpp)
 OFILES    := $(CPPFILES:.cpp=.o) $(LINFILES:.cpp=.o)
@@ -9,7 +9,7 @@ OFILES    := $(CPPFILES:.cpp=.o) $(LINFILES:.cpp=.o)
 WINFILES  := $(wildcard win/*.cpp)
 OBJFILES  := $(CPPFILES:.cpp=.OBJ) $(WINFILES:.cpp=.OBJ)
 
-PKGPREFIX := ../l-echo-0.0.8_r16-
+PKGPREFIX := ../l-echo-0.0.8_r23-
 
 all: $(OFILES)
 	gcc tinyxml/*.o *.o lin/*.o -DTIXML_USE_STL -lGL -lGLU  /usr/lib/libglut.so.3.8.0 -lpthread -g3 -Wall -o l-echo
@@ -36,6 +36,6 @@ package: all w32
 	zip -r $(PKGPREFIX)lin32.zip l-echo *.xml L_ECHO_README
 	zip -r $(PKGPREFIX)w32.zip l-echo.exe *.xml L_ECHO_README
 
-commit: clean-all
-	svn commit ./ --username penguin673
+count:
+	wc -l *.cpp *.h lin/*.cpp win/*.cpp
 

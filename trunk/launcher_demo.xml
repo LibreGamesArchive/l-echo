@@ -1,0 +1,8 @@
+<?xml version="1.0" standalone="no" ?>
+<stage name="launcher demo" start="start" goals="0">
+    <grid id="start" x="-1" y="0" z="0" prev="launcher" next="launcher"/>
+    <launcher id="launcher" x="0" y ="0" z="0" prev="start" next="start"/>
+    
+    <grid id="east1" x="4" y="0" z="0" prev="east2" next="east2" />
+    <grid id="east2" x="5" y="0" z="0" prev="east1" next="east1" />
+</stage>
