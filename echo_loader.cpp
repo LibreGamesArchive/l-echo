@@ -26,6 +26,7 @@
 #include <vector>
 #include <map>
 
+#include <launcher.h>
 #include <stair.h>
 #include <t_grid.h>
 #include <escgrid.h>
@@ -218,6 +219,20 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 	{
 		std::cout << name << " is an hole!" << std::endl;
 		new_grid = new hole(info, prev, next);
+		if(txe->FirstChild())
+		{
+			TiXmlElement* child = txe->FirstChild()->ToElement();
+			while(child)
+			{
+				add_esc(child, st, map, escroot, (escgrid*)new_grid);
+				child = child->NextSiblingElement();
+			}
+		}
+	}
+	else if(!strcmp(type, "launcher"))
+	{
+		std::cout << name << " is an launcher!" << std::endl;
+		new_grid = new launcher(info, prev, next);
 		if(txe->FirstChild())
 		{
 			TiXmlElement* child = txe->FirstChild()->ToElement();

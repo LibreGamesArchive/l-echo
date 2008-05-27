@@ -201,3 +201,9 @@ int angle_range::is_vec_in(vector3f v)
 		&& IN_BETWEEN(v1->z, v.z, v2->z));
 }
 
+vector3f* vector3f::rotate_about_y(float angle)
+{
+	return(new vector3f(z * echo_sin(angle) + x * echo_cos(angle)
+			, y, z * echo_cos(angle) - x * echo_sin(angle)));
+}
+
