@@ -100,9 +100,14 @@ grid* launcher::get_real_prev()
 
 #define VERTEX_Z   				2
 #define VERTEX_Y				4
+#define	INTERCEPT_Z				4
 #define STATIC_STEP				0.25f
 #define GET_Z(y)				(2 + sqrtf(4 - (y)))
-#define GET_Y(z)				(4 - powf((z) - 2, 2))
+#ifdef WIN32
+	#define GET_Y(z)				(4 - ((z) - 2) * ((z) - 2))
+#else
+	#define GET_Y(z)				(4 - powf((z) - 2, 2))	//a bug in mingw prevents linking with powf...
+#endif
 #define TRANS_TO_LAUNCH(vec, angle, pos)	(*(vec.rotate_about_y(angle)) + pos)
 #define TRANS_PTR_TO_LAUNCH(vec, angle, pos)	(*(vec->rotate_about_y(angle)) + pos)
 
@@ -138,7 +143,7 @@ grid* launcher::get_next(vector3f angle, grid* current)
 	grid* temp1 = this;
 	grid* temp2 = NULL;
 	
-	float z = 0;
+	float z = STATIC_STEP;
 	while(z <= VERTEX_Z)
 	{
 		grid_info_t* info = new(grid_info_t);
@@ -160,30 +165,82 @@ grid* launcher::get_next(vector3f angle, grid* current)
 		//std::cout << "z: " << z << std::endl;
 		z += STATIC_STEP;
 	}
-	return(begin);
+	//return(begin);
 	
-	/*
+	//*
 	LEVEL_MAP* levels = echo_ns::current_stage->get_levels_lower_than(pos.y + VERTEX_Y);
+	//std::cout << "levels->size(): " << levels->size() <<std::endl;
 	if(levels->size() > 0)
 	{
-		LEVEL_MAP::iterator it = levels->begin(), end = (levels->end());
-		isect_grid* begin = NULL;
-		grid* temp = echo_ns::hole_grid;
-		while(it != end)
+		LEVEL_MAP::iterator it = levels->end(), end = levels->begin();
+		it--;
+		int past_end = 0, dup_static = 0;
+		std::cout << "last y: " << end->first << std::endl;
+		float last_z = (int)(GET_Z(end->first - pos.y) / STATIC_STEP) * STATIC_STEP, this_y;
+		if(last_z < INTERCEPT_Z)
+			last_z = INTERCEPT_Z;
+		std::cout << "last z: " << last_z << std::endl;
+		while(z <= last_z)
 		{
-			grid_info_t* info = new(grid_info_t);
-			info->pos.set(pos.x, it->first, pos.z);
-			//info->pos.dump();
-			//std::cout << std::endl;
-			begin = new isect_grid(info, NULL, temp, angle, it->second);
-			temp->set_real_prev(begin);
-			temp = begin;
-			it++;
+			this_y = GET_Y(z) + pos.y;
+			while(!past_end && it->first >= this_y)
+			{
+				//std::cout << "LEVEL: " << it->first << ", " << GET_Y(z) << ", " << pos.y << std::endl;
+				grid_info_t* info = new(grid_info_t);
+				info->pos.set(0, it->first - pos.y, GET_Z(it->first - pos.y));
+				info->pos.dump();
+				std::cout << std::endl;
+				info->pos = TRANS_TO_LAUNCH(info->pos, launch_angle, pos);
+				info->pos.dump();
+				std::cout << std::endl;
+				temp2 = new isect_grid(info, temp1, echo_ns::hole_grid, angle, it->second);
+				temp1->set_real_next(temp2);
+				temp1 = temp2;
+				
+				if(it->first == this_y)
+				{
+					std::cout << "dup_static..." << std::endl;
+					dup_static = 1;
+				}
+				if(it == end)
+					past_end = 1;
+				else
+					it--;
+			}
+			//std::cout << "STEP: " << z<< std::endl;
+			if(!dup_static)
+			{
+				grid_info_t* info = new(grid_info_t);
+				info->pos.set(0, GET_Y(z), z);
+				info->pos = TRANS_TO_LAUNCH(info->pos, launch_angle, pos);
+				temp2 = new static_grid(info, temp1, echo_ns::hole_grid, angle);
+				temp1->set_real_next(temp2);
+				temp1 = temp2;
+			}
+			else
+				dup_static = 0;
+			z += STATIC_STEP;
 		}
-		begin->set_real_prev(this);
-		return(begin);
+		/*
+		do
+		{
+			it--;
+			grid_info_t* info = new(grid_info_t);
+			info->pos.set(0, it->first - pos.y, GET_Z(it->first - pos.y));
+			info->pos.dump();
+			std::cout << std::endl;
+			info->pos = TRANS_TO_LAUNCH(info->pos, launch_angle, pos);
+			info->pos.dump();
+			std::cout << std::endl;
+			temp2 = new isect_grid(info, temp1, echo_ns::hole_grid, angle, it->second);
+			temp1->set_real_next(temp2);
+			temp1 = temp2;
+		}
+		while(it != end);
+		// */
+		//std::cout << "begin: " << end->second << std::endl;
 	}
-	return(echo_ns::hole_grid);
+	return(begin ? begin : echo_ns::hole_grid);
 	// */
 }
 
