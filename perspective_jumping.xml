@@ -1,0 +1,15 @@
+<?xml version="1.0" standalone="no" ?>
+<stage name="perspective jumping" start="grid1" goals="1">
+    <grid id="grid1" x="0" y="-3" z="4" prev="launcher" next="launcher" />
+    <launcher id="launcher" x="0" y="-3" z="3" prev="grid1" next="grid2" />
+    <grid id="grid2" x="0" y="-3" z="2" prev="launcher" next="grid3" />
+    <grid id="grid3" x="0" y="-3" z="1" prev="grid2" next="grid4" />
+    <grid id="grid4" x="0" y="-3" z="0" prev="grid3" next="grid3" />
+    
+    <grid id="top1" x="0" y="0" z="1" prev="landing" next="landing" goal="1"/>
+    <escgrid id="landing" x="-3" y="3" z="3" prev="NONE" next="NONE">
+    	<angle x="-35" y="-45" z="0">
+		<grid id="landing_esc" x="0" y="0" z="0" prev="top1" next="top1" />
+	</angle>
+    </escgrid>
+</stage>
