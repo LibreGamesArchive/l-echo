@@ -17,10 +17,11 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdlib.h>
+//#include <stdlib.h>
+#include <windows.h>
 
 void echo_sleep(int millis)
 {
-	_sleep(millis);
+	Sleep(millis);
 }
 
