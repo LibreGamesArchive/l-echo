@@ -51,7 +51,7 @@ class escgrid : public grid
 		virtual int equals(grid* g, vector3f angle);
 
 		virtual void set_as_goal();
-
+		
 		virtual void toggle_goal(vector3f angle);
 		virtual int is_goal(vector3f angle);
 

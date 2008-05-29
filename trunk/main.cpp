@@ -74,6 +74,7 @@ int main(int argc, char **argv)
 	char* fname = argc >= 2 ? argv[1] : const_cast<char*>("sample1.xml");
 	echo_ns::init(load_stage(fname));
 	
+	/*
 	vector3f* vec = new vector3f(1, 2, 2);
 	vector3f* angle = vec->angle_xy();
 	angle->dump();
@@ -84,6 +85,7 @@ int main(int argc, char **argv)
 	vector3f* back = norm->rotate_xy(*angle);
 	back->dump();
 	std::cout << std::endl;
+	// */
 	
 	init(argc, argv, 640, 480);
 	glutMainLoop();
@@ -208,10 +210,10 @@ void display()
 	}
 	
 	int goals_left = echo_ns::goals_left();
-	if(goals_left)
+	if(goals_left > 0)
 	{
 		//Yeah, I really should check the number of chars I need...
-		counter = new char[(int)log(ABS(goals_left)) + 10];
+		counter = new char[(int)log(goals_left) + 10];
 		sprintf(counter, COUNTER_HEAD, goals_left);
 	}
 	else if(echo_ns::num_goals())
@@ -252,7 +254,7 @@ void key(unsigned char key, int x, int y)
 		glutDestroyWindow(window);
 		exit(0);
 	}
-	else if(key == 'p')
+	else if(key == 'p' || key == 'P')
 	{
 		start_frame = 0;
 		if(message == MSG_READY)
@@ -270,15 +272,11 @@ void key(unsigned char key, int x, int y)
 			echo_ns::toggle_pause();
 		}
 	}
-	else if(key == 'a')
+	else if(key == 'a' || key == 'A')
 	{
 		std::cout << "ang: ";
 		echo_ns::angle.dump();
 		std::cout << std::endl;
-	}
-	else if(key == 'k')
-	{
-		echo_ns::kill_char();
 	}
 }
 

@@ -29,7 +29,6 @@
 #define __ECHO_CLASS_STAGE__
 
 typedef std::map<std::string, grid*> STAGE_MAP;
-typedef std::set<grid*> GRID_PTR_SET;
 typedef std::vector<GRID_PTR_SET*> GPS_VEC;
 typedef std::map<float, GRID_PTR_SET*> LEVEL_MAP;
 

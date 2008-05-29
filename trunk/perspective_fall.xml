@@ -1,10 +1,12 @@
 <?xml version="1.0" standalone="no" ?>
 <stage name="perspective fall" start="g2" goals="1">
-	<escgrid id="goal" x="1" y="0" z="0" prev="NONE" next="NONE" goal="1">
+	<escgrid id="goal" x="1" y="0" z="0" prev="NONE" next="NONE">
 		<angle x="-55" y="40" z="0">
-			<grid id="goal_esc" x="-0.85f" y="-4" z="-2.15f" prev="NONE" next="NONE"/>
+			<grid id="goal_esc" x="-0.85f" y="-4" z="-2.15f" prev="below" next="below"/>
 		</angle>
 	</escgrid>
+	
+	<grid id="below" x="-0.85f" y="-4" z="-3.15f" prev="goal" next="goal" goal="1"/>
 	
 	<grid id="g1" x="-1" y="0" z="0" prev="g2" next="g2" />
 	<grid id="g2" x="-1" y="0" z="-1" prev="g1" next="hole" />

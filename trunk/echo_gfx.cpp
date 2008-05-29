@@ -92,7 +92,7 @@ void draw_n_lines(line3f* my_lines, vector3f angle, grid** others, int num_other
 	int each = 0, line_count = 0;
 	while(each < num_others)
 	{
-		if(lines[line_count] = others[each]->get_lines(angle))
+		if(others[each] && (lines[line_count] = others[each]->get_lines(angle)))
 			line_count++;
 		each++;
 	}

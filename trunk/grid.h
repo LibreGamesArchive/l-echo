@@ -17,6 +17,7 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <set>
 #include <echo_math.h>
 
 #define GRID_SIZE	1
@@ -38,6 +39,10 @@ void dump_grid_info(grid_info_t ginfo);
 
 #ifndef __ECHO_CLASS_GRID__
 #define __ECHO_CLASS_GRID__
+class grid;
+
+typedef std::set<grid*> GRID_PTR_SET;
+
 class grid
 {
 	protected:
@@ -49,6 +54,8 @@ class grid
 		int am_goal;
 		float goal_angle;
 		int draw_me;
+		
+		GRID_PTR_SET* triggers;
 	public:
 		grid();
 		grid(grid_info_t* my_info, grid* my_prev, grid* my_next);
@@ -75,6 +82,7 @@ class grid
 		virtual void set_real_prev(grid* g);
 		virtual line3f* generate_lines(grid_info_t my_info);
 
+		virtual void add_trigger(grid* trig);
 		virtual void toggle_goal(vector3f angle);
 		virtual int is_goal(vector3f angle);
 		virtual void set_as_goal();
@@ -82,7 +90,7 @@ class grid
 		virtual int should_draw();
 		virtual void set_draw(int draw);
 
-        virtual int is_pt_on(vector3f angle, vector3f pt);
+		virtual int is_pt_on(vector3f angle, vector3f pt);
 
 		void draw_goal(vector3f angle);
 };
