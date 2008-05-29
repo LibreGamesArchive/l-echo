@@ -181,6 +181,8 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 	grid* prev = st->get(prev_id);
 	char* next_id = const_cast<char*>(txe->Attribute("next"));
 	grid* next = st->get(next_id);
+	const char* trig_id = txe->Attribute("trig");
+	grid* trig = trig_id ? st->get(const_cast<char*>(trig_id)) : NULL;
 	
 	grid* new_grid = NULL;
 	// */
@@ -267,6 +269,11 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 	{
 		std::cout << "next (" << next_id << ") is null, adding to dep map" << std::endl;
 		add(map, next_id, new_grid, &grid::set_real_next);
+	}
+	if(trig_id && !trig && strcmp(trig_id, "NONE"))
+	{
+		std::cout << "trig (" << trig_id << ") is null, adding to dep map" << std::endl;
+		add(map, const_cast<char*>(trig_id), new_grid, &grid::add_trigger);
 	}
 	if(txe->Attribute("goal"))
 	{

@@ -58,10 +58,11 @@ void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next)
 
 void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, int my_num_neighbors)
 {
-    am_goal = 0;
-    goal_angle = 0;
-    draw_me = 1;
-
+	am_goal = 0;
+	goal_angle = 0;
+	draw_me = 1;
+	triggers = new GRID_PTR_SET();
+	
 	ginfo = my_info;
 	n_neighbors = my_num_neighbors;
 	neighbors = new grid*[my_num_neighbors < 2 ? 2 : my_num_neighbors];
@@ -119,8 +120,8 @@ void grid::set_real_prev(grid* g)
 
 void grid::draw(vector3f angle)	//TODO CHANGE FOR NORMALS
 {
-    draw_goal(angle);
-
+	draw_goal(angle);
+	
 	line3f* my_lines = get_lines(angle);
 	draw_rect(my_lines[0].p1, my_lines[1].p1, my_lines[2].p1, my_lines[3].p1);
 	grid* my_next = get_real_next();
@@ -140,18 +141,18 @@ void grid::draw(vector3f angle)	//TODO CHANGE FOR NORMALS
 line3f* grid::generate_lines(grid_info_t my_info)
 {
 	line3f* ret = new line3f[4];
-
+	
 	vector3f pos = my_info.pos;
 	vector3f p1(pos.x - HALF_GRID, pos.y, pos.z - HALF_GRID);
 	vector3f p2(pos.x - HALF_GRID, pos.y, pos.z + HALF_GRID);
 	vector3f p3(pos.x + HALF_GRID, pos.y, pos.z + HALF_GRID);
 	vector3f p4(pos.x + HALF_GRID, pos.y, pos.z - HALF_GRID);
-
+	
 	ret[0].p1 = p1;	ret[0].p2 = p2;
 	ret[1].p1 = p2;	ret[1].p2 = p3;
 	ret[2].p1 = p3;	ret[2].p2 = p4;
 	ret[3].p1 = p4;	ret[3].p2 = p1;
-
+	
 	return(ret);
 }
 
@@ -197,20 +198,34 @@ void grid::dump()
 	std::cout << "," << neighbors[0] << "," << neighbors[1] << "]";
 }
 
+void grid::add_trigger(grid* trig)
+{
+	triggers->insert(trig);
+}
+
 void grid::set_as_goal()
 {
-    am_goal = 1;
+	am_goal = 1;
 }
 
 void grid::toggle_goal(vector3f angle)
 {
-    am_goal = !am_goal;
-
+	if(am_goal)	//triggers
+	{
+		GRID_PTR_SET::iterator it = triggers->begin()
+					, end = triggers->end();
+		while(it != end)
+		{
+			(*it)->toggle_goal(angle);
+			it++;
+		}
+	}
+	am_goal = !am_goal;
 }
 
 int grid::is_goal(vector3f angle)
 {
-    return(am_goal);
+	return(am_goal);
 }
 
 int grid::should_draw()
@@ -224,13 +239,13 @@ void grid::set_draw(int draw)
 
 void grid::draw_goal(vector3f angle)
 {
-    if(is_goal(angle))
-    {
-        draw_goal_gfx(get_info(angle)->pos, goal_angle);
-        goal_angle += 5;
-	if(goal_angle == 360)
-		goal_angle = 0;
-    }
+	if(is_goal(angle))
+	{
+		draw_goal_gfx(get_info(angle)->pos, goal_angle);
+		goal_angle += 5;
+		if(goal_angle == 360)
+			goal_angle = 0;
+	}
 }
 
 int grid::is_pt_on(vector3f angle, vector3f pt)
