@@ -21,6 +21,9 @@
 #include <iostream>
 #include <cmath>
 
+#include <libgen.h>
+#include <unistd.h>
+
 #include <hole.h>
 #include <grid.h>
 #include <escgrid.h>
@@ -32,6 +35,7 @@
 #include <echo_sys.h>
 #include <t_grid.h>
 #include <echo_stage.h>
+#include <echo_ingame_loader.h>
 
 #define _STDCALL_SUPPORTED
 
@@ -40,6 +44,7 @@
 #include <GL/glu.h>
 
 #define ESCAPE 27
+#define ENTER  13
 
 #define MSG_READY "ready"
 #define MSG_START "start"
@@ -50,16 +55,23 @@
 #define SUCCESS         "success"
 #define	NO_GOALS	"no goals"
 
-#define START_MAX           50
-#define NAME_DISPLAY_MAX    30
+#define LOAD_MAX		10.0f
+#define START_MAX           	50
+#define NAME_DISPLAY_MAX    	30
+#define FILE_SPACE		0.3f
+#define NUM_FILES_DISPLAYED     31
 
 static int window;
 static int my_width, my_height;
-static int start_frame, name_display = NAME_DISPLAY_MAX;
+static float real_width;
+static int start_frame = 0, name_display = NAME_DISPLAY_MAX;
+static int loading = 0, load_frame = 0, file_index = 0, file_start = 0;
 static vector3f esc_angle1(-45, 90, 0), esc_angle2(-45, 180, 0);
 static char* message = MSG_READY;
 static char* counter;
+static echo_files* files;
 
+void load(const char* fname);
 void init(int argc, char **argv, int w, int h);
 void resize(int w, int h);
 void display();
@@ -72,7 +84,11 @@ int main(int argc, char **argv)
 	init_math();
 	
 	char* fname = argc >= 2 ? argv[1] : const_cast<char*>("sample1.xml");
-	echo_ns::init(load_stage(fname));
+	load(fname);
+	
+	char* pwd = new char[4096];
+	files = get_files(getcwd(pwd, 4096));
+	//dump_files(files);
 	
 	/*
 	vector3f* vec = new vector3f(1, 2, 2);
@@ -90,6 +106,14 @@ int main(int argc, char **argv)
 	init(argc, argv, 640, 480);
 	glutMainLoop();
 	return(1);
+}
+
+void load(const char* fname)
+{
+	start_frame = 0;
+	name_display = NAME_DISPLAY_MAX;
+	message = MSG_READY;
+	echo_ns::init(load_stage(fname));
 }
 
 void init(int argc, char **argv, int w, int h)
@@ -142,8 +166,16 @@ static void set_proj(int w, int h)
 	my_width = w;
 	my_height = h;
 	
-	if (w <= h)	glOrtho(-5.0, 5.0, -5.0 * (GLfloat) h / (GLfloat) w, 5.0 * (GLfloat) h / (GLfloat) w, -10.0, 10.0);
-	else		glOrtho(-5.0 * (GLfloat) w / (GLfloat) h, 5.0 * (GLfloat) w / (GLfloat) h, -5.0, 5.0, -10.0, 10.0);
+	if (w <= h)
+	{
+		glOrtho(-5.0, 5.0, -5.0 * (GLfloat) h / (GLfloat) w, 5.0 * (GLfloat) h / (GLfloat) w, -10.0, 10.0);
+		real_width = 5.0f;
+	}
+	else
+	{
+		glOrtho(-5.0 * (GLfloat) w / (GLfloat) h, 5.0 * (GLfloat) w / (GLfloat) h, -5.0, 5.0, -10.0, 10.0);
+		real_width = 5.0f * (GLfloat) w / (GLfloat) h;
+	}
 	
 	glMatrixMode(GL_MODELVIEW);
 }
@@ -169,6 +201,18 @@ void draw_string(float x, float y, char *string)
 		glRasterPos2f(x, y);
 		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
 		x += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c) / 36.0f;
+		c++;
+	}
+}
+
+void draw_fname_string(float x, float y, char *string)
+{
+	char *c = string;
+	while(*c != '\0')
+	{
+		glRasterPos2f(x, y);
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *c);
+		x += glutBitmapWidth(GLUT_BITMAP_HELVETICA_12, *c) / 36.0f;
 		c++;
 	}
 }
@@ -212,7 +256,7 @@ void display()
 	int goals_left = echo_ns::goals_left();
 	if(goals_left > 0)
 	{
-		//Yeah, I really should check the number of chars I need...
+		//not very precise, but oh well
 		counter = new char[(int)log(goals_left) + 10];
 		sprintf(counter, COUNTER_HEAD, goals_left);
 	}
@@ -239,6 +283,53 @@ void display()
 		glColor3f(0.5f, 0.5f, 0.5f);
 		glTranslatef(vec->x, vec->y + 0.25, vec->z);
 		glutSolidSphere(0.1, 8, 8);
+	}
+	
+	if(loading || load_frame > 0)
+	{
+		//std::cout << "loading? " << std::endl;
+		if(!loading)
+			load_frame--;
+		else if(load_frame < LOAD_MAX)
+			load_frame++;
+		
+		float side_x = real_width * (1 - 1.5f * load_frame / LOAD_MAX);
+		
+		glLoadIdentity();
+		glTranslatef(0, 0, 9.8f);
+		glColor3f(0, 0, 0);
+		glBegin(GL_QUADS);
+		glVertex3f(side_x, 5, 0);
+		glVertex3f(real_width, 5, 0);
+		glVertex3f(real_width, -5, 0);
+		glVertex3f(side_x, -5, 0);
+		glEnd();
+		
+		glTranslatef(0, 0, 0.1f);
+		glColor3f(1, 1, 1);
+		
+		draw_string(side_x
+				, 5 - 0.4f, files->current_dir);
+		
+		glColor3f(0.5f, 0.5f, 0.5f);
+		
+		int each_file = 0;
+		float each_y = 5 - 3 * FILE_SPACE;
+		while(each_y >= -5 && each_file < NUM_FILES_DISPLAYED && each_file < files->num_files)
+		{
+			if(file_start + each_file == file_index)
+			{
+				glColor3f(1, 1, 1);
+			}
+			draw_fname_string(side_x
+				, each_y, files->file_names[file_start + each_file]);
+			if(file_start + each_file == file_index)
+			{
+				glColor3f(0.5f, 0.5f, 0.5f);
+			}
+			each_y -= FILE_SPACE;
+			each_file++;
+		}
 	}
 	
 	glutSwapBuffers();
@@ -272,6 +363,48 @@ void key(unsigned char key, int x, int y)
 			echo_ns::toggle_pause();
 		}
 	}
+	else if(key == ENTER)
+	{
+		const char* file = files->file_names[file_index];
+		if(!is_dir(files->current_dir, file))
+		{
+			load(file);
+		}
+		else
+		{
+			//std::cout << "file is dir: " << file << ", " << files->current_dir << std::endl;
+			char* dir;
+			if(!strcmp(file, ".."))
+			{
+				dir = new char[strlen(files->current_dir)];
+				strcpy(dir, dirname(files->current_dir));
+			}
+			else
+			{
+				dir = echo_merge(files->current_dir, file);
+			}
+			//std::cout << "newdir: " << dir << std::endl;
+			delete files;
+			files = get_files(dir);
+			file_index = 0;
+			file_start = 0;
+		}
+	}
+	else if(key == 'l' || key == 'L')
+	{
+		if(!loading)
+		{
+			if(message != MSG_READY && !echo_ns::is_paused())
+				echo_ns::toggle_pause();
+			loading = 1;
+		}
+		else
+		{
+			echo_ns::toggle_pause();
+			loading = 0;
+			//load_frame = 0;
+		}
+	}
 	else if(key == 'a' || key == 'A')
 	{
 		std::cout << "ang: ";
@@ -284,28 +417,42 @@ void key(unsigned char key, int x, int y)
 
 void spec_key(int key, int x, int y)
 {
-	//echo_sleep(100);
-	if(key == GLUT_KEY_RIGHT)
+	if(!loading)
 	{
-		echo_ns::angle.y += ROTATE_ANG;
-		if(echo_ns::angle.y > 360)	echo_ns::angle.y -= 360;
+		if(key == GLUT_KEY_RIGHT)
+		{
+			echo_ns::angle.y += ROTATE_ANG;
+			if(echo_ns::angle.y > 360)	echo_ns::angle.y -= 360;
+		}
+		else if(key == GLUT_KEY_LEFT)
+		{
+			echo_ns::angle.y -= ROTATE_ANG;
+			if(echo_ns::angle.y < -360)	echo_ns::angle.y += 360;
+		}
+		else if(key == GLUT_KEY_DOWN)
+		{
+			if(echo_ns::angle.x < 60)
+				echo_ns::angle.x += ROTATE_ANG;
+		}
+		else if(key == GLUT_KEY_UP)
+		{
+			if(echo_ns::angle.x > -60)
+				echo_ns::angle.x -= ROTATE_ANG;
+		}
 	}
-	else if(key == GLUT_KEY_LEFT)
+	else
 	{
-		echo_ns::angle.y -= ROTATE_ANG;
-		if(echo_ns::angle.y < -360)	echo_ns::angle.y += 360;
-	}
-	else if(key == GLUT_KEY_DOWN)
-	{
-		if(echo_ns::angle.x < 60)
-			echo_ns::angle.x += ROTATE_ANG;
-		//if(echo_ns::angle.x > 360)	echo_ns::angle.x -= 360;
-	}
-	else if(key == GLUT_KEY_UP)
-	{
-		if(echo_ns::angle.x > -60)
-			echo_ns::angle.x -= ROTATE_ANG;
-		//if(echo_ns::angle.x < -360)	echo_ns::angle.x += 360;
+		if(key == GLUT_KEY_UP && file_index > 0)
+		{
+			file_index--;
+		}
+		else if(key == GLUT_KEY_DOWN && file_index < files->num_files - 1)
+		{
+			file_index++;
+		}
+		file_start = file_index - NUM_FILES_DISPLAYED + 1;
+		if(file_start < 0)
+			file_start = 0;
 	}
 }
 
