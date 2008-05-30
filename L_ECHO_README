@@ -4,10 +4,16 @@ To control:
 
 Arrow Keys to control the perspective
 P          to start/pause/resume
+L          to toggle the loading screen
 
 This program is under GPLv3.
 
 Oh, and you may need OpenGL (in every DirectX if you're using Windows) and GLUT (Windows binaries here: http://www.xmission.com/~nate/glut.html)
+
+ATTENTION!: NO REAL ECHOCHROME LEVELS ARE INCLUDED!!!  REPEAT WITH ME: echochrome is a trademark of Sony Computer Entertainment Inc. 
+© 2008 Sony Computer Entertainment Inc.  Thus, I can't provide real echochrome levels.
+
+Contact me at: penguin673 at gmail dot com
 
 That is all.
 

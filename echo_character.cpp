@@ -169,12 +169,14 @@ vector3f* echo_char::step()	//CHANGE FOR NORMALS
 			}
 			if(grid1 && grid2 && !paused)	//if both grids are there
 			{
+				/*
 				if(speed == SPEED_LAUNCH)
 				{
 					grid1per -= speed;
 					grid2per += speed;
 				}
 				else
+				// */
 				{
 					grid1per -= speed / dist;	//step thru it
 					grid2per += speed / dist;
