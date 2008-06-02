@@ -1,0 +1,29 @@
+#summary How do you make stages?
+
+A stage creator is currently far away (I'd say after I get holes and launchers right), but you can still create stages!
+
+Stages are XML files.  To begin, you can copy this template:
+
+{{{
+<?xml version="1.0" standalone="no" ?>
+<stage name="simple" start="grid_id" goals="0">
+</stage>
+}}}
+
+If you have version 0.1.1+ (revision 31+), you'll notice that this stage doesn't start, at that's because I made the loader much, much more strict.
+
+*name* is the name of the stage.
+
+*start* is the id of the grid where the character will start.  Because there's no grid called "grid_id" yet, L-Echo 0.1.1+ would exit with an error.
+
+*goals* is the number of goals of the this stage.  You can have more goals than specified here.
+
+Ok, now to add grids!
+
+Basic grids:
+
+{{{
+<grid id="grid_id" x="0" y="0" z="0" prev="NONE" next="NONE" [goal="1"] [nodraw="1"] [noland="1"] [trig="grid2"]/>
+}}}
+
+Before you eagerly copy and run that, remove everything in brackets (and the brackets too!).
