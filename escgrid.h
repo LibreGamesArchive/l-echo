@@ -54,7 +54,8 @@ class escgrid : public grid
 		
 		virtual void toggle_goal(vector3f angle);
 		virtual int is_goal(vector3f angle);
-
+		virtual void init_to_null();
+		
 		grid* get_esc(vector3f angle);
 	protected:
 		virtual grid** get_neighbors(vector3f angle);

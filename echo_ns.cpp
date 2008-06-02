@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <iostream>
 
+#include <echo_error.h>
 #include <echo_character.h>
 #include <echo_math.h>
 #include <grid.h>
@@ -30,6 +31,8 @@
 namespace echo_ns
 {
 	grid *hole_grid = new grid();
+	//CHKPTR(hole_grid);
+	
 	vector3f angle;
 	echo_char* main_char;
 	stage* current_stage;
@@ -40,6 +43,7 @@ namespace echo_ns
 		started = 0;
 		current_stage = st;
 		main_char = new echo_char(st->get_start());
+		CHKPTR(main_char);
 	}
 	void start()
 	{

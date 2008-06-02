@@ -17,45 +17,27 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <echo_error.h>
 #include <echo_math.h>
 #include <iostream>
 #include <cmath>
 
-static float sin_table[360];
+static float cos_table[360];
 
 void init_math()
 {
     int deg = 0;
     while(deg < 360)
     {
-        sin_table[deg] = sinf(TO_RAD(deg));
+        cos_table[deg] = cosf(TO_RAD(deg));
         deg++;
     }
 }
 
-float echo_sin(float deg)
-{
-	return(echo_sin((int)deg));
-}
-
-float echo_sin(int deg)
-{
-    deg = deg % 360;
-    if(deg < 0)
-        deg += 360;
-    //std::cout << "deg: " << deg << std::endl;
-    return(sin_table[deg]);
-}
-
-float echo_cos(float deg)
-{
-	return(echo_cos((int)deg));
-}
-
-float echo_cos(int deg)
-{
-    return(echo_sin(90 - deg));
-}
+#define ECHO_COSI(deg) (cos_table[ABS((deg)) % 360])
+#define ECHO_COSF(deg) (ECHO_COSI((int)(deg)))
+#define ECHO_SINI(deg) (ECHO_COSI(90 - (deg)))
+#define ECHO_SINF(deg) (ECHO_SINI((int)(deg)))
 
 vector3f::vector3f()
 {
@@ -114,8 +96,9 @@ void vector3f::set(vector3f copy_from)
 
 vector3f vector3f::negate()
 {
-	vector3f ret(-x, -y, -z);
-	return(ret);
+	vector3f* ret = new vector3f(-x, -y, -z);
+	CHKPTR(ret);
+	return(*ret);
 }
 
 void dump_line3f(line3f ln)
@@ -136,18 +119,21 @@ int operator ==(line3f ln1, line3f ln2)
 vector3f vector3f::operator +(vector3f vec)
 {
     vector3f* ret = new vector3f(x + vec.x, y + vec.y, z + vec.z);
+    CHKPTR(ret);
     return(*ret);
 }
 
 vector3f vector3f::operator -(vector3f vec)
 {
     vector3f* ret = new vector3f(x - vec.x, y - vec.y, z - vec.z);
+    CHKPTR(ret);
     return(*ret);
 }
 
 vector3f vector3f::operator *(float f)
 {
 	vector3f* ret = new vector3f(x * f, y * f, z * f);
+	CHKPTR(ret);
 	return(*ret);
 }
 
@@ -156,6 +142,7 @@ vector3f* vector3f::angle_xy()
 	float temp = sqrt(x * x  + z * z);
 	vector3f* ret = new vector3f(-TO_DEG(atan2f(y, z > 0 ? temp : -temp)),
 				TO_DEG(atan2f(x, z)), 0);
+	CHKPTR(ret);
 	return(ret);
 }
 
@@ -169,11 +156,12 @@ vector3f* vector3f::rotate_xy(vector3f rot)
 	if(rot.x == 0 && rot.y == 0 && rot.z == 0)
 		return(this);
 	vector3f* ret = new vector3f(x
-			, y * echo_cos(rot.x) - z * echo_sin(rot.x)
-			, y * echo_sin(rot.x) + z * echo_cos(rot.x));
+			, y * ECHO_COSF(rot.x) - z * ECHO_SINF(rot.x)
+			, y * ECHO_SINF(rot.x) + z * ECHO_COSF(rot.x));
+	CHKPTR(ret);
 	float z_save = ret->z;
-	ret->z = ret->z * echo_cos(rot.y) - ret->x * echo_sin(rot.y);
-	ret->x = z_save * echo_sin(rot.y) + ret->x * echo_cos(rot.y);
+	ret->z = ret->z * ECHO_COSF(rot.y) - ret->x * ECHO_SINF(rot.y);
+	ret->x = z_save * ECHO_SINF(rot.y) + ret->x * ECHO_COSF(rot.y);
 	return(ret);
 }
 
@@ -187,11 +175,14 @@ void vector3f::set(float my_x, float my_y, float my_z)
 vector3f* vector3f::neg_rotate_yx(vector3f rot)
 {
 	//float rad_x = -TO_RAD(rot.x), rad_y = -TO_RAD(rot.y);
-	vector3f* ret = new vector3f(z * echo_sin(-rot.y) + x * echo_cos(-rot.y), y
-                                , z * echo_cos(-rot.y) - x * echo_sin(-rot.y));
+	if(rot.x == 0 && rot.y == 0 && rot.z == 0)
+		return(this);
+	vector3f* ret = new vector3f(z * ECHO_SINF(-rot.y) + x * ECHO_COSF(-rot.y), y
+                                , z * ECHO_COSF(-rot.y) - x * ECHO_SINF(-rot.y));
+	CHKPTR(ret);
 	float y_save = ret->y;
-	ret->y = ret->y * echo_cos(-rot.x) - ret->z * echo_sin(-rot.x);
-	ret->z = y_save * echo_sin(-rot.x) + ret->z * echo_cos(-rot.x);
+	ret->y = ret->y * ECHO_COSF(-rot.x) - ret->z * ECHO_SINF(-rot.x);
+	ret->z = y_save * ECHO_SINF(-rot.x) + ret->z * ECHO_COSF(-rot.x);
 	return(ret);
 }
 
@@ -213,7 +204,14 @@ int angle_range::is_vec_in(vector3f v)
 
 vector3f* vector3f::rotate_about_y(float angle)
 {
-	return(new vector3f(z * echo_sin(angle) + x * echo_cos(angle)
-			, y, z * echo_cos(angle) - x * echo_sin(angle)));
+#ifdef STRICT_MEM
+	vector3f* ret = new vector3f(z * ECHO_SINF(angle) + x * ECHO_COSF(angle)
+			, y, z * ECHO_COSF(angle) - x * ECHO_SINF(angle));
+	CHKPTR(ret);
+	return(ret);
+#else
+	return(new vector3f(z * ECHO_SINF(angle) + x * ECHO_COSF(angle)
+			, y, z * ECHO_COSF(angle) - x * ECHO_SINF(angle)));
+#endif
 }
 

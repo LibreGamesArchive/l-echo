@@ -44,6 +44,7 @@ class hole : public escgrid
 		virtual void draw(vector3f angle);
 		virtual grid* get_real_next();
 		virtual grid* get_real_prev();
+		virtual void init_to_null();
 
 		virtual void set_real_next(grid* g);
 		virtual void set_real_prev(grid* g);

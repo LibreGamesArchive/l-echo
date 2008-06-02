@@ -19,21 +19,28 @@
 
 #include <iostream>
 
+#include <echo_error.h>
 #include <echo_gfx.h>
 #include <echo_math.h>
 #include <grid.h>
 #include <static_grid.h>
 
-static_grid::static_grid()
+static_grid::static_grid() : grid()
 {
 }
-static_grid::static_grid(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f camera)
+static_grid::static_grid(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f camera) : grid()
 {
 	init(my_info, my_prev, my_next, camera);
 }
 void static_grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f camera)
 {
+#ifdef STRICT_MEM
+	grid_info_t* init_info = new(grid_info_t);
+	CHKPTR(init_info);
+	grid::init(init_info, my_prev, my_next);
+#else
 	grid::init(new(grid_info_t), my_prev, my_next);
+#endif
 	real_vec = my_info->pos.neg_rotate_yx(camera);
 	force_refresh(camera);
 }
@@ -43,6 +50,12 @@ void static_grid::refresh(vector3f camera)
     {
         force_refresh(camera);
     }
+}
+
+void static_grid::init_to_null()
+{
+	grid::init_to_null();
+	real_vec = NULL;
 }
 
 void static_grid::force_refresh(vector3f camera)
@@ -67,10 +80,6 @@ grid_info_t* static_grid::get_info(vector3f angle)
 void static_grid::draw(vector3f angle)
 {
 	refresh(angle);
-	/*
-	draw_line(ginfo->pos + *(new vector3f(0, 0.3f, 0))
-		, ginfo->pos - *(new vector3f(0, 0.3f, 0)));
-	// */
 	grid::draw(angle);
 }
 

@@ -21,19 +21,24 @@
 #include <typeinfo>
 #include <string>
 
+#include <echo_error.h>
 #include <grid.h>
 #include <echo_stage.h>
 
 stage::stage()
 {
     grids = new STAGE_MAP();
+    CHKPTR(grids);
     levels = new LEVEL_MAP();
+    CHKPTR(levels);
 }
 
 stage::stage(grid* my_start, std::string my_name, int my_num_goals)
 {
-    grids = new STAGE_MAP();
+	grids = new STAGE_MAP();
+    CHKPTR(grids);
     levels = new LEVEL_MAP();
+    CHKPTR(levels);
     start = my_start;
     name = my_name;
     num_goals = my_num_goals;
@@ -62,6 +67,7 @@ void stage::add_pos(vector3f pos, grid* g)
 	else
 	{
 		set = new GRID_PTR_SET();
+		CHKPTR(set);
 		set->insert(g);
 		levels->insert(LEVEL_MAP::value_type(pos.y, set));
 	}
@@ -132,6 +138,7 @@ LEVEL_MAP* stage::get_levels_lower_than(float y)
 {
 	LEVEL_MAP::iterator it = levels->begin(), end = levels->end();
 	LEVEL_MAP* ret = new LEVEL_MAP();
+	CHKPTR(ret);
 	while(it != end)
 	{
 		if(it->first >= y)

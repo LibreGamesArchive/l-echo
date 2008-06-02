@@ -23,11 +23,11 @@
 #include <echo_math.h>
 #include <grid.h>
 
-t_grid::t_grid()
+t_grid::t_grid() : grid()
 {
 	init(NULL, NULL, NULL, NULL);
 }
-t_grid::t_grid(grid_info_t* my_info, grid* my_prev, grid* my_next, grid* my_next2)
+t_grid::t_grid(grid_info_t* my_info, grid* my_prev, grid* my_next, grid* my_next2) : grid()
 {
 	init(my_info, my_prev, my_next, my_next2);
 }

@@ -24,6 +24,7 @@
 #include <libgen.h>
 #include <unistd.h>
 
+#include <echo_error.h>
 #include <hole.h>
 #include <grid.h>
 #include <escgrid.h>
@@ -63,7 +64,7 @@
 
 static int window;
 static int my_width, my_height;
-static float real_width;
+static float real_width, real_height;
 static int start_frame = 0, name_display = NAME_DISPLAY_MAX;
 static int loading = 0, load_frame = 0, file_index = 0, file_start = 0;
 static vector3f esc_angle1(-45, 90, 0), esc_angle2(-45, 180, 0);
@@ -83,12 +84,40 @@ int main(int argc, char **argv)
 {
 	init_math();
 	
-	char* fname = argc >= 2 ? argv[1] : const_cast<char*>("sample1.xml");
-	load(fname);
+	if(argc >= 2)
+	{
+		if(!strcmp(argv[1], "-h"))
+		{
+			std::cout << "Usage: " << argv[0] << " [-h | -t] [stage file name]" << std::endl;
+			std::cout << "\t-h\tprints this help message" << std::endl;
+			std::cout << "\t-t\tjust tests the stage file" << std::endl;
+			std::cout << "if no stage is specified, sample1.xml is loaded." << std::endl;
+			std::exit(0);
+		}
+		else if(!strcmp(argv[1], "-t"))
+		{
+			if(load_stage(argv[2]))
+			{
+				std::cout << "stage file OK" << std::endl;
+				std::exit(0);
+			}
+			else
+			{
+				std::cout << "stage file has errors..." << std::endl;
+				std::exit(1);
+			}
+		}
+		else
+			load(argv[1]);
+	}
+	else
+	{
+		load("sample1.xml");
+	}
 	
 	char* pwd = new char[4096];
+	CHKPTR(pwd);
 	files = get_files(getcwd(pwd, 4096));
-	//dump_files(files);
 	
 	/*
 	vector3f* vec = new vector3f(1, 2, 2);
@@ -167,15 +196,16 @@ static void set_proj(int w, int h)
 	my_height = h;
 	
 	if (w <= h)
-	{
-		glOrtho(-5.0, 5.0, -5.0 * (GLfloat) h / (GLfloat) w, 5.0 * (GLfloat) h / (GLfloat) w, -10.0, 10.0);
-		real_width = 5.0f;
-	}
-	else
-	{
-		glOrtho(-5.0 * (GLfloat) w / (GLfloat) h, 5.0 * (GLfloat) w / (GLfloat) h, -5.0, 5.0, -10.0, 10.0);
-		real_width = 5.0f * (GLfloat) w / (GLfloat) h;
-	}
+        {
+                real_width = 5.0f;
+                real_height = 5.0f * (GLfloat) w / (GLfloat) h;
+        }
+        else
+        {
+                real_width = 5.0f * (GLfloat) w / (GLfloat) h;
+                real_height = 5.0;
+        }
+        glOrtho(-real_width, real_width, -real_height, real_height, -10.0, 10.0);
 	
 	glMatrixMode(GL_MODELVIEW);
 }
@@ -258,6 +288,7 @@ void display()
 	{
 		//not very precise, but oh well
 		counter = new char[(int)log(goals_left) + 10];
+		CHKPTR(counter);
 		sprintf(counter, COUNTER_HEAD, goals_left);
 	}
 	else if(echo_ns::num_goals())
@@ -283,6 +314,7 @@ void display()
 		glColor3f(0.5f, 0.5f, 0.5f);
 		glTranslatef(vec->x, vec->y + 0.25, vec->z);
 		glutSolidSphere(0.1, 8, 8);
+		delete vec;
 	}
 	
 	if(loading || load_frame > 0)
@@ -377,6 +409,7 @@ void key(unsigned char key, int x, int y)
 			if(!strcmp(file, ".."))
 			{
 				dir = new char[strlen(files->current_dir)];
+				CHKPTR(dir);
 				strcpy(dir, dirname(files->current_dir));
 			}
 			else

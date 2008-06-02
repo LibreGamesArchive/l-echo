@@ -61,7 +61,7 @@ class grid
 		grid(grid_info_t* my_info, grid* my_prev, grid* my_next);
 		grid(grid_info_t* my_info, grid* my_prev, grid* my_next, int num_neighbor);
 		grid(grid_info_t* my_info);
-		virtual void draw(vector3f angle);
+		virtual void init_to_null();
 		void init(grid_info_t* my_info, grid* my_prev, grid* my_next);
 		void init(grid_info_t* my_info, grid* my_prev, grid* my_next, int num_neighbor);
 
@@ -69,7 +69,6 @@ class grid
 		virtual grid_info_t* get_info(vector3f angle);
 		virtual grid* get_next(vector3f angle, grid* current);
 		virtual void dump();
-		virtual line3f* get_lines(vector3f angle);
 
 		virtual grid** get_neighbors(vector3f angle);
 		int num_neighbors(vector3f angle);
@@ -77,18 +76,20 @@ class grid
 
 		virtual grid* get_real_next();
 		virtual grid* get_real_prev();
-
 		virtual void set_real_next(grid* g);
 		virtual void set_real_prev(grid* g);
-		virtual line3f* generate_lines(grid_info_t my_info);
 
 		virtual void add_trigger(grid* trig);
 		virtual void toggle_goal(vector3f angle);
 		virtual int is_goal(vector3f angle);
 		virtual void set_as_goal();
 
+		virtual line3f* generate_lines(grid_info_t my_info);
+		virtual line3f* get_lines(vector3f angle);
+		
 		virtual int should_draw();
 		virtual void set_draw(int draw);
+		virtual void draw(vector3f angle);
 
 		virtual int is_pt_on(vector3f angle, vector3f pt);
 

@@ -1,4 +1,4 @@
-// stair.h
+// echo_error.h
 
 /*
     This file is part of L-Echo.
@@ -17,22 +17,21 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <echo_math.h>
-#include <grid.h>
+#include <cstdlib>
+#include <iostream>
 
-#ifndef __ECHO_CLASS_STAIR__
-#define __ECHO_CLASS_STAIR__
-class stair : public grid
-{
-    protected:
-        vector3f* dir;
-        vector3f* width;
-    public:
-        stair();
-        stair(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f* my_dir, vector3f* my_width);
-        void init(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f* my_dir, vector3f* my_width);
-        virtual line3f* generate_lines(grid_info_t my_info);
-        //virtual void init_to_null();
-	//virtual void draw(vector3f angle);
-};
+void lderr(const char* msg);
+void ldmemerr();
+void lderr(const char* msg1, const char* msg2);
+void ldwarn(const char* msg);
+
+//GENeral MEMory ERRor
+void genmemerr();
+
+#ifdef STRICT_MEM
+	#define CHKPTR(ptr) 	if(!(ptr)) genmemerr();
+	#define LD_CHKPTR(ptr)	if(!(ptr)) ldmemerr();
+#else
+	#define CHKPTR(ptr)
+	#define LD_CHKPTR(ptr)
 #endif

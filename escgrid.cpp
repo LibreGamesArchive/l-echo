@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <echo_error.h>
 #include <cstdlib>
 #include <iostream>
 #include <grid.h>
@@ -24,20 +25,20 @@ along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 #include <echo_math.h>
 #include <echo_gfx.h>
 
-escgrid::escgrid()
+escgrid::escgrid() : grid()
 {
 	delete_at_deconstruct = 1;
 	init(NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 }
 
-escgrid::escgrid(grid_info_t* my_info, grid* my_prev, grid* my_next)
+escgrid::escgrid(grid_info_t* my_info, grid* my_prev, grid* my_next) : grid()
 {
-    delete_at_deconstruct = 1;
-    init(my_info, my_prev, my_next);
+	delete_at_deconstruct = 1;
+	init(my_info, my_prev, my_next);
 }
 
 escgrid::escgrid(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info_t* my_esc_info
-, grid* my_normal_prev, grid* my_esc_prev, grid* my_normal_next, grid* my_esc_next)
+	, grid* my_normal_prev, grid* my_esc_prev, grid* my_normal_next, grid* my_esc_next) : grid()
 {
 	delete_at_deconstruct = 1;
 	init(my_escangle, my_normal_info, my_esc_info, my_normal_prev, my_esc_prev, my_normal_next, my_esc_next);
@@ -61,12 +62,15 @@ void escgrid::delete_table()
 }
 
 void escgrid::init(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info_t* my_esc_info
-, grid* my_normal_prev, grid* my_esc_prev, grid* my_normal_next, grid* my_esc_next)
+	, grid* my_normal_prev, grid* my_esc_prev, grid* my_normal_next, grid* my_esc_next)
 {
 	grid::init(my_normal_info, my_normal_prev, my_normal_next);
 	num_esc = 1;
+	delete_table();
 	ranges = new angle_range*[1];
+	CHKPTR(ranges);
 	escs = new grid*[1];
+	CHKPTR(escs);
 	delete_at_deconstruct = 1;
 	ranges[0] = VECPTR_TO_RANGE(my_escangle);
 	escs[0] = new grid(my_esc_info, my_esc_prev, my_esc_next);
@@ -74,7 +78,8 @@ void escgrid::init(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info
 
 void escgrid::init(grid_info_t* my_info, grid* my_prev, grid* my_next)
 {
-    grid::init(my_info, my_prev, my_next);
+	grid::init(my_info, my_prev, my_next);
+	delete_table();
 	ranges = NULL;
 	escs = NULL;
 	delete_at_deconstruct = 1;
@@ -84,6 +89,7 @@ void escgrid::init(grid_info_t* my_info, grid* my_prev, grid* my_next)
 void escgrid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, angle_range** my_escranges, grid** my_escs, int my_num_escs)
 {
 	grid::init(my_info, my_prev, my_next);
+	delete_table();
 	ranges = my_escranges;
 	escs = my_escs;
 	delete_at_deconstruct = 0;
@@ -93,6 +99,13 @@ void escgrid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, angle_ran
 escgrid::~escgrid()
 {
 	delete_table();
+}
+
+void escgrid::init_to_null()
+{
+	grid::init_to_null();
+	ranges = NULL;
+	escs = NULL;
 }
 
 void escgrid::add(vector3f* vec, grid* esc)
@@ -105,7 +118,9 @@ void escgrid::add(angle_range* range, grid* esc)
 	//delete_table();
 	//*
 	angle_range** new_ranges = new angle_range*[num_esc + 1];
+	CHKPTR(new_ranges);
 	grid** new_escs = new grid*[num_esc + 1];
+	CHKPTR(new_escs);
 	if(escs)
 	{
 		int each = 0;
@@ -118,7 +133,7 @@ void escgrid::add(angle_range* range, grid* esc)
 		delete_table();
 	}
 	escs = new_escs;
-   	ranges = new_ranges;
+	ranges = new_ranges;
 	// */
 	if(am_goal)
 		esc->set_as_goal();
@@ -189,8 +204,8 @@ void escgrid::set_as_goal()
 	int each = 0;
 	while(each < num_esc)
 	{
-	    escs[each]->set_as_goal();
-	    each++;
+		escs[each]->set_as_goal();
+		each++;
 	}
 	grid::set_as_goal();
 }
@@ -200,8 +215,8 @@ void escgrid::toggle_goal(vector3f angle)
 	int each = 0;
 	while(each < num_esc)
 	{
-	    escs[each]->toggle_goal(angle);
-	    each++;
+		escs[each]->toggle_goal(angle);
+		each++;
 	}
 	grid::toggle_goal(angle);
 }
