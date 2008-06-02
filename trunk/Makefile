@@ -1,4 +1,4 @@
-CXXFLAGS = -I./ -I../include -DTIXML_USE_STL -g3 -Wall
+CXXFLAGS = -I./ -I../include -DSTRICT_MEM -DTIXML_USE_STL -g3 -Wall
 TINYXML_USE_STL := YES
 
 CPPFILES  := $(wildcard *.cpp) $(wildcard tinyxml/*.cpp)

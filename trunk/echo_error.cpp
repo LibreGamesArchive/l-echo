@@ -1,4 +1,4 @@
-// stair.h
+// echo_error.h
 
 /*
     This file is part of L-Echo.
@@ -17,22 +17,34 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <echo_math.h>
-#include <grid.h>
+#include <cstdlib>
+#include <iostream>
 
-#ifndef __ECHO_CLASS_STAIR__
-#define __ECHO_CLASS_STAIR__
-class stair : public grid
+#include <echo_error.h>
+
+void lderr(const char* msg)
 {
-    protected:
-        vector3f* dir;
-        vector3f* width;
-    public:
-        stair();
-        stair(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f* my_dir, vector3f* my_width);
-        void init(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f* my_dir, vector3f* my_width);
-        virtual line3f* generate_lines(grid_info_t my_info);
-        //virtual void init_to_null();
-	//virtual void draw(vector3f angle);
-};
-#endif
+	std::cout << "Load Error: " << msg << std::endl;
+	std::exit(1);
+}
+void ldmemerr()
+{
+	lderr("cannot allocate memory!");
+}
+void lderr(const char* msg1, const char* msg2)
+{
+	char* msg = new char[strlen(msg1) + strlen(msg2) + 1];
+	LD_CHKPTR(msg);
+	lderr(strcat(strcpy(msg, msg1), msg2));
+}
+
+void ldwarn(const char* msg)
+{
+	std::cout << "Load Warning: " << msg << std::endl;
+}
+
+void genmemerr()
+{
+	std::cout << "Cannot allocate memory!" << std::endl;
+}
+

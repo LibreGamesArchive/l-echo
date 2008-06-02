@@ -35,6 +35,8 @@ class isect_grid : public static_grid
 		void init(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f camera, GRID_PTR_SET* my_level);
 		
 		virtual grid* get_next(vector3f angle, grid* current);
+		virtual void force_refresh(vector3f camera);
+		virtual void init_to_null();
 };
 #endif
 

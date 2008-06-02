@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <echo_error.h>
 #include <echo_stage.h>
 #include <echo_loader.h>
 #include <echo_ingame_loader.h>
@@ -33,6 +34,7 @@
 char* echo_merge(const char* arg1, const char* arg2)
 {
 	char* ret = new char[strlen(arg1) + strlen(arg2) + 2];
+	CHKPTR(ret);
 	strcat(strcat(strcpy(ret, arg1),  "/"), arg2);
 	return(ret);
 }
@@ -51,6 +53,7 @@ int is_dir(const char* fname)
 {
 	int fd = open(fname, O_RDONLY);
 	struct stat *file_stat = new(struct stat);
+	CHKPTR(file_stat);
 	int exists = !fstat(fd, file_stat);
 	close(fd);
 	if(exists)
@@ -100,6 +103,7 @@ echo_files* get_files(const char* dirname)
 		//std::cout << "each_ent: " << each_ent << std::endl;
 		ret->num_files++;
 		ret->file_names = new char*[ret->num_files];
+		CHKPTR(ret->file_names);
 		ret->file_names[0] = "..";
 		
 		int each = 1;
@@ -115,6 +119,7 @@ echo_files* get_files(const char* dirname)
 			if(strcmp(each_ent->d_name, ".") && strcmp(each_ent->d_name, ".."))
 			{
 				ret->file_names[each] = new char[strlen(each_ent->d_name) + 1];
+				CHKPTR(ret->file_names[each]);
 				strcpy(ret->file_names[each], each_ent->d_name);
 				each++;
 			}

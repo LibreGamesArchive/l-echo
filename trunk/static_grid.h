@@ -33,9 +33,10 @@ class static_grid : public grid
 		void init(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f camera);
 
 		void refresh(vector3f camera);
-		void force_refresh(vector3f camera);
+		virtual void force_refresh(vector3f camera);
 		virtual grid_info_t* get_info(vector3f angle);
 		virtual void draw(vector3f angle);
+		virtual void init_to_null();
 };
 #endif
 

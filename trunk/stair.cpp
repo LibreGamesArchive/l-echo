@@ -19,6 +19,7 @@
 
 #include <cstdlib>
 
+#include <echo_error.h>
 #include <stair.h>
 #include <echo_math.h>
 #include <grid.h>
@@ -45,7 +46,8 @@ void stair::init(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f* m
 line3f* stair::generate_lines(grid_info_t my_info)
 {
 	line3f* ret = new line3f[4];
-
+	CHKPTR(ret);
+	
 	vector3f pos = my_info.pos;
 	vector3f p1 = pos + *dir + *width;
 	vector3f p2 = pos - *dir + *width;
@@ -59,4 +61,5 @@ line3f* stair::generate_lines(grid_info_t my_info)
 
 	return(ret);
 }
+
 

@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <iostream>
 
+#include <echo_error.h>
 #include <echo_gfx.h>
 #include <grid.h>
 #include <echo_math.h>
@@ -33,27 +34,40 @@ void dump_grid_info(grid_info_t ginfo)
 
 grid::grid()
 {
+	init_to_null();
 	init(NULL, NULL, NULL);
 }
 
 grid::grid(grid_info_t* my_info)
 {
+	init_to_null();
 	init(my_info, NULL, NULL);
 }
 
 grid::grid(grid_info_t* my_info, grid* my_prev, grid* my_next)
 {
+	init_to_null();
 	init(my_info, my_prev, my_next);
 }
 
 grid::grid(grid_info_t* my_info, grid* my_prev, grid* my_next, int num_neighbor)
 {
+	init_to_null();
 	init(my_info, my_prev, my_next, num_neighbor);
 }
 
 void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next)
 {
+	init_to_null();
 	init(my_info, my_prev, my_next, 2);
+}
+
+void grid::init_to_null()
+{
+	lines = NULL;
+	ginfo = NULL;
+	neighbors = NULL;
+	triggers = NULL;
 }
 
 void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, int my_num_neighbors)
@@ -61,13 +75,21 @@ void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, int my_num_n
 	am_goal = 0;
 	goal_angle = 0;
 	draw_me = 1;
+	if(triggers)
+		delete triggers;
 	triggers = new GRID_PTR_SET();
+	CHKPTR(triggers);
 	
 	ginfo = my_info;
 	n_neighbors = my_num_neighbors;
+	if(neighbors)
+		delete[] neighbors;
 	neighbors = new grid*[my_num_neighbors < 2 ? 2 : my_num_neighbors];
+	CHKPTR(neighbors);
 	neighbors[0] = my_prev;
 	neighbors[1] = my_next;
+	if(lines)
+		delete[] lines;
 	lines = ginfo != NULL ? generate_lines(*ginfo) : NULL;
 }
 
@@ -90,11 +112,13 @@ static void dump_lines(line3f* ptr)
 
 grid::~grid()
 {
-	/*
+	//*
 	if(neighbors)
-	{
 		delete[] neighbors;
-	}
+	if(lines)
+		delete[] lines;
+	if(triggers)
+		delete triggers;
 	// */
 }
 
@@ -141,6 +165,7 @@ void grid::draw(vector3f angle)	//TODO CHANGE FOR NORMALS
 line3f* grid::generate_lines(grid_info_t my_info)
 {
 	line3f* ret = new line3f[4];
+	CHKPTR(ret);
 	
 	vector3f pos = my_info.pos;
 	vector3f p1(pos.x - HALF_GRID, pos.y, pos.z - HALF_GRID);

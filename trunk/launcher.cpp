@@ -20,6 +20,7 @@
 #include <cmath>
 #include <iostream>
 
+#include <echo_error.h>
 #include <echo_ns.h>
 #include <echo_gfx.h>
 #include <launcher.h>
@@ -33,17 +34,17 @@ launcher::launcher() : escgrid()
 }
 
 launcher::launcher(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info_t* my_esc_info
-	, grid* my_normal_prev, grid* my_esc_prev, grid* my_normal_next, grid* my_esc_next)
+	, grid* my_normal_prev, grid* my_esc_prev, grid* my_normal_next, grid* my_esc_next) : escgrid()
 {
 	init(my_escangle, my_normal_info, my_esc_info, my_normal_prev, my_esc_prev, my_normal_next, my_esc_next);
 }
 
-launcher::launcher(grid_info_t* my_info, grid* my_prev, grid* my_next, angle_range** my_escranges, grid** my_escs, int my_num_escs)
+launcher::launcher(grid_info_t* my_info, grid* my_prev, grid* my_next, angle_range** my_escranges, grid** my_escs, int my_num_escs) : escgrid()
 {
 	init(my_info, my_prev, my_next, my_escranges, my_escs, my_num_escs);
 }
 
-launcher::launcher(grid_info_t* my_info, grid* my_prev, grid* my_next)
+launcher::launcher(grid_info_t* my_info, grid* my_prev, grid* my_next) : escgrid()
 {
     init(my_info, my_prev, my_next);
 }
@@ -70,6 +71,13 @@ void launcher::init(grid_info_t* my_info, grid* my_prev, grid* my_next)
 
 launcher::~launcher()
 {
+}
+
+void launcher::init_to_null()
+{
+	escgrid::init_to_null();
+	real_prev = NULL;
+	real_next = NULL;
 }
 
 void launcher::draw(vector3f angle)
@@ -127,6 +135,7 @@ grid* launcher::get_next(vector3f angle, grid* current)
 	}
 	else
 		direction = new vector3f(0, 0, 1);
+	CHKPTR(direction);
 	
 	float launch_angle = TO_DEG(atan2f(direction->x, direction->z));
 	std::cout << "angle of launcher: " << launch_angle << std::endl;
@@ -147,6 +156,7 @@ grid* launcher::get_next(vector3f angle, grid* current)
 	while(z <= VERTEX_Z)
 	{
 		grid_info_t* info = new(grid_info_t);
+		CHKPTR(info);
 		info->pos.set(0, GET_Y(z), z);
 		info->pos = TRANS_TO_LAUNCH(info->pos, launch_angle, pos);
 		/*
@@ -156,6 +166,7 @@ grid* launcher::get_next(vector3f angle, grid* current)
 		// */
 		
 		temp2 = new static_grid(info, temp1, echo_ns::hole_grid, angle);
+		CHKPTR(temp2);
 		if(temp1 != this)
 			temp1->set_real_next(temp2);
 		temp1 = temp2;
@@ -187,6 +198,7 @@ grid* launcher::get_next(vector3f angle, grid* current)
 			{
 				//std::cout << "LEVEL: " << it->first << ", " << GET_Y(z) << ", " << pos.y << std::endl;
 				grid_info_t* info = new(grid_info_t);
+				CHKPTR(info);
 				info->pos.set(0, it->first - pos.y, GET_Z(it->first - pos.y));
 				info->pos.dump();
 				std::cout << std::endl;
@@ -194,6 +206,7 @@ grid* launcher::get_next(vector3f angle, grid* current)
 				info->pos.dump();
 				std::cout << std::endl;
 				temp2 = new isect_grid(info, temp1, echo_ns::hole_grid, angle, it->second);
+				CHKPTR(temp2);
 				temp1->set_real_next(temp2);
 				temp1 = temp2;
 				
@@ -211,9 +224,11 @@ grid* launcher::get_next(vector3f angle, grid* current)
 			if(!dup_static)
 			{
 				grid_info_t* info = new(grid_info_t);
+				CHKPTR(info);
 				info->pos.set(0, GET_Y(z), z);
 				info->pos = TRANS_TO_LAUNCH(info->pos, launch_angle, pos);
 				temp2 = new static_grid(info, temp1, echo_ns::hole_grid, angle);
+				CHKPTR(temp2);
 				temp1->set_real_next(temp2);
 				temp1 = temp2;
 			}

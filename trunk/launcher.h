@@ -40,10 +40,12 @@ class launcher : public escgrid
 		void init(grid_info_t* my_info, grid* my_prev, grid* my_next);
 
 		virtual ~launcher();
+		virtual void init_to_null();
 		virtual grid* get_next(vector3f angle, grid* current);
 		virtual void draw(vector3f angle);
 		virtual grid* get_real_next();
 		virtual grid* get_real_prev();
+		
 
 		virtual void set_real_next(grid* g);
 		virtual void set_real_prev(grid* g);

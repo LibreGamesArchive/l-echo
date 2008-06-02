@@ -19,6 +19,7 @@
 
 #include <iostream>
 
+#include <echo_error.h>
 #include <echo_ns.h>
 #include <echo_gfx.h>
 #include <hole.h>
@@ -32,17 +33,17 @@ hole::hole() : escgrid()
 }
 
 hole::hole(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info_t* my_esc_info
-	, grid* my_normal_prev, grid* my_esc_prev, grid* my_normal_next, grid* my_esc_next)
+	, grid* my_normal_prev, grid* my_esc_prev, grid* my_normal_next, grid* my_esc_next) : escgrid()
 {
 	init(my_escangle, my_normal_info, my_esc_info, my_normal_prev, my_esc_prev, my_normal_next, my_esc_next);
 }
 
-hole::hole(grid_info_t* my_info, grid* my_prev, grid* my_next, angle_range** my_escranges, grid** my_escs, int my_num_escs)
+hole::hole(grid_info_t* my_info, grid* my_prev, grid* my_next, angle_range** my_escranges, grid** my_escs, int my_num_escs) : escgrid()
 {
 	init(my_info, my_prev, my_next, my_escranges, my_escs, my_num_escs);
 }
 
-hole::hole(grid_info_t* my_info, grid* my_prev, grid* my_next)
+hole::hole(grid_info_t* my_info, grid* my_prev, grid* my_next) : escgrid()
 {
     init(my_info, my_prev, my_next);
 }
@@ -69,6 +70,13 @@ void hole::init(grid_info_t* my_info, grid* my_prev, grid* my_next)
 
 hole::~hole()
 {
+}
+
+void hole::init_to_null()
+{
+	escgrid::init_to_null();
+	real_prev = NULL;
+	real_next = NULL;
 }
 
 void hole::draw(vector3f angle)
@@ -111,14 +119,16 @@ grid* hole::get_next(vector3f angle, grid* current)
 		while(it != end)
 		{
 			grid_info_t* info = new(grid_info_t);
+			CHKPTR(info);
 			info->pos.set(pos.x, it->first, pos.z);
 			begin = new isect_grid(info, NULL, temp, angle, it->second);
+			CHKPTR(begin);
 			temp->set_real_prev(begin);
 			//echo_ns::current_stage->add("add", begin);
 			temp = begin;
 			it++;
 		}
-		std::cout << "end: " << end->first <<std::endl;
+		//std::cout << "end: " << end->first <<std::endl;
 		if(begin)
 		{
 			begin->set_real_prev(this);

@@ -21,6 +21,7 @@
 #include <GL/glu.h>
 #include <GL/glut.h>
 
+#include <echo_error.h>
 #include <grid.h>
 #include <echo_gfx.h>
 #include <echo_math.h>
@@ -87,8 +88,7 @@ void draw_circle(vector3f pos)
 void draw_n_lines(line3f* my_lines, vector3f angle, grid** others, int num_others)
 {
 	line3f** lines = new line3f*[num_others];
-	if(!lines)
-		return;
+	CHKPTR(lines);
 	int each = 0, line_count = 0;
 	while(each < num_others)
 	{

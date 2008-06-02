@@ -26,10 +26,10 @@
 #include <isect_grid.h>
 #include <echo_stage.h>
 
-isect_grid::isect_grid()
+isect_grid::isect_grid() : static_grid()
 {
 }
-isect_grid::isect_grid(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f camera, GRID_PTR_SET* my_level)
+isect_grid::isect_grid(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f camera, GRID_PTR_SET* my_level) : static_grid()
 {
 	init(my_info, my_prev, my_next, camera, my_level);
 }
@@ -70,4 +70,13 @@ grid* isect_grid::get_next(vector3f angle, grid* current)
 	return(grid::get_next(angle, current));
 }
 
+void isect_grid::init_to_null()
+{
+	static_grid::init_to_null();
+	level = NULL;
+}
 
+void isect_grid::force_refresh(vector3f camera)
+{
+	static_grid::force_refresh(camera);
+}
