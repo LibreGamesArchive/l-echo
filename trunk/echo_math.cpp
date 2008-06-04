@@ -17,27 +17,41 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <echo_debug.h>
 #include <echo_error.h>
 #include <echo_math.h>
-#include <iostream>
+//#include <iostream>
 #include <cmath>
 
-static float cos_table[360];
-
-void init_math()
-{
-    int deg = 0;
-    while(deg < 360)
-    {
-        cos_table[deg] = cosf(TO_RAD(deg));
-        deg++;
-    }
-}
-
-#define ECHO_COSI(deg) (cos_table[ABS((deg)) % 360])
-#define ECHO_COSF(deg) (ECHO_COSI((int)(deg)))
-#define ECHO_SINI(deg) (ECHO_COSI(90 - (deg)))
-#define ECHO_SINF(deg) (ECHO_SINI((int)(deg)))
+#ifdef ARM9
+	#include <nds.h>
+	#include <nds/arm9/trig_lut.h>
+	
+	#define ECHO_COSI(deg) (COS[(int)( ( ABS((deg)) % 360 ) / 360.0f * LUT_SIZE )])
+	#define ECHO_COSF(deg) (ECHO_COSI((int)(deg)))
+	#define ECHO_SINI(deg) (ECHO_COSI(90 - (deg)))
+	#define ECHO_SINF(deg) (ECHO_SINI((int)(deg)))
+	
+	void init_math(){}
+	
+#else
+	static float cos_table[360];
+	
+	void init_math()
+	{
+	    int deg = 0;
+	    while(deg < 360)
+	    {
+		cos_table[deg] = cosf(TO_RAD(deg));
+		deg++;
+	    }
+	}
+	
+	#define ECHO_COSI(deg) (cos_table[ABS((deg)) % 360])
+	#define ECHO_COSF(deg) (ECHO_COSI((int)(deg)))
+	#define ECHO_SINI(deg) (ECHO_COSI(90 - (deg)))
+	#define ECHO_SINF(deg) (ECHO_SINI((int)(deg)))
+#endif
 
 vector3f::vector3f()
 {
@@ -55,11 +69,6 @@ vector3f::vector3f(float my_x, float my_y, float my_z)
 
 int vector3f::angle_similar(vector3f v)
 {
-	/*
-	std::cout << "angle similar: ";
-	dump();
-	std::cout << std::endl;
-	// */
 	return(ABS(x - v.x) < EPSILON &&
 		(ABS(y - v.y) < EPSILON || ABS(ABS(y - v.y) - 360) < EPSILON) &&
 		ABS(z - v.z) < EPSILON);
@@ -84,7 +93,8 @@ float vector3f::length()
 
 void vector3f::dump()
 {
-	std::cout << "vector3f(" << this << "): [" << x << "," << y << "," << z << "]";
+	//std::cout << "vector3f(" << this << "): [" << x << "," << y << "," << z << "]";
+	ECHO_PRINT("vector3f (* 100): [%i,%i,%i]", (int)(x * 100), (int)(y * 100), (int)(z * 100));
 }
 
 void vector3f::set(vector3f copy_from)
@@ -103,11 +113,11 @@ vector3f vector3f::negate()
 
 void dump_line3f(line3f ln)
 {
-	std::cout << "lines3f: [";
+	ECHO_PRINT("lines3f: [");
 	ln.p1.dump();
-	std::cout << ",";
+	ECHO_PRINT(",");
 	ln.p2.dump();
-	std::cout << "]";
+	ECHO_PRINT("]");
 }
 
 int operator ==(line3f ln1, line3f ln2)
@@ -212,6 +222,16 @@ vector3f* vector3f::rotate_about_y(float angle)
 #else
 	return(new vector3f(z * ECHO_SINF(angle) + x * ECHO_COSF(angle)
 			, y, z * ECHO_COSF(angle) - x * ECHO_SINF(angle)));
+#endif
+}
+
+vector3f* vector3f::angle_to_real()
+{
+#ifdef STRICT_MEM
+	vector3f* cam_norm = new vector3f(0, 0, 10);
+	return(cam_norm->rotate_xy(*this));
+#else
+	return((new vector3f(0, 0, 10))->rotate_xy(*this));
 #endif
 }
 

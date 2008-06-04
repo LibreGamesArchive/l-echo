@@ -1,4 +1,4 @@
-// echo_gfx.h
+// echo_debug.h
 
 /*
     This file is part of L-Echo.
@@ -17,13 +17,18 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <grid.h>
-#include <echo_math.h>
+#ifdef DEBUG
 
-void draw_n_lines(line3f* my_lines, vector3f angle, grid** others, int num_lines);
-void draw_line(vector3f p1, vector3f p2);
-void draw_line(line3f ln);
-void draw_rect(vector3f p1, vector3f p2, vector3f p3, vector3f p4);
-void draw_hole(vector3f pos);
-void draw_launcher(vector3f pos);
-void draw_goal_gfx(vector3f pos, float goal_angle);
+	#ifdef ARM9
+		#include <nds.h>
+		
+		#define ECHO_PRINT iprintf
+	#else
+		#include <cstdio>
+		
+		#define ECHO_PRINT printf
+	#endif
+
+#else
+	#define ECHO_PRINT(...)
+#endif

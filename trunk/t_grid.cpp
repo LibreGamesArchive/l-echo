@@ -19,6 +19,7 @@
 
 #include <t_grid.h>
 #include <iostream>
+#include <echo_debug.h>
 #include <echo_gfx.h>
 #include <echo_math.h>
 #include <grid.h>
@@ -61,11 +62,12 @@ void t_grid::set_real_next2(grid* g)
 
 void t_grid::dump()
 {
-	std::cout << "grid(" << this << "): [";
+	ECHO_PRINT("t_grid: [");
 	if(ginfo)    dump_grid_info(*ginfo);
-	else        std::cout << "NULL grid_info_t?";
-	std::cout << "," << neighbors[0] << "," << neighbors[1];
-	std::cout << "," << neighbors[2] << "]";
+	else        ECHO_PRINT("NULL grid_info_t?");
+	ECHO_PRINT("]");
+	//std::cout << "," << neighbors[0] << "," << neighbors[1];
+	//std::cout << "," << neighbors[2] << "]";
 }
 void t_grid::draw(vector3f angle)
 {

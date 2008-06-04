@@ -49,6 +49,7 @@ class stage
 	void add_pos(vector3f pos, grid* g);
 	GRID_PTR_SET* get_level(vector3f pos);
 	LEVEL_MAP* get_levels_lower_than(float y);
+	LEVEL_MAP* get_levels_higher_than(float y);
 	void dump_levels();
         grid* get(std::string id);
         void draw(vector3f angle);

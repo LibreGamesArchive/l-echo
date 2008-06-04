@@ -18,31 +18,40 @@
 */
 
 #include <cstdlib>
-#include <iostream>
+//#include <iostream>
 #include <cmath>
 
-#include <libgen.h>
-#include <unistd.h>
-
+#include <echo_debug.h>
 #include <echo_error.h>
+#include <echo_math.h>
+#include <echo_loader.h>
+#include <echo_ns.h>
+#include <echo_sys.h>
+#include <echo_stage.h>
+#include <echo_ingame_loader.h>
+
 #include <hole.h>
 #include <grid.h>
 #include <escgrid.h>
 #include <static_grid.h>
 #include <isect_grid.h>
-#include <echo_math.h>
-#include <echo_loader.h>
-#include <echo_ns.h>
-#include <echo_sys.h>
 #include <t_grid.h>
-#include <echo_stage.h>
-#include <echo_ingame_loader.h>
 
 #define _STDCALL_SUPPORTED
 
-#include <GL/glut.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
+#ifdef ARM9
+
+	#include <nds.h>
+	#include <fat.h>
+
+#else
+
+	#include <GL/glut.h>
+	#include <GL/gl.h>
+	#include <GL/glu.h>
+	#include <libgen.h>
+
+#endif
 
 #define ESCAPE 27
 #define ENTER  13
@@ -62,48 +71,78 @@
 #define FILE_SPACE		0.3f
 #define NUM_FILES_DISPLAYED     31
 
-static int window;
+#ifndef ARM9
+	static int window;
+#endif
+
 static int my_width, my_height;
 static float real_width, real_height;
-static int start_frame = 0, name_display = NAME_DISPLAY_MAX;
 static int loading = 0, load_frame = 0, file_index = 0, file_start = 0;
 static vector3f esc_angle1(-45, 90, 0), esc_angle2(-45, 180, 0);
-static char* message = MSG_READY;
+
+static int start_frame = 0, name_display = NAME_DISPLAY_MAX;
 static char* counter;
+static char* message = MSG_READY;
+
 static echo_files* files;
 
 void load(const char* fname);
 void init(int argc, char **argv, int w, int h);
+
 void resize(int w, int h);
-void display();
-void key(unsigned char key, int x, int y);
-void spec_key(int key, int x, int y);
 static void set_proj(int w, int h);
+
+void display();
+
+#ifdef ARM9
+	void get_key();
+#else
+	void key(unsigned char key, int x, int y);
+	void spec_key(int key, int x, int y);
+#endif
 
 int main(int argc, char **argv)
 {
+#ifdef ARM9
+	init(argc, argv, 255, 191);
+	fatInitDefault();
 	init_math();
-	
+	files = get_files("/");
+	load("fat:/sample1.xml");
+	ECHO_PRINT("is stage null?: %i\n", echo_ns::current_stage == NULL);
+	ECHO_PRINT("is stage start null?: %i\n", echo_ns::current_stage->get_start() == NULL);
+	while (1)
+        {
+                get_key();
+
+                display();
+
+                glFlush(0);
+
+                swiWaitForVBlank();
+        }
+#else
+	init_math();
 	if(argc >= 2)
 	{
 		if(!strcmp(argv[1], "-h"))
 		{
-			std::cout << "Usage: " << argv[0] << " [-h | -t] [stage file name]" << std::endl;
-			std::cout << "\t-h\tprints this help message" << std::endl;
-			std::cout << "\t-t\tjust tests the stage file" << std::endl;
-			std::cout << "if no stage is specified, sample1.xml is loaded." << std::endl;
+			ECHO_PRINT("Usage: %s [-h | -t] [stage file name]\n", argv[0]);
+			ECHO_PRINT("\t-h\tprints this help message\n");
+			ECHO_PRINT("\t-t\tjust tests the stage file\n");
+			ECHO_PRINT("if no stage is specified, sample1.xml is loaded.\n");
 			std::exit(0);
 		}
 		else if(!strcmp(argv[1], "-t"))
 		{
 			if(load_stage(argv[2]))
 			{
-				std::cout << "stage file OK" << std::endl;
+				ECHO_PRINT("stage file OK\n");
 				std::exit(0);
 			}
 			else
 			{
-				std::cout << "stage file has errors..." << std::endl;
+				ECHO_PRINT("stage file has errors...\n");
 				std::exit(1);
 			}
 		}
@@ -114,26 +153,12 @@ int main(int argc, char **argv)
 	{
 		load("sample1.xml");
 	}
-	
 	char* pwd = new char[4096];
 	CHKPTR(pwd);
 	files = get_files(getcwd(pwd, 4096));
-	
-	/*
-	vector3f* vec = new vector3f(1, 2, 2);
-	vector3f* angle = vec->angle_xy();
-	angle->dump();
-	std::cout << std::endl;
-	vector3f* norm = vec->neg_rotate_yx(*angle);
-	norm->dump();
-	std::cout << std::endl;
-	vector3f* back = norm->rotate_xy(*angle);
-	back->dump();
-	std::cout << std::endl;
-	// */
-	
 	init(argc, argv, 640, 480);
 	glutMainLoop();
+#endif
 	return(1);
 }
 
@@ -147,6 +172,56 @@ void load(const char* fname)
 
 void init(int argc, char **argv, int w, int h)
 {
+#ifdef ARM9
+	// Turn on everything
+        powerON(POWER_ALL);
+
+        // Setup the Main screen for 3D
+        videoSetMode(MODE_0_3D);
+
+        // IRQ basic setup
+        irqInit();
+        irqSet(IRQ_VBLANK, 0);
+
+        // initialize the geometry engine
+        glInit();
+
+        // enable antialiasing
+        glEnable(GL_ANTIALIAS);
+	
+	videoSetModeSub(MODE_1_2D | DISPLAY_BG0_ACTIVE);        //sub bg 0 will be used to print text
+        vramSetBankC(VRAM_C_SUB_BG);
+
+        SUB_BG0_CR = BG_MAP_BASE(31);
+
+        BG_PALETTE_SUB[255] = RGB15(31,31,31);  //by default font will be rendered with color 255
+
+        //consoleInit() is a lot more flexible but this gets you up and running quick
+        consoleInitDefault((u16*)SCREEN_BASE_BLOCK_SUB(31), (u16*)CHAR_BASE_BLOCK_SUB(0), 16);
+	
+	ECHO_PRINT("console init\n", 0, 0);
+	
+        // setup the rear plane
+        glClearColor(31,31,31,31); // BG must be opaque for AA to work
+        glClearPolyID(63); // BG must have a unique polygon ID for AA to work
+        glClearDepth(0x7FFF);
+
+        // Set our viewport to be the same size as the screen
+        glViewport(0,0,255,191);
+
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        //gluPerspective(70, 256.0 / 192.0, 0.1, 100);
+	real_width = 5.0f * 256 / 192;
+	real_height = 5.0;
+	glOrtho(-real_width, real_width, -real_height, real_height, -10.0, 10.0);
+
+        //ds specific, several attributes can be set here
+        glPolyFmt(POLY_ALPHA(31) | POLY_CULL_NONE);
+
+        // Set the current matrix to be the model matrix
+        glMatrixMode(GL_MODELVIEW);
+#else
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGBA);
 	glutInitWindowSize(w, h);
@@ -164,18 +239,13 @@ void init(int argc, char **argv, int w, int h)
 	glDepthFunc(GL_LESS);
 	
 	glLineWidth(2.5);
-	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	/*
-	glEnable(GL_SMOOTH);
-	glEnable(GL_LINE_SMOOTH);
-	glHint(GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
-	glEnable(GL_COLOR);
-	glShadeModel(GL_FLAT);
-	// */
-	
 	set_proj(w, h);
+#endif
+	ECHO_PRINT("finished init\n");
+	
+	
 }
 
 void resize(int w, int h)
@@ -198,11 +268,11 @@ static void set_proj(int w, int h)
 	if (w <= h)
         {
                 real_width = 5.0f;
-                real_height = 5.0f * (GLfloat) w / (GLfloat) h;
+                real_height = 5.0f * w / h;
         }
         else
         {
-                real_width = 5.0f * (GLfloat) w / (GLfloat) h;
+                real_width = 5.0f * w /  h;
                 real_height = 5.0;
         }
         glOrtho(-real_width, real_width, -real_height, real_height, -10.0, 10.0);
@@ -210,6 +280,9 @@ static void set_proj(int w, int h)
 	glMatrixMode(GL_MODELVIEW);
 }
 
+// ----DISPLAY STRING----
+
+#ifndef ARM9
 //copied from http://lighthouse3d.com/opengl/glut/index.php?bmpfontortho
 void draw_message_string(float x, float y, char *string)
 {
@@ -246,14 +319,13 @@ void draw_fname_string(float x, float y, char *string)
 		c++;
 	}
 }
+#endif
 
-void display()
+// ----DRAW MAIN----
+
+#ifndef ARM9
+void draw_HUD()
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glLoadIdentity();
-	
-	glColor3f(0, 0, 0);
-	
 	if(message == MSG_START)
 	{
 		glColor4f(0, 0, 0, 1.0f - start_frame * 1.0f / START_MAX);
@@ -298,28 +370,14 @@ void display()
 	
 	glColor3f(0, 0, 0);
 	draw_string(-3, -4, counter);
-	
-	glRotatef(-echo_ns::angle.x, 1, 0, 0);
-	glRotatef(-echo_ns::angle.y, 0, 1, 0);
-	
-	echo_ns::draw();
-	
-	vector3f* vec = echo_ns::step_char();
-	if(vec)
-	{
-		/*
-		vec->dump();
-		std::cout << std::endl;
-		// */
-		glColor3f(0.5f, 0.5f, 0.5f);
-		glTranslatef(vec->x, vec->y + 0.25, vec->z);
-		glutSolidSphere(0.1, 8, 8);
-		delete vec;
-	}
-	
+}
+#endif
+
+#ifndef ARM9
+void draw_loader()
+{
 	if(loading || load_frame > 0)
 	{
-		//std::cout << "loading? " << std::endl;
 		if(!loading)
 			load_frame--;
 		else if(load_frame < LOAD_MAX)
@@ -339,7 +397,7 @@ void display()
 		
 		glTranslatef(0, 0, 0.1f);
 		glColor3f(1, 1, 1);
-		
+
 		draw_string(side_x
 				, 5 - 0.4f, files->current_dir);
 		
@@ -363,38 +421,138 @@ void display()
 			each_file++;
 		}
 	}
+}
+#endif
+
+void display()
+{
+#ifndef ARM9
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+#endif
+	glLoadIdentity();
+	
+	glColor3f(0, 0, 0);
+	
+#ifndef ARM9
+	draw_HUD();
+#endif
+	glLoadIdentity();
+	glTranslatef(0.0f, 0.0f, -6.0f);
+	glRotatef(-echo_ns::angle.x, 1, 0, 0);
+	glRotatef(-echo_ns::angle.y, 0, 1, 0);
+	
+	echo_ns::draw();
+	
+	vector3f* vec = echo_ns::step_char();
+	//ECHO_PRINT("is vec null?: %i\n", vec == NULL);
+	if(vec)
+	{
+		glColor3f(0.5f, 0.5f, 0.5f);
+		glTranslatef(vec->x, vec->y + 0.25, vec->z);
+#ifdef ARM9
+		glBegin(GL_QUADS);
+			glVertex3f(0, HALF_GRID, 0);
+			glVertex3f(HALF_GRID, 0, 0);
+			glVertex3f(0, -HALF_GRID, 0);
+			glVertex3f(-HALF_GRID, 0, 0);
+		glEnd();
+#else
+		glutSolidSphere(0.1, 8, 8);
+#endif
+		delete vec;
+	}
+	
+	
+#ifndef ARM9
+	draw_loader();
 	
 	glutSwapBuffers();
-	
 	echo_sleep(30000);
+#endif
 }
+
+// ----CONTROLS---
+
+#define ROTATE_ANG	5.0f
+
+void up()
+{
+	if(echo_ns::angle.x > -60)
+		echo_ns::angle.x -= ROTATE_ANG;
+}
+
+void down()
+{
+	if(echo_ns::angle.x < 60)
+		echo_ns::angle.x += ROTATE_ANG;
+}
+
+void left()
+{
+	echo_ns::angle.y -= ROTATE_ANG;
+	if(echo_ns::angle.y < -360)	echo_ns::angle.y += 360;
+}
+
+void right()
+{
+	echo_ns::angle.y += ROTATE_ANG;
+	if(echo_ns::angle.y > 360)	echo_ns::angle.y -= 360;
+}
+
+void start_or_pause()
+{
+	start_frame = 0;
+	if(message == MSG_READY)
+	{
+		message = MSG_START;
+		echo_ns::start();
+		name_display--;
+	}
+	else
+	{
+		if(!echo_ns::is_paused())
+			message = MSG_PAUSE;
+		else
+			message = MSG_BLANK;
+		echo_ns::toggle_pause();
+	}
+}
+
+#ifdef ARM9
+void get_key()
+{
+	scanKeys();
+	
+	u16 key = keysDown();
+	//echo_sleep(100);
+	if(key & KEY_A)
+		start_or_pause();
+	else if(key & KEY_SELECT)
+	{
+		ECHO_PRINT("angle * 100: %i, %i\n" , (int)(echo_ns::angle.x * 100), (int)(echo_ns::angle.y* 100));
+	}
+	else if(key  & KEY_RIGHT)
+		right();
+	else if(key & KEY_LEFT)
+		left();
+	else if(key & KEY_DOWN)
+		down();
+	else if(key & KEY_UP)
+		up();
+	echo_ns::angle.x = (int)echo_ns::angle.x;
+	echo_ns::angle.y = (int)echo_ns::angle.y;
+}
+#else
 
 void key(unsigned char key, int x, int y)
 {
-	//echo_sleep(100);
 	if(key == ESCAPE)
 	{
 		glutDestroyWindow(window);
 		exit(0);
 	}
 	else if(key == 'p' || key == 'P')
-	{
-		start_frame = 0;
-		if(message == MSG_READY)
-		{
-			message = MSG_START;
-			echo_ns::start();
-			name_display--;
-		}
-		else
-		{
-			if(!echo_ns::is_paused())
-				message = MSG_PAUSE;
-			else
-				message = MSG_BLANK;
-			echo_ns::toggle_pause();
-		}
-	}
+		start_or_pause();
 	else if(key == ENTER)
 	{
 		const char* file = files->file_names[file_index];
@@ -404,7 +562,6 @@ void key(unsigned char key, int x, int y)
 		}
 		else
 		{
-			//std::cout << "file is dir: " << file << ", " << files->current_dir << std::endl;
 			char* dir;
 			if(!strcmp(file, ".."))
 			{
@@ -416,7 +573,6 @@ void key(unsigned char key, int x, int y)
 			{
 				dir = echo_merge(files->current_dir, file);
 			}
-			//std::cout << "newdir: " << dir << std::endl;
 			delete files;
 			files = get_files(dir);
 			file_index = 0;
@@ -435,43 +591,30 @@ void key(unsigned char key, int x, int y)
 		{
 			echo_ns::toggle_pause();
 			loading = 0;
-			//load_frame = 0;
 		}
 	}
 	else if(key == 'a' || key == 'A')
 	{
-		std::cout << "ang: ";
+		ECHO_PRINT("ang: ");
 		echo_ns::angle.dump();
-		std::cout << std::endl;
+		ECHO_PRINT("\n");
 	}
 }
 
-#define ROTATE_ANG	5.0f
+
 
 void spec_key(int key, int x, int y)
 {
 	if(!loading)
 	{
 		if(key == GLUT_KEY_RIGHT)
-		{
-			echo_ns::angle.y += ROTATE_ANG;
-			if(echo_ns::angle.y > 360)	echo_ns::angle.y -= 360;
-		}
+			right();
 		else if(key == GLUT_KEY_LEFT)
-		{
-			echo_ns::angle.y -= ROTATE_ANG;
-			if(echo_ns::angle.y < -360)	echo_ns::angle.y += 360;
-		}
+			left();
 		else if(key == GLUT_KEY_DOWN)
-		{
-			if(echo_ns::angle.x < 60)
-				echo_ns::angle.x += ROTATE_ANG;
-		}
+			down();
 		else if(key == GLUT_KEY_UP)
-		{
-			if(echo_ns::angle.x > -60)
-				echo_ns::angle.x -= ROTATE_ANG;
-		}
+			up();
 	}
 	else
 	{
@@ -488,4 +631,6 @@ void spec_key(int key, int x, int y)
 			file_start = 0;
 	}
 }
+
+#endif
 

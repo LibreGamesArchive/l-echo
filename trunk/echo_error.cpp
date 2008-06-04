@@ -18,13 +18,13 @@
 */
 
 #include <cstdlib>
-#include <iostream>
 
+#include <echo_debug.h>
 #include <echo_error.h>
 
 void lderr(const char* msg)
 {
-	std::cout << "Load Error: " << msg << std::endl;
+	ECHO_PRINT("Load Error: %s\n", msg);
 	std::exit(1);
 }
 void ldmemerr()
@@ -33,18 +33,17 @@ void ldmemerr()
 }
 void lderr(const char* msg1, const char* msg2)
 {
-	char* msg = new char[strlen(msg1) + strlen(msg2) + 1];
-	LD_CHKPTR(msg);
-	lderr(strcat(strcpy(msg, msg1), msg2));
+	ECHO_PRINT("Load Error: %s%s\n", msg1, msg2);
+	std::exit(1);
 }
 
 void ldwarn(const char* msg)
 {
-	std::cout << "Load Warning: " << msg << std::endl;
+	ECHO_PRINT("Load Warning: %s\n", msg);
 }
 
 void genmemerr()
 {
-	std::cout << "Cannot allocate memory!" << std::endl;
+	ECHO_PRINT("Cannot allocate memory!\n");
 }
 
