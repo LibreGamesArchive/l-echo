@@ -29,6 +29,7 @@ class isect_grid : public static_grid
 	protected:
 		GRID_PTR_SET* level;
 		float level_y;
+		grid* cam_grid;
 	public:
 		isect_grid();
 		isect_grid(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f camera, GRID_PTR_SET* my_level);
@@ -36,6 +37,7 @@ class isect_grid : public static_grid
 		
 		virtual grid* get_next(vector3f angle, grid* current);
 		virtual void force_refresh(vector3f camera);
+		virtual grid_info_t* get_info(vector3f angle);
 		virtual void init_to_null();
 };
 #endif

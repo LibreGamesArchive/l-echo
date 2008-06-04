@@ -19,6 +19,7 @@
 
 #include <iostream>
 
+#include <echo_debug.h>
 #include <echo_error.h>
 #include <echo_ns.h>
 #include <echo_gfx.h>

@@ -48,10 +48,13 @@ class vector3f
 		int angle_similar(vector3f v);
 		void dump();
 		float length();
+		
 		vector3f* angle_xy();
 		vector3f* rotate_xy(vector3f rot);
 		vector3f* neg_rotate_yx(vector3f rot);
 		vector3f* rotate_about_y(float angle);
+		vector3f* angle_to_real();
+		
 		vector3f normalize_angle();
 		vector3f negate();
 		float dist(vector3f other);

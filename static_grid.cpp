@@ -19,6 +19,7 @@
 
 #include <iostream>
 
+#include <echo_debug.h>
 #include <echo_error.h>
 #include <echo_gfx.h>
 #include <echo_math.h>
@@ -63,12 +64,6 @@ void static_grid::force_refresh(vector3f camera)
 	ginfo->pos = *(real_vec->rotate_xy(camera));
 	lines = generate_lines(*ginfo);
 	prev_angle.set(camera);
-	
-	/*
-	std::cout << "refresh: ";
-	ginfo->pos.dump();
-	std::cout << std::endl;
-	// */
 }
 
 grid_info_t* static_grid::get_info(vector3f angle)

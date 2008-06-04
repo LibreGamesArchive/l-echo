@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <iostream>
 
+#include <echo_debug.h>
 #include <echo_error.h>
 #include <echo_gfx.h>
 #include <grid.h>
@@ -27,9 +28,9 @@
 
 void dump_grid_info(grid_info_t ginfo)
 {
-	std::cout << "grid_info_t(" << &ginfo << "): [";
+	ECHO_PRINT("grid_info_t: [");
 	ginfo.pos.dump();
-	std::cout << "]";
+	ECHO_PRINT("]");
 }
 
 grid::grid()
@@ -101,13 +102,13 @@ static int has_line(line3f* ptr, line3f line)
 static void dump_lines(line3f* ptr)
 {
 	dump_line3f(ptr[0]);
-	std::cout << std::endl;
+	ECHO_PRINT("\n");
 	dump_line3f(ptr[1]);
-	std::cout << std::endl;
+	ECHO_PRINT("\n");
 	dump_line3f(ptr[2]);
-	std::cout << std::endl;
+	ECHO_PRINT("\n");
 	dump_line3f(ptr[3]);
-	std::cout << std::endl;
+	ECHO_PRINT("\n");
 }
 
 grid::~grid()
@@ -217,10 +218,11 @@ int grid::num_neighbors(vector3f angle)
 
 void grid::dump()
 {
-	std::cout << "grid(" << this << "): [";
+	ECHO_PRINT("grid: [");
 	if(ginfo)    dump_grid_info(*ginfo);
-	else        std::cout << "NULL grid_info_t?";
-	std::cout << "," << neighbors[0] << "," << neighbors[1] << "]";
+	else        ECHO_PRINT("NULL grid_info_t?");
+	ECHO_PRINT("]");
+	//std::cout << "," << neighbors[0] << "," << neighbors[1] << "]";
 }
 
 void grid::add_trigger(grid* trig)

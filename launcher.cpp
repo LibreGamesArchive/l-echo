@@ -20,6 +20,7 @@
 #include <cmath>
 #include <iostream>
 
+#include <echo_debug.h>
 #include <echo_error.h>
 #include <echo_ns.h>
 #include <echo_gfx.h>
@@ -112,9 +113,9 @@ grid* launcher::get_real_prev()
 #define STATIC_STEP				0.25f
 #define GET_Z(y)				(2 + sqrtf(4 - (y)))
 #ifdef WIN32
-	#define GET_Y(z)				(4 - ((z) - 2) * ((z) - 2))
+	#define GET_Y(z)			(4 - ((z) - 2) * ((z) - 2))
 #else
-	#define GET_Y(z)				(4 - powf((z) - 2, 2))	//a bug in mingw prevents linking with powf...
+	#define GET_Y(z)			(4 - powf((z) - 2, 2))	//a bug in mingw prevents linking with powf...
 #endif
 #define TRANS_TO_LAUNCH(vec, angle, pos)	(*(vec.rotate_about_y(angle)) + pos)
 #define TRANS_PTR_TO_LAUNCH(vec, angle, pos)	(*(vec->rotate_about_y(angle)) + pos)
@@ -138,15 +139,7 @@ grid* launcher::get_next(vector3f angle, grid* current)
 	CHKPTR(direction);
 	
 	float launch_angle = TO_DEG(atan2f(direction->x, direction->z));
-	std::cout << "angle of launcher: " << launch_angle << std::endl;
-	
-	/*
-	vector3f* vertex = new vector3f(0, VERTEX_Y, VERTEX_Z);
-	vector3f rotated_vertex = TRANS_TO_LAUNCH(vertex, launch_angle, pos);
-	std::cout << "translated vertex: ";
-	rotated_vertex.dump();
-	std::cout << std::endl;
-	// */
+	ECHO_PRINT("angle of launcher (* 100): %i\n", (int)(launch_angle * 100));
 	
 	grid* begin = NULL;
 	grid* temp1 = this;
@@ -159,11 +152,6 @@ grid* launcher::get_next(vector3f angle, grid* current)
 		CHKPTR(info);
 		info->pos.set(0, GET_Y(z), z);
 		info->pos = TRANS_TO_LAUNCH(info->pos, launch_angle, pos);
-		/*
-		std::cout << "info->pos: ";
-		info->pos.dump();
-		std::cout << std::endl;
-		// */
 		
 		temp2 = new static_grid(info, temp1, echo_ns::hole_grid, angle);
 		CHKPTR(temp2);
@@ -173,38 +161,34 @@ grid* launcher::get_next(vector3f angle, grid* current)
 		if(!begin)
 			begin = temp1;
 		
-		//std::cout << "z: " << z << std::endl;
 		z += STATIC_STEP;
 	}
-	//return(begin);
 	
 	//*
 	LEVEL_MAP* levels = echo_ns::current_stage->get_levels_lower_than(pos.y + VERTEX_Y);
-	//std::cout << "levels->size(): " << levels->size() <<std::endl;
 	if(levels->size() > 0)
 	{
 		LEVEL_MAP::iterator it = levels->end(), end = levels->begin();
 		it--;
 		int past_end = 0, dup_static = 0;
-		std::cout << "last y: " << end->first << std::endl;
+		ECHO_PRINT("last y (* 100): %i\n", (int)(end->first * 100));
 		float last_z = (int)(GET_Z(end->first - pos.y) / STATIC_STEP) * STATIC_STEP, this_y;
 		if(last_z < INTERCEPT_Z)
 			last_z = INTERCEPT_Z;
-		std::cout << "last z: " << last_z << std::endl;
+		ECHO_PRINT("last z (* 100): %i\n", (int)(last_z * 100));
 		while(z <= last_z)
 		{
 			this_y = GET_Y(z) + pos.y;
 			while(!past_end && it->first >= this_y)
 			{
-				//std::cout << "LEVEL: " << it->first << ", " << GET_Y(z) << ", " << pos.y << std::endl;
 				grid_info_t* info = new(grid_info_t);
 				CHKPTR(info);
 				info->pos.set(0, it->first - pos.y, GET_Z(it->first - pos.y));
 				info->pos.dump();
-				std::cout << std::endl;
+				ECHO_PRINT("\n");
 				info->pos = TRANS_TO_LAUNCH(info->pos, launch_angle, pos);
 				info->pos.dump();
-				std::cout << std::endl;
+				ECHO_PRINT("\n");
 				temp2 = new isect_grid(info, temp1, echo_ns::hole_grid, angle, it->second);
 				CHKPTR(temp2);
 				temp1->set_real_next(temp2);
@@ -212,7 +196,7 @@ grid* launcher::get_next(vector3f angle, grid* current)
 				
 				if(it->first == this_y)
 				{
-					std::cout << "dup_static..." << std::endl;
+					ECHO_PRINT("dup_static...\n");
 					dup_static = 1;
 				}
 				if(it == end)
@@ -220,7 +204,6 @@ grid* launcher::get_next(vector3f angle, grid* current)
 				else
 					it--;
 			}
-			//std::cout << "STEP: " << z<< std::endl;
 			if(!dup_static)
 			{
 				grid_info_t* info = new(grid_info_t);
@@ -236,26 +219,7 @@ grid* launcher::get_next(vector3f angle, grid* current)
 				dup_static = 0;
 			z += STATIC_STEP;
 		}
-		/*
-		do
-		{
-			it--;
-			grid_info_t* info = new(grid_info_t);
-			info->pos.set(0, it->first - pos.y, GET_Z(it->first - pos.y));
-			info->pos.dump();
-			std::cout << std::endl;
-			info->pos = TRANS_TO_LAUNCH(info->pos, launch_angle, pos);
-			info->pos.dump();
-			std::cout << std::endl;
-			temp2 = new isect_grid(info, temp1, echo_ns::hole_grid, angle, it->second);
-			temp1->set_real_next(temp2);
-			temp1 = temp2;
-		}
-		while(it != end);
-		// */
-		//std::cout << "begin: " << end->second << std::endl;
 	}
 	return(begin ? begin : echo_ns::hole_grid);
-	// */
 }
 

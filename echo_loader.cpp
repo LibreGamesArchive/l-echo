@@ -19,13 +19,14 @@
 
 #include <cstdlib>
 #include <cstring>
-#include <iostream>
+//#include <iostream>
 #include <string>
 #include <typeinfo>
 
 #include <vector>
 #include <map>
 
+#include <echo_debug.h>
 #include <echo_error.h>
 #include <launcher.h>
 #include <stair.h>
@@ -34,7 +35,12 @@
 #include <hole.h>
 #include <grid.h>
 #include <echo_stage.h>
-#include <tinyxml/tinyxml.h>
+
+#ifdef ARM9
+	#include <tinyxml.h>
+#else
+	#include <tinyxml/tinyxml.h>
+#endif
 
 //#define LOAD_DEBUG
 
@@ -98,6 +104,7 @@ stage* load_stage(const char* file_name)
 				lderr("unknown node type!");
 		}
 		const char* start = root->Attribute("start");
+		ECHO_PRINT("start: %s\n", start);
 		if(!start)
 			lderr("no starting point specified!");
 		grid* start_grid = ret->get(start);
@@ -138,14 +145,14 @@ static void add(DEPENDENCY_MAP* map, char* id, functor f)
 	if(set)
 	{
 #ifdef LOAD_DEBUG
-		std::cout << "dep set for " << id << " found, adding"<< std::endl;
+		ECHO_PRINT("dep set for %s found, adding\n", id);
 #endif
 		set->push_back(f);
 	}
 	else
 	{
 #ifdef LOAD_DEBUG
-		std::cout << "dep set for " << id << " NOT found, adding"<< std::endl;
+		ECHO_PRINT("dep set for %s NOT found, adding\n", id);
 #endif
 		set = new FUNCTOR_VEC();
 		LD_CHKPTR(set);
@@ -233,7 +240,7 @@ static char* get_attribute(TiXmlElement* txe, const char* attr, const char* errm
 static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot)
 {
 #ifdef LOAD_DEBUG
-	std::cout << std::endl;
+	ECHO_PRINT("\n");
 #endif
 	char* name = get_attribute(txe, "id", "unnamed grid!");
 	const char* type = txe->Value();
@@ -253,7 +260,7 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 	if(!strcmp(type, "grid"))
 	{
 #ifdef LOAD_DEBUG
-		std::cout << name << " is a grid!" << std::endl;
+		ECHO_PRINT("%s is a grid!\n", name);
 #endif
 		new_grid = new grid(info, prev, next);
 		LD_CHKPTR(new_grid);
@@ -261,7 +268,7 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 	else if(!strcmp(type, "t_grid"))
 	{
 #ifdef LOAD_DEBUG
-		std::cout << name << " is a t_grid!" << std::endl;
+		ECHO_PRINT("%s is a t_grid!\n", name);
 #endif
 		char* next2_id = get_attribute(txe, "next2", "no next2 for t_grid: ", name);
 		grid* next2 = st->get(next2_id);
@@ -270,7 +277,7 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 		if(!next2 && strcmp(next2_id, "NONE"))
 		{
 #ifdef LOAD_DEBUG
-			std::cout << "next2 (" << next2_id << ") is null, adding to dep map" << std::endl;
+			ECHO_PRINT("next2 (%s) is null, adding to dep map\n", next2_id);
 #endif
 			add(map, next2_id, (t_grid*)new_grid, &t_grid::set_real_next2);
 		}
@@ -278,7 +285,7 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 	else if(!strcmp(type, "escgrid"))
 	{
 #ifdef LOAD_DEBUG
-		std::cout << name << " is an escgrid!" << std::endl;
+		ECHO_PRINT("%s is a escgrid!\n", name);
 #endif
 		new_grid = new escgrid(info, prev, next);
 		LD_CHKPTR(new_grid);
@@ -298,7 +305,7 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 	else if(!strcmp(type, "hole"))
 	{
 #ifdef LOAD_DEBUG
-		std::cout << name << " is an hole!" << std::endl;
+		ECHO_PRINT("%s is an hole!\n", name);
 #endif
 		new_grid = new hole(info, prev, next);
 		LD_CHKPTR(new_grid);
@@ -318,7 +325,7 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 	else if(!strcmp(type, "launcher"))
 	{
 #ifdef LOAD_DEBUG
-		std::cout << name << " is an launcher!" << std::endl;
+		ECHO_PRINT("%s is a launcher!\n", name);
 #endif
 		new_grid = new launcher(info, prev, next);
 		LD_CHKPTR(new_grid);
@@ -338,7 +345,7 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 	else if(!strcmp(type, "stair"))
 	{
 #ifdef LOAD_DEBUG
-		std::cout << name << " is a stair!" << std::endl;
+		ECHO_PRINT("%s is a stair!\n", name);
 #endif
 		TiXmlNode* vec_element = txe->FirstChild();
 		while(vec_element != NULL && vec_element->Type() != TiXmlNode::ELEMENT)
@@ -356,18 +363,6 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 		vector3f* width_angle = new vector3f();
 		LD_CHKPTR(width_angle);
 		get_vec(vec_element->ToElement(), width_angle);
-		/*
-		TiXmlElement* dir_element = txe->FirstChild()->ToElement();
-		vector3f* dir_angle = new vector3f();
-		dir_element->QueryFloatAttribute("x", &dir_angle->x);
-		dir_element->QueryFloatAttribute("y", &dir_angle->y);
-		dir_element->QueryFloatAttribute("z", &dir_angle->z);
-		TiXmlElement* width_element = dir_element->NextSiblingElement();
-		vector3f* width_angle = new vector3f();
-		width_element->QueryFloatAttribute("x", &width_angle->x);
-		width_element->QueryFloatAttribute("y", &width_angle->y);
-		width_element->QueryFloatAttribute("z", &width_angle->z);
-		// */
 		new_grid = new stair(info, prev, next, dir_angle, width_angle);
 		LD_CHKPTR(new_grid);
 	}
@@ -376,21 +371,21 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 	if(!prev && strcmp(prev_id, "NONE"))
 	{
 #ifdef LOAD_DEBUG
-		std::cout << "prev (" << prev_id << ") is null, adding to dep map" << std::endl;
+		ECHO_PRINT("prev (%s) is null, adding to dep map\n", prev_id);
 #endif
 		add(map, prev_id, new_grid, &grid::set_real_prev);
 	}
 	if(!next && strcmp(next_id, "NONE"))
 	{
 #ifdef LOAD_DEBUG
-		std::cout << "next (" << next_id << ") is null, adding to dep map" << std::endl;
+		ECHO_PRINT("next (%s) is null, adding to dep map\n", next_id);
 #endif
 		add(map, next_id, new_grid, &grid::set_real_next);
 	}
 	if(trig_id && !trig && strcmp(trig_id, "NONE"))
 	{
 #ifdef LOAD_DEBUG
-		std::cout << "trig (" << trig_id << ") is null, adding to dep map" << std::endl;
+		ECHO_PRINT("trig (%s) is null, adding to dep map\n", trig_id);
 #endif
 		add(map, const_cast<char*>(trig_id), new_grid, &grid::add_trigger);
 	}
@@ -403,7 +398,7 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 		{
 			new_grid->set_as_goal();
 #ifdef LOAD_DEBUG
-			std::cout << "it's a goal!" <<std::endl;
+			ECHO_PRINT("it's a goal!\n");
 #endif
 		}
 	}
@@ -416,7 +411,7 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 		{
 			new_grid->set_draw(0);
 #ifdef LOAD_DEBUG
-			std::cout << "it's invisible!" <<std::endl;
+			ECHO_PRINT("it's invisible!\n");
 #endif
 		}
 	}
@@ -424,14 +419,14 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 	if(deps)
 	{
 #ifdef LOAD_DEBUG
-		std::cout << "deps found for: " << name << std::endl;
+		ECHO_PRINT("deps found for: %s\n", name);
 #endif
 		FUNCTOR_VEC::iterator it = deps->begin(), end = deps->end();
 		while(it != end)
 		{
 			it->call(new_grid);
 #ifdef LOAD_DEBUG
-			std::cout << "dep called for " << it->obj << " (" << typeid(*(it->obj)).name() << ") by " << name << std::endl;
+			ECHO_PRINT("dep called for %s (%s) by %s", it->obj, typeid(*(it->obj)).name(), name);
 #endif
 			it++;
 		}
@@ -439,7 +434,7 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 	}
 #ifdef LOAD_DEBUG
 	else
-		std::cout << "deps not found for: " << name << std::endl;
+		ECHO_PRINT("deps not found for: %s\n", name);
 #endif
 	int noland = 0;
 	if(txe->Attribute("noland"))
@@ -448,7 +443,7 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 			lderr("noland attribute contains wrong type!: ", name);
 #ifdef LOAD_DEBUG
 		if(noland)
-			std::cout << "it's not land-able!" <<std::endl;
+			ECHO_PRINT("it's not land-able!\n");
 #endif
 	}
 	if(!escroot)

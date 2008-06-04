@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <iostream>
 
+#include <echo_debug.h>
 #include <launcher.h>
 #include <echo_math.h>
 #include <grid.h>
@@ -61,20 +62,20 @@ void echo_char::change_speed()
 		if(typeid(*grid1) == typeid(hole) && (typeid(*grid2) == typeid(isect_grid)
 			|| grid2 == echo_ns::hole_grid))
 		{
-			std::cout << "falling into hole..." << std::endl;
+			ECHO_PRINT("falling into hole...");
 			speed = SPEED_FALL;
 		}
 		else if(typeid(*grid1) == typeid(launcher) && (typeid(*grid2) == typeid(static_grid)
 			|| grid2 == echo_ns::hole_grid))
 		{
-			std::cout << "being launched!" << std::endl;
+			ECHO_PRINT("being launched!");
 			speed = SPEED_LAUNCH;	
 		}
 		else if(typeid(*grid1) == typeid(isect_grid)
 			&& (typeid(*grid2) != typeid(isect_grid) 
 				&& typeid(*grid2) != typeid(static_grid)))
 		{
-			std::cout << "normal speed" << std::endl;
+			ECHO_PRINT("normal speed");
 			speed = SPEED_STEP;
 		}
 	}
@@ -155,7 +156,7 @@ vector3f* echo_char::step()	//CHANGE FOR NORMALS
 		if(startper < -1)
 			init(start);
 		return(new vector3f(pos1.x, pos1.y + STARTY * startper, pos1.z));
-	}
+	} 
 	else if(grid1)
 	{
 		if (grid2 == echo_ns::hole_grid)
@@ -202,10 +203,6 @@ vector3f* echo_char::step()	//CHANGE FOR NORMALS
 				{
 					vector3f pos2 = i2->pos;
 					dist = pos1.dist(pos2);
-					/*
-					ret->dump();
-					std::cout <<std::endl;
-					// */
 					return(new vector3f(pos1.x * grid1per + pos2.x * grid2per,
 								pos1.y * grid1per + pos2.y * grid2per,
 								pos1.z * grid1per + pos2.z * grid2per));

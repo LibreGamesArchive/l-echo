@@ -21,6 +21,7 @@
 #include <typeinfo>
 #include <string>
 
+#include <echo_debug.h>
 #include <echo_error.h>
 #include <grid.h>
 #include <echo_stage.h>
@@ -76,10 +77,10 @@ void stage::add_pos(vector3f pos, grid* g)
 void stage::dump_levels()
 {
 	LEVEL_MAP::iterator it = levels->begin(), end = levels->end();
-	std::cout << "levels: " << std::endl;
+	ECHO_PRINT("levels (* 100): \n");
 	while(it != end)
 	{
-		std::cout << it->first << ": size: " << it->second->size() << std::endl;
+		ECHO_PRINT("%i: size: %i\n", (int)(it->first * 100), it->second->size());
 		it++;
 	}
 }
@@ -146,6 +147,24 @@ LEVEL_MAP* stage::get_levels_lower_than(float y)
 		ret->insert(LEVEL_MAP::value_type(it->first, it->second));
 		it++;
 	}
+	RET:
+	return(ret);
+}
+
+LEVEL_MAP* stage::get_levels_higher_than(float y)
+{
+	if(!levels->size())
+		return(new LEVEL_MAP());
+	LEVEL_MAP::iterator it = levels->end(), end = levels->begin();
+	LEVEL_MAP* ret = new LEVEL_MAP();
+	do
+	{
+		it--;
+		if(it->first < y)
+			goto RET;
+		ret->insert(LEVEL_MAP::value_type(it->first, it->second));
+	}
+	while(it != end);
 	RET:
 	return(ret);
 }

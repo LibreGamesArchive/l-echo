@@ -26,25 +26,53 @@
 class echo_char
 {
 	protected:
+		//where the character was initialized.
 		grid* start;
+		//the first grid
 		grid* grid1;
+		//the second grid
 		grid* grid2;
+		//is this character paused?
 		int paused;
+		//the number of goals reached
 		int num_goals;
+		/*
+			grid1per is the weight of the first grid
+			grid2per is the weight of the second grid
+			
+			startper is the percent that the grid is spawning or is dying.
+			
+			speed is the raw speed
+			dist is the distance between the two grids.
+			
+			weight +=/-= (speed / dist) each step;
+		*/
 		float grid1per, grid2per, startper, speed, dist;
 	
 	public:
+		//default constructor
 		echo_char();
+		//init to that grid
 		echo_char(grid* start);
+		//if you used the default, or reinitializing...
 		void init(grid* g1);
+		//restart from the last starting point
 		void reset();
 		
+		//take one step
 		vector3f* step();
+		//kill the character
 		void kill();
-		void toggle_pause();
+		//go to the next grid
 		void next_grid();
+		//check the type of the grids, and change the speed of the character accordingly
 		void change_speed();
+		
+		//pause or unpause
+		void toggle_pause();
+		//is this character paused?
 		int is_paused();
+		//number of goals/echoes reached
 		int num_goals_reached();
 };
 #endif
