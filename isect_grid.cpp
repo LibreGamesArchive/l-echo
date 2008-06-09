@@ -18,6 +18,7 @@
 */
 
 #include <iostream>
+#include <typeinfo>
 
 #include <echo_debug.h>
 #include <echo_error.h>
@@ -31,15 +32,21 @@
 isect_grid::isect_grid() : static_grid()
 {
 }
-isect_grid::isect_grid(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f camera, GRID_PTR_SET* my_level) : static_grid()
+isect_grid::isect_grid(grid_info_t* my_info, grid* my_prev, grid* my_next
+			, vector3f camera, vector3f* my_path_orig, static_grid* my_root, GRID_PTR_SET* my_level) : static_grid()
 {
-	init(my_info, my_prev, my_next, camera, my_level);
+	init(my_info, my_prev, my_next, camera, my_path_orig, my_root, my_level);
 }
-void isect_grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f camera, GRID_PTR_SET* my_level)
+void isect_grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next
+			, vector3f camera, vector3f* my_path_orig, static_grid* my_root, GRID_PTR_SET* my_level)
 {
 	level_y = my_info->pos.y;
-	static_grid::init(my_info, my_prev, my_next, camera);
+	static_grid::init(my_info, my_prev, my_next, camera, my_path_orig, my_root);
 	level = my_level;
+}
+
+isect_grid::~isect_grid()
+{
 }
 
 static vector3f* end_pt(vector3f prev_pos, vector3f vec, float level_y)
@@ -135,8 +142,29 @@ grid* isect_grid::get_next(vector3f angle, grid* current)
 	}
 	grid* ret = check_level(level, my_end_pt, angle);
 	delete my_end_pt;
+#ifdef PATH_GRID
+	set_as_path_grid(angle);
+#endif
 	return(ret ? ret : grid::get_next(angle, current));
 	// */
+}
+
+grid* isect_grid::where_is_cam_grid()
+{
+	if(cam_grid)
+		return(this);
+	grid* next = get_real_next();
+	if(next && (typeid(*next) == typeid(static_grid) 
+			|| typeid(*next) == typeid(isect_grid)))
+	{
+		return(((static_grid*)next)->where_is_cam_grid());
+	}
+	return(NULL);
+}
+
+grid* isect_grid::get_cam_grid()
+{
+	return(cam_grid);
 }
 
 void isect_grid::init_to_null()
@@ -153,12 +181,14 @@ grid_info_t* isect_grid::get_info(vector3f angle)
 
 void isect_grid::force_refresh(vector3f camera)
 {
+	cam_grid = NULL;
+	
 	static_grid::force_refresh(camera);
+	
 	if(ABS(camera.x) >= 35 && ABS(camera.x) <= 50)
 	{
 		vector3f* cam_real = camera.angle_to_real();
 		vector3f cam_vec = ginfo->pos - (*cam_real);
-		cam_grid = NULL;
 		if(cam_real->y > 0) //viewing downwards
 		{
 			cam_grid = check_levels_above(echo_ns::current_stage->get_levels_higher_than(level_y)
@@ -177,3 +207,4 @@ void isect_grid::force_refresh(vector3f camera)
 		}
 	}
 }
+

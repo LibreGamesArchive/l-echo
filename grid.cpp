@@ -23,6 +23,7 @@
 #include <echo_debug.h>
 #include <echo_error.h>
 #include <echo_gfx.h>
+#include <trigger.h>
 #include <grid.h>
 #include <echo_math.h>
 
@@ -78,7 +79,7 @@ void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, int my_num_n
 	draw_me = 1;
 	if(triggers)
 		delete triggers;
-	triggers = new GRID_PTR_SET();
+	triggers = new TRIGGER_SET();
 	CHKPTR(triggers);
 	
 	ginfo = my_info;
@@ -131,6 +132,11 @@ grid* grid::get_real_next()
 grid* grid::get_real_prev()
 {
 	return(neighbors[0]);
+}
+
+grid_info_t* grid::get_real_info()
+{
+	return(ginfo);
 }
 
 void grid::set_real_next(grid* g)
@@ -225,7 +231,7 @@ void grid::dump()
 	//std::cout << "," << neighbors[0] << "," << neighbors[1] << "]";
 }
 
-void grid::add_trigger(grid* trig)
+void grid::add_trigger(trigger* trig)
 {
 	triggers->insert(trig);
 }
@@ -239,11 +245,11 @@ void grid::toggle_goal(vector3f angle)
 {
 	if(am_goal)	//triggers
 	{
-		GRID_PTR_SET::iterator it = triggers->begin()
+		TRIGGER_SET::iterator it = triggers->begin()
 					, end = triggers->end();
 		while(it != end)
 		{
-			(*it)->toggle_goal(angle);
+			(*it)->toggle(angle);
 			it++;
 		}
 	}

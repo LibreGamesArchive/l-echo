@@ -28,6 +28,7 @@
 #include <echo_math.h>
 #include <grid.h>
 #include <isect_grid.h>
+//#include <cam_map.h>
 
 launcher::launcher() : escgrid()
 {
@@ -139,11 +140,14 @@ grid* launcher::get_next(vector3f angle, grid* current)
 	CHKPTR(direction);
 	
 	float launch_angle = TO_DEG(atan2f(direction->x, direction->z));
-	ECHO_PRINT("angle of launcher (* 100): %i\n", (int)(launch_angle * 100));
+	//ECHO_PRINT("angle of launcher (* 100): %i\n", (int)(launch_angle * 100));
 	
 	grid* begin = NULL;
 	grid* temp1 = this;
 	grid* temp2 = NULL;
+	
+	//CAM_GRID_MAP* map = new CAM_GRID_MAP();
+	//CHKPTR(map);
 	
 	float z = STATIC_STEP;
 	while(z <= VERTEX_Z)
@@ -153,7 +157,8 @@ grid* launcher::get_next(vector3f angle, grid* current)
 		info->pos.set(0, GET_Y(z), z);
 		info->pos = TRANS_TO_LAUNCH(info->pos, launch_angle, pos);
 		
-		temp2 = new static_grid(info, temp1, echo_ns::hole_grid, angle);
+		temp2 = new static_grid(info, temp1, echo_ns::hole_grid, angle, &pos
+					, begin == NULL ? NULL : (static_grid*)begin);
 		CHKPTR(temp2);
 		if(temp1 != this)
 			temp1->set_real_next(temp2);
@@ -171,11 +176,11 @@ grid* launcher::get_next(vector3f angle, grid* current)
 		LEVEL_MAP::iterator it = levels->end(), end = levels->begin();
 		it--;
 		int past_end = 0, dup_static = 0;
-		ECHO_PRINT("last y (* 100): %i\n", (int)(end->first * 100));
+		//ECHO_PRINT("last y (* 100): %i\n", (int)(end->first * 100));
 		float last_z = (int)(GET_Z(end->first - pos.y) / STATIC_STEP) * STATIC_STEP, this_y;
 		if(last_z < INTERCEPT_Z)
 			last_z = INTERCEPT_Z;
-		ECHO_PRINT("last z (* 100): %i\n", (int)(last_z * 100));
+		//ECHO_PRINT("last z (* 100): %i\n", (int)(last_z * 100));
 		while(z <= last_z)
 		{
 			this_y = GET_Y(z) + pos.y;
@@ -184,19 +189,21 @@ grid* launcher::get_next(vector3f angle, grid* current)
 				grid_info_t* info = new(grid_info_t);
 				CHKPTR(info);
 				info->pos.set(0, it->first - pos.y, GET_Z(it->first - pos.y));
-				info->pos.dump();
-				ECHO_PRINT("\n");
+				//info->pos.dump();
+				//ECHO_PRINT("\n");
 				info->pos = TRANS_TO_LAUNCH(info->pos, launch_angle, pos);
-				info->pos.dump();
-				ECHO_PRINT("\n");
-				temp2 = new isect_grid(info, temp1, echo_ns::hole_grid, angle, it->second);
+				//info->pos.dump();
+				//ECHO_PRINT("\n");
+				//init_level(map, info->pos.y);
+				temp2 = new isect_grid(info, temp1, echo_ns::hole_grid, angle, &pos
+							, (static_grid*)begin, it->second);
 				CHKPTR(temp2);
 				temp1->set_real_next(temp2);
 				temp1 = temp2;
 				
 				if(it->first == this_y)
 				{
-					ECHO_PRINT("dup_static...\n");
+					//ECHO_PRINT("dup_static...\n");
 					dup_static = 1;
 				}
 				if(it == end)
@@ -210,7 +217,9 @@ grid* launcher::get_next(vector3f angle, grid* current)
 				CHKPTR(info);
 				info->pos.set(0, GET_Y(z), z);
 				info->pos = TRANS_TO_LAUNCH(info->pos, launch_angle, pos);
-				temp2 = new static_grid(info, temp1, echo_ns::hole_grid, angle);
+				//init_level(map, info->pos.y);
+				temp2 = new static_grid(info, temp1, echo_ns::hole_grid, angle, &pos
+						, (static_grid*)begin);
 				CHKPTR(temp2);
 				temp1->set_real_next(temp2);
 				temp1 = temp2;
