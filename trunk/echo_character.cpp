@@ -62,20 +62,20 @@ void echo_char::change_speed()
 		if(typeid(*grid1) == typeid(hole) && (typeid(*grid2) == typeid(isect_grid)
 			|| grid2 == echo_ns::hole_grid))
 		{
-			ECHO_PRINT("falling into hole...");
+			ECHO_PRINT("falling into hole...\n");
 			speed = SPEED_FALL;
 		}
 		else if(typeid(*grid1) == typeid(launcher) && (typeid(*grid2) == typeid(static_grid)
 			|| grid2 == echo_ns::hole_grid))
 		{
-			ECHO_PRINT("being launched!");
+			ECHO_PRINT("being launched!\n");
 			speed = SPEED_LAUNCH;	
 		}
 		else if(typeid(*grid1) == typeid(isect_grid)
 			&& (typeid(*grid2) != typeid(isect_grid) 
 				&& typeid(*grid2) != typeid(static_grid)))
 		{
-			ECHO_PRINT("normal speed");
+			ECHO_PRINT("normal speed\n");
 			speed = SPEED_STEP;
 		}
 	}
@@ -194,11 +194,11 @@ vector3f* echo_char::step()	//CHANGE FOR NORMALS
 				if(!grid2)	//if there still isn't a second grid...
 					return(new vector3f(grid1->get_info(echo_ns::angle)->pos));	//return grid1's position
 			}
-			grid_info_t *i1 = grid1->get_info(echo_ns::angle);
+			grid_info_t* i1 = grid1->get_info(echo_ns::angle);
 			if(i1)
 			{
 				vector3f pos1 = i1->pos;
-				grid_info_t *i2 = grid2->get_info(echo_ns::angle);
+				grid_info_t* i2 = grid2->get_info(echo_ns::angle);
 				if(i2)
 				{
 					vector3f pos2 = i2->pos;

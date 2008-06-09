@@ -27,7 +27,7 @@
 	#include <nds.h>
 	#include <nds/arm9/trig_lut.h>
 	
-	#define ECHO_COSI(deg) (COS[(int)( ( ABS((deg)) % 360 ) / 360.0f * LUT_SIZE )])
+	#define ECHO_COSI(deg) (f32tofloat(COS[(int)( ( ABS((deg)) % 360 ) / 360.0f * LUT_SIZE )]))
 	#define ECHO_COSF(deg) (ECHO_COSI((int)(deg)))
 	#define ECHO_SINI(deg) (ECHO_COSI(90 - (deg)))
 	#define ECHO_SINF(deg) (ECHO_SINI((int)(deg)))
@@ -93,8 +93,11 @@ float vector3f::length()
 
 void vector3f::dump()
 {
-	//std::cout << "vector3f(" << this << "): [" << x << "," << y << "," << z << "]";
+#ifdef ARM9
 	ECHO_PRINT("vector3f (* 100): [%i,%i,%i]", (int)(x * 100), (int)(y * 100), (int)(z * 100));
+#else
+	ECHO_PRINT("vector3f: [%f,%f,%f]", x, y, z);
+#endif
 }
 
 void vector3f::set(vector3f copy_from)
@@ -149,11 +152,18 @@ vector3f vector3f::operator *(float f)
 
 vector3f* vector3f::angle_xy()
 {
-	float temp = sqrt(x * x  + z * z);
-	vector3f* ret = new vector3f(-TO_DEG(atan2f(y, z > 0 ? temp : -temp)),
-				TO_DEG(atan2f(x, z)), 0);
-	CHKPTR(ret);
-	return(ret);
+	vector3f* ret = NULL;
+	if(z == 0)
+		ret = new vector3f(0, TO_DEG(atan2f(x, z)), 0);
+	else
+	{
+		float temp = sqrt(x * x  + z * z);
+		ret = new vector3f(-TO_DEG(atan2f(y, z > 0 ? temp : -temp)),
+					TO_DEG(atan2f(x, z)), 0);
+	}
+        CHKPTR(ret);
+        return(ret);
+
 }
 
 float vector3f::dist(vector3f other)

@@ -17,19 +17,25 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <set>
+
 #include <echo_character.h>
 #include <echo_math.h>
 #include <grid.h>
+#include <static_grid.h>
 #include <echo_stage.h>
 
 #ifndef __ECHO_NS__
 #define __ECHO_NS__
+typedef std::set<static_grid*> STATIC_SET;
+
 namespace echo_ns
 {
 	extern grid* hole_grid;
 	extern vector3f angle;
 	extern stage* current_stage;
 	extern echo_char* main_char;
+	extern STATIC_SET* statics;
 
 	void init(stage* st);
 	void start();
@@ -44,6 +50,10 @@ namespace echo_ns
 	int num_goals();
 	int num_goals_reached();
 	int goals_left();
+	
+	//void add_map(CAM_GRID_MAP* map);
+	void add_static_grid(static_grid* sg);
+	void remove_static_grid(static_grid* sg);
 };
 #endif
 

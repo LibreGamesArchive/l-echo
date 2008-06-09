@@ -41,6 +41,7 @@ class stage
         int num_goals;
 	
 	LEVEL_MAP* levels;
+	float farthest;
 	
     public:
         stage();
@@ -61,5 +62,8 @@ class stage
         grid* get_start();
         std::string get_name();
         int get_num_goals();
+	
+	void set_farthest(float new_far);
+	float get_farthest();
 };
 #endif

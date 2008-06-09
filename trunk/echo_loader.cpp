@@ -26,15 +26,19 @@
 #include <vector>
 #include <map>
 
+#include <filter.h>
+#include <trigger.h>
+
 #include <echo_debug.h>
 #include <echo_error.h>
+#include <echo_stage.h>
+
 #include <launcher.h>
 #include <stair.h>
 #include <t_grid.h>
 #include <escgrid.h>
 #include <hole.h>
 #include <grid.h>
-#include <echo_stage.h>
 
 #ifdef ARM9
 	#include <tinyxml.h>
@@ -44,12 +48,23 @@
 
 //#define LOAD_DEBUG
 
+#ifdef LOAD_DEBUG
+	#define LD_PRINT(...)	ECHO_PRINT(__VA_ARGS__)
+#else
+	#define LD_PRINT(...)
+#endif
+
 class functor
 {
 public:
         grid* obj;
         void (grid::*funcp)(grid*);
-        functor(){}
+        functor()
+	{
+		obj = NULL;
+		funcp = NULL;
+	}
+	virtual ~functor(){}
         functor(grid* my_obj, void (grid::*my_funcp)(grid*))
         {
 		obj = my_obj;
@@ -66,6 +81,12 @@ class t_functor : public functor
 public:
         t_grid* t_obj;
         void (t_grid::*t_funcp)(grid*);
+	t_functor()
+	{
+		t_obj = NULL;
+		t_funcp = NULL;
+	}
+	virtual ~t_functor(){}
         t_functor(t_grid* my_obj, void (t_grid::*my_funcp)(grid*))
         {
 		t_obj = my_obj;
@@ -76,8 +97,50 @@ public:
 		(t_obj->*t_funcp)(ptr);
         }
 };
+class filter_functor : public functor
+{
+public:
+        filter* f_obj;
+        void (filter::*f_funcp)(grid*);
+	filter_functor()
+	{
+		f_obj = NULL;
+		f_funcp = NULL;
+	}
+	virtual ~filter_functor(){}
+        filter_functor(filter* my_obj, void (filter::*my_funcp)(grid*))
+        {
+		f_obj = my_obj;
+		f_funcp = my_funcp;
+        }
+        virtual void call(grid* ptr) const
+        {
+		(f_obj->*f_funcp)(ptr);
+        }
+};
+class trigger_functor : public functor
+{
+public:
+        trigger* t_obj;
+        void (trigger::*t_funcp)(grid*);
+	trigger_functor()
+	{
+		t_obj = NULL;
+		t_funcp = NULL;
+	}
+	virtual ~trigger_functor(){}
+        trigger_functor(trigger* my_obj, void (trigger::*my_funcp)(grid*))
+        {
+		t_obj = my_obj;
+		t_funcp = my_funcp;
+        }
+        virtual void call(grid* ptr) const
+        {
+		(t_obj->*t_funcp)(ptr);
+        }
+};
 
-typedef std::vector<functor> FUNCTOR_VEC;
+typedef std::vector<functor*> FUNCTOR_VEC;
 typedef std::map<std::string, FUNCTOR_VEC*> DEPENDENCY_MAP;
 
 static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot);
@@ -104,7 +167,7 @@ stage* load_stage(const char* file_name)
 				lderr("unknown node type!");
 		}
 		const char* start = root->Attribute("start");
-		ECHO_PRINT("start: %s\n", start);
+		LD_PRINT("start: %s\n", start);
 		if(!start)
 			lderr("no starting point specified!");
 		grid* start_grid = ret->get(start);
@@ -139,21 +202,17 @@ static FUNCTOR_VEC* dep_set(DEPENDENCY_MAP* map, char* id)
 	return(it == map->end() ? NULL : it->second);
 }
 
-static void add(DEPENDENCY_MAP* map, char* id, functor f)
+static void add(DEPENDENCY_MAP* map, char* id, functor*  f)
 {
 	FUNCTOR_VEC* set = dep_set(map, id);
 	if(set)
 	{
-#ifdef LOAD_DEBUG
-		ECHO_PRINT("dep set for %s found, adding\n", id);
-#endif
+		LD_PRINT("dep set for %s found, adding\n", id);
 		set->push_back(f);
 	}
 	else
 	{
-#ifdef LOAD_DEBUG
-		ECHO_PRINT("dep set for %s NOT found, adding\n", id);
-#endif
+		LD_PRINT("dep set for %s NOT found, adding\n", id);
 		set = new FUNCTOR_VEC();
 		LD_CHKPTR(set);
 		set->push_back(f);
@@ -163,16 +222,46 @@ static void add(DEPENDENCY_MAP* map, char* id, functor f)
 
 static void add(DEPENDENCY_MAP* map, char* id, t_grid* obj, void (t_grid::*funcp)(grid*))
 {
+#ifdef STRICT_MEM
 	t_functor* f = new t_functor(obj, funcp);
 	LD_CHKPTR(f);
-	add(map, id, *f);
+	add(map, id, f);
+#else
+	add(map, id, new t_functor(obj, funcp));
+#endif
 }
 
 static void add(DEPENDENCY_MAP* map, char* id, grid* obj, void (grid::*funcp)(grid*))
 {
+#ifdef STRICT_MEM
 	functor* f = new functor(obj, funcp);
 	LD_CHKPTR(f);
-	add(map, id, *f);
+	add(map, id, f);
+#else
+	add(map, id, new t_functor(obj, funcp));
+#endif
+}
+
+static void add(DEPENDENCY_MAP* map, char* id, filter* obj, void (filter::*funcp)(grid*))
+{
+#ifdef STRICT_MEM
+	filter_functor* f = new filter_functor(obj, funcp);
+	LD_CHKPTR(f);
+	add(map, id, f);
+#else
+	add(map, id, new filter_functor(obj, funcp));
+#endif
+}
+
+static void add(DEPENDENCY_MAP* map, char* id, trigger* obj, void (trigger::*funcp)(grid*))
+{
+#ifdef STRICT_MEM
+	trigger_functor* f = new trigger_functor(obj, funcp);
+	LD_CHKPTR(f);
+	add(map, id, f);
+#else
+	add(map, id, new trigger_functor(obj, funcp));
+#endif
 }
 
 static void get_float(TiXmlElement* element, const char* attr, float* save_to)
@@ -184,11 +273,19 @@ static void get_float(TiXmlElement* element, const char* attr, float* save_to)
 		lderr("attribute should be float: ", attr);
 }
 
-static void get_vec(TiXmlElement* txe, vector3f* vec)
+static void get_vec(TiXmlElement* txe, vector3f* vec, stage* st = NULL)
 {
 	get_float(txe, "x", &vec->x);
 	get_float(txe, "y", &vec->y);
 	get_float(txe, "z", &vec->z);
+	if(st)
+		st->set_farthest(vec->length());
+}
+
+static void get_angle(TiXmlElement* txe, vector3f* vec)
+{
+	get_float(txe, "x", &vec->x);
+	get_float(txe, "y", &vec->y);
 }
 
 static void add_esc(TiXmlElement* child, stage* st, DEPENDENCY_MAP* map, escgrid* escroot, escgrid* grid)
@@ -198,7 +295,7 @@ static void add_esc(TiXmlElement* child, stage* st, DEPENDENCY_MAP* map, escgrid
 	{
 		vector3f* each_angle = new vector3f();
 		LD_CHKPTR(each_angle);
-		get_vec(child, each_angle);
+		get_angle(child, each_angle);
 		grid->add(each_angle
 			, parse_grid(child->FirstChild()->ToElement(), st, map, escroot ? escroot : grid));
 	}
@@ -208,17 +305,31 @@ static void add_esc(TiXmlElement* child, stage* st, DEPENDENCY_MAP* map, escgrid
 		LD_CHKPTR(v1);
 		get_float(child, "x_min", &v1->x);
 		get_float(child, "y_min", &v1->y);
-		get_float(child, "z_min", &v1->z);
 		vector3f* v2 = new vector3f();
 		LD_CHKPTR(v2);
 		get_float(child, "x_max", &v2->x);
 		get_float(child, "y_max", &v2->y);
-		get_float(child, "z_max", &v2->z);
 		grid->add(new angle_range(v1, v2)
 			, parse_grid(child->FirstChild()->ToElement(), st, map, escroot ? escroot : grid));
 	}
 	else
 		lderr("child of escgrid, hole or launcher is not an angle or range!");
+}
+
+static void add_escs(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot, escgrid* grid)
+{
+	if(txe->FirstChild())
+	{
+		TiXmlNode* child = txe->FirstChild();
+		while(child)
+		{
+			if(child->Type() == TiXmlNode::ELEMENT && strcmp(child->Value(), "triggers"))
+				add_esc(child->ToElement(), st, map, escroot, grid);
+			else if(child->Type() != TiXmlNode::COMMENT)
+				lderr("unknown node in escgrid!");
+			child = child->NextSibling();
+		}
+	}
 }
 
 static char* get_attribute(TiXmlElement* txe, const char* attr, const char* errmsg1, const char* errmsg2)
@@ -237,116 +348,181 @@ static char* get_attribute(TiXmlElement* txe, const char* attr, const char* errm
 	return(const_cast<char*>(ret_const));
 }
 
+static filter* get_filter(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, const char* type = NULL)
+{
+	if(!type)
+	{
+		type = txe->Value();
+		if(!type)
+			lderr("type unknown for filter...");
+	}
+	if(!strcmp(type, "goal"))
+	{
+		filter* ret = new filter();
+		LD_CHKPTR(ret);
+		char* name = get_attribute(txe, "id", "no id for goal filter");
+		grid* g = st->get(name);
+		if(g)
+			ret->set_target(g);
+		else
+		{
+			LD_PRINT("filter target (%s) is null, adding to dep map\n", name);
+			add(map, name, ret, &filter::set_target);
+		}
+		return(ret);
+	}
+	else if(!strcmp(type, "not"))
+	{
+		if(txe->FirstChild())
+		{
+			TiXmlNode* child = txe->FirstChild();
+			while(child != NULL && child->Type() != TiXmlNode::ELEMENT)
+				child = child->NextSibling();
+			if(child == NULL)
+				lderr("no filter element in \"not\" filter!");
+			return(new not_filter(get_filter(child->ToElement(), st, map)));
+		}
+		else
+			lderr("\"not\" filter has no item inside");
+	}
+	else if(!strcmp(type, "or"))
+	{
+		or_filter* ret = new or_filter();
+		if(txe->FirstChild())
+		{
+			TiXmlNode* child = txe->FirstChild();
+			while(child)
+			{
+				if(child->Type() == TiXmlNode::ELEMENT)
+					ret->add_filter(get_filter(child->ToElement(), st, map));
+				else if(child->Type() != TiXmlNode::COMMENT)
+					lderr("unknown node in \"or\" filter!");
+				child = child->NextSibling();
+			}
+		}
+		else
+			lderr("\"or\" filter has no item inside");
+		return(ret);
+	}
+	else if(!strcmp(type, "and"))
+	{
+		and_filter* ret = new and_filter();
+		if(txe->FirstChild())
+		{
+			TiXmlNode* child = txe->FirstChild();
+			while(child)
+			{
+				if(child->Type() == TiXmlNode::ELEMENT)
+					ret->add_filter(get_filter(child->ToElement(), st, map));
+				else if(child->Type() != TiXmlNode::COMMENT)
+					lderr("unknown node in \"and\" filter!");
+				child = child->NextSibling();
+			}
+		}
+		else
+			lderr("\"and\" filter has no item inside");
+		return(ret);
+	}
+	else
+		lderr("filter type unknown");
+	return(NULL);
+}
+
+static trigger* get_trigger(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map)
+{
+	filter* f = NULL;
+	if(txe->FirstChild())
+		f = get_filter(txe, st, map, "and");
+	char* name = get_attribute(txe, "id", "no id for trigger");
+	grid* g = st->get(name);
+	if(g)
+		return(new trigger(f, g));
+	else
+	{
+		trigger* ret = new trigger(f);
+		LD_PRINT("trigger target (%s) is null, adding to dep map\n", name);
+		add(map, name, ret, &trigger::set_target);
+		return(ret);
+	}
+}
+
+static void add_triggers(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, grid* g)
+{
+	if(txe->FirstChild())
+	{
+		TiXmlNode* child = txe->FirstChild();
+		while(child)
+		{
+			if(child->Type() == TiXmlNode::ELEMENT)
+				g->add_trigger(get_trigger(child->ToElement(), st, map));
+			else if(child->Type() != TiXmlNode::COMMENT)
+				lderr("unknown node in triggers!");
+			child = child->NextSibling();
+		}
+	}
+	else
+		lderr("triggers element has no triggers!");
+}
+
 static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot)
 {
-#ifdef LOAD_DEBUG
-	ECHO_PRINT("\n");
-#endif
+	LD_PRINT("\n");
 	char* name = get_attribute(txe, "id", "unnamed grid!");
 	const char* type = txe->Value();
 	if(!type)
 		lderr("type not known for grid: " , name);
 	grid_info_t* info = new(grid_info_t);
 	LD_CHKPTR(info);
-	get_vec(txe, &(info->pos));
+	get_vec(txe, &(info->pos), st);
 	char* prev_id = get_attribute(txe, "prev", "no previous for grid: ", name);
 	grid* prev = st->get(prev_id);
 	char* next_id = get_attribute(txe, "next", "no next for grid: ", name);
 	grid* next = st->get(next_id);
-	const char* trig_id = txe->Attribute("trig");
-	grid* trig = trig_id ? st->get(const_cast<char*>(trig_id)) : NULL;
 	
 	grid* new_grid = NULL;
 	if(!strcmp(type, "grid"))
 	{
-#ifdef LOAD_DEBUG
-		ECHO_PRINT("%s is a grid!\n", name);
-#endif
+		LD_PRINT("%s is a grid!\n", name);
 		new_grid = new grid(info, prev, next);
 		LD_CHKPTR(new_grid);
 	}
 	else if(!strcmp(type, "t_grid"))
 	{
-#ifdef LOAD_DEBUG
-		ECHO_PRINT("%s is a t_grid!\n", name);
-#endif
+		LD_PRINT("%s is a t_grid!\n", name);
 		char* next2_id = get_attribute(txe, "next2", "no next2 for t_grid: ", name);
 		grid* next2 = st->get(next2_id);
 		new_grid = new t_grid(info, prev, next, next2);
 		LD_CHKPTR(new_grid);
 		if(!next2 && strcmp(next2_id, "NONE"))
 		{
-#ifdef LOAD_DEBUG
-			ECHO_PRINT("next2 (%s) is null, adding to dep map\n", next2_id);
-#endif
+			LD_PRINT("next2 (%s) is null, adding to dep map\n", next2_id);
 			add(map, next2_id, (t_grid*)new_grid, &t_grid::set_real_next2);
 		}
 	}
 	else if(!strcmp(type, "escgrid"))
 	{
-#ifdef LOAD_DEBUG
-		ECHO_PRINT("%s is a escgrid!\n", name);
-#endif
+		LD_PRINT("%s is a escgrid!\n", name);
 		new_grid = new escgrid(info, prev, next);
 		LD_CHKPTR(new_grid);
-		if(txe->FirstChild())
-		{
-			TiXmlElement* child = txe->FirstChild()->ToElement();
-			while(child)
-			{
-				if(child->Type() == TiXmlNode::ELEMENT)
-					add_esc(child, st, map, escroot, (escgrid*)new_grid);
-				else if(child->Type() != TiXmlNode::COMMENT)
-					lderr("unknown node in escgrid!");
-				child = child->NextSiblingElement();
-			}
-		}
+		add_escs(txe, st, map, escroot, (escgrid*)new_grid);
 	}
 	else if(!strcmp(type, "hole"))
 	{
-#ifdef LOAD_DEBUG
-		ECHO_PRINT("%s is an hole!\n", name);
-#endif
+		LD_PRINT("%s is an hole!\n", name);
 		new_grid = new hole(info, prev, next);
 		LD_CHKPTR(new_grid);
-		if(txe->FirstChild())
-		{
-			TiXmlElement* child = txe->FirstChild()->ToElement();
-			while(child)
-			{
-				if(child->Type() == TiXmlNode::ELEMENT)
-					add_esc(child, st, map, escroot, (escgrid*)new_grid);
-				else if(child->Type() != TiXmlNode::COMMENT)
-					lderr("unknown node in escgrid!");
-				child = child->NextSiblingElement();
-			}
-		}
+		add_escs(txe, st, map, escroot, (escgrid*)new_grid);
 	}
 	else if(!strcmp(type, "launcher"))
 	{
-#ifdef LOAD_DEBUG
-		ECHO_PRINT("%s is a launcher!\n", name);
-#endif
+		LD_PRINT("%s is a launcher!\n", name);
 		new_grid = new launcher(info, prev, next);
 		LD_CHKPTR(new_grid);
-		if(txe->FirstChild())
-		{
-			TiXmlElement* child = txe->FirstChild()->ToElement();
-			while(child)
-			{
-				if(child->Type() == TiXmlNode::ELEMENT)
-					add_esc(child, st, map, escroot, (escgrid*)new_grid);
-				else if(child->Type() != TiXmlNode::COMMENT)
-					lderr("unknown node in escgrid!");
-				child = child->NextSiblingElement();
-			}
-		}
+		add_escs(txe, st, map, escroot, (escgrid*)new_grid);
 	}
 	else if(!strcmp(type, "stair"))
 	{
-#ifdef LOAD_DEBUG
-		ECHO_PRINT("%s is a stair!\n", name);
-#endif
+		LD_PRINT("%s is a stair!\n", name);
 		TiXmlNode* vec_element = txe->FirstChild();
 		while(vec_element != NULL && vec_element->Type() != TiXmlNode::ELEMENT)
 			vec_element = vec_element->NextSiblingElement();
@@ -368,27 +544,19 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 	}
 	else
 		lderr("grid type not known!: ", type);
+	//previous check
 	if(!prev && strcmp(prev_id, "NONE"))
 	{
-#ifdef LOAD_DEBUG
-		ECHO_PRINT("prev (%s) is null, adding to dep map\n", prev_id);
-#endif
+		LD_PRINT("prev (%s) is null, adding to dep map\n", prev_id);
 		add(map, prev_id, new_grid, &grid::set_real_prev);
 	}
+	//next check
 	if(!next && strcmp(next_id, "NONE"))
 	{
-#ifdef LOAD_DEBUG
-		ECHO_PRINT("next (%s) is null, adding to dep map\n", next_id);
-#endif
+		LD_PRINT("next (%s) is null, adding to dep map\n", next_id);
 		add(map, next_id, new_grid, &grid::set_real_next);
 	}
-	if(trig_id && !trig && strcmp(trig_id, "NONE"))
-	{
-#ifdef LOAD_DEBUG
-		ECHO_PRINT("trig (%s) is null, adding to dep map\n", trig_id);
-#endif
-		add(map, const_cast<char*>(trig_id), new_grid, &grid::add_trigger);
-	}
+	//goal check
 	if(txe->Attribute("goal"))
 	{
 		int is_goal = 0;
@@ -397,11 +565,10 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 		if(is_goal)
 		{
 			new_grid->set_as_goal();
-#ifdef LOAD_DEBUG
-			ECHO_PRINT("it's a goal!\n");
-#endif
+			LD_PRINT("it's a goal!\n");
 		}
 	}
+	//nodraw check
 	if(txe->Attribute("nodraw"))
 	{
 		int nodraw = 0;
@@ -410,41 +577,17 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 		if(nodraw)
 		{
 			new_grid->set_draw(0);
-#ifdef LOAD_DEBUG
-			ECHO_PRINT("it's invisible!\n");
-#endif
+			LD_PRINT("it's invisible!\n");
 		}
 	}
-	FUNCTOR_VEC* deps = dep_set(map, name);
-	if(deps)
-	{
-#ifdef LOAD_DEBUG
-		ECHO_PRINT("deps found for: %s\n", name);
-#endif
-		FUNCTOR_VEC::iterator it = deps->begin(), end = deps->end();
-		while(it != end)
-		{
-			it->call(new_grid);
-#ifdef LOAD_DEBUG
-			ECHO_PRINT("dep called for %s (%s) by %s", it->obj, typeid(*(it->obj)).name(), name);
-#endif
-			it++;
-		}
-		map->erase(name);
-	}
-#ifdef LOAD_DEBUG
-	else
-		ECHO_PRINT("deps not found for: %s\n", name);
-#endif
+	//noland check
 	int noland = 0;
 	if(txe->Attribute("noland"))
 	{
 		if(txe->QueryIntAttribute("noland", &noland) == TIXML_WRONG_TYPE)
 			lderr("noland attribute contains wrong type!: ", name);
-#ifdef LOAD_DEBUG
 		if(noland)
-			ECHO_PRINT("it's not land-able!\n");
-#endif
+			LD_PRINT("it's not land-able!\n");
 	}
 	if(!escroot)
 	{
@@ -456,5 +599,30 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 	{
 		st->add_pos(info->pos, escroot);
 	}
+	//trigger check
+	TiXmlNode* child = txe->FirstChild();
+	while(child != NULL && child->Type() != TiXmlNode::ELEMENT)
+		child = child->NextSibling();
+	if(child != NULL && !strcmp(child->Value(), "triggers"))
+	{
+		LD_PRINT("adding triggers\n");
+		add_triggers(child->ToElement(), st, map, new_grid);
+	}
+	//dep check
+	FUNCTOR_VEC* deps = dep_set(map, name);
+	if(deps)
+	{
+		LD_PRINT("deps found for: %s\n", name);
+		FUNCTOR_VEC::iterator it = deps->begin(), end = deps->end();
+		while(it != end)
+		{
+			(*it)->call(new_grid);
+			LD_PRINT("dep called for %s (%s) by %s", it->obj, typeid(*(it->obj)).name(), name);
+			it++;
+		}
+		map->erase(name);
+	}
+	else
+		LD_PRINT("deps not found for: %s\n", name);
 	return(new_grid);
 }

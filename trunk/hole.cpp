@@ -114,15 +114,19 @@ grid* hole::get_next(vector3f angle, grid* current)
 	LEVEL_MAP* levels = echo_ns::current_stage->get_levels_lower_than(pos.y);
 	if(levels->size() > 0)
 	{
+		//CAM_GRID_MAP* map = new CAM_GRID_MAP();
+		//CHKPTR(map);
 		LEVEL_MAP::iterator it = levels->begin(), end = levels->end();
 		isect_grid* begin = NULL;
+		isect_grid* real_begin = NULL;
 		grid* temp = echo_ns::hole_grid;
 		while(it != end)
 		{
 			grid_info_t* info = new(grid_info_t);
 			CHKPTR(info);
 			info->pos.set(pos.x, it->first, pos.z);
-			begin = new isect_grid(info, NULL, temp, angle, it->second);
+			//init_level(map, it->first);
+			begin = new isect_grid(info, NULL, temp, angle, &pos, real_begin, it->second);
 			CHKPTR(begin);
 			temp->set_real_prev(begin);
 			//echo_ns::current_stage->add("add", begin);

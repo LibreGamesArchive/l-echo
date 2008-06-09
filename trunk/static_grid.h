@@ -17,6 +17,9 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <set>
+#include <map>
+
 #include <echo_math.h>
 #include <grid.h>
 
@@ -27,17 +30,36 @@ class static_grid : public grid
 	protected:
 		vector3f* real_vec;
 		vector3f prev_angle;
+		static_grid* root;
+#ifdef PATH_GRID
+		int is_path_mode;
+		vector3f* orig;
+		vector3f* trans_pos;
+		float old_length;
+#endif
 	public:
 		static_grid();
-		static_grid(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f camera);
-		void init(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f camera);
+		static_grid(grid_info_t* my_info, grid* my_prev, grid* my_next
+				, vector3f camera, vector3f* path_orig);
+		static_grid(grid_info_t* my_info, grid* my_prev, grid* my_next
+				, vector3f camera, vector3f* path_orig, static_grid* my_root);
+		void init(grid_info_t* my_info, grid* my_prev, grid* my_next
+				, vector3f camera, vector3f* path_orig, static_grid* my_root);
+		virtual ~static_grid();
 
 		void refresh(vector3f camera);
 		virtual void force_refresh(vector3f camera);
 		virtual grid_info_t* get_info(vector3f angle);
+		virtual grid_info_t* get_ginfo();
+		virtual grid* get_next(vector3f angle, grid* current);
 		virtual void draw(vector3f angle);
 		virtual void init_to_null();
+		
+		virtual grid* where_is_cam_grid();
+		
+#ifdef PATH_GRID
+		virtual void set_as_path_grid(vector3f angle);
+#endif
 };
 #endif
-
 

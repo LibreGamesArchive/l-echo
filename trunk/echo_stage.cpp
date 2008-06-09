@@ -28,6 +28,7 @@
 
 stage::stage()
 {
+	farthest = 0;
     grids = new STAGE_MAP();
     CHKPTR(grids);
     levels = new LEVEL_MAP();
@@ -36,6 +37,7 @@ stage::stage()
 
 stage::stage(grid* my_start, std::string my_name, int my_num_goals)
 {
+	farthest = 0;
 	grids = new STAGE_MAP();
     CHKPTR(grids);
     levels = new LEVEL_MAP();
@@ -167,5 +169,16 @@ LEVEL_MAP* stage::get_levels_higher_than(float y)
 	while(it != end);
 	RET:
 	return(ret);
+}
+
+void stage::set_farthest(float new_far)
+{
+	if(farthest < new_far)
+		farthest = new_far;
+}
+
+float stage::get_farthest()
+{
+	return(farthest);
 }
 

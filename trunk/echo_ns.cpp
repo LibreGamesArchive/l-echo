@@ -19,6 +19,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <set>
 
 #include <echo_error.h>
 #include <echo_character.h>
@@ -34,9 +35,11 @@ namespace echo_ns
 	//CHKPTR(hole_grid);
 	
 	vector3f angle;
-	echo_char* main_char;
-	stage* current_stage;
+	echo_char* main_char = NULL;
+	stage* current_stage = NULL;
 	int started;
+	//CAM_MAPS* maps = new CAM_MAPS();
+	STATIC_SET* statics = new STATIC_SET();
 	
 	void init(stage* st)
 	{
@@ -52,6 +55,12 @@ namespace echo_ns
 	}
 	void draw()
 	{
+		STATIC_SET::iterator it = statics->begin(), end = statics->end();
+		while(it != end)
+		{
+			(*it)->refresh(angle);
+			it++;
+		}
 		current_stage->draw(angle);
 	}
 	void kill_char()
@@ -85,5 +94,17 @@ namespace echo_ns
 	int goals_left()
 	{
 		return(current_stage->get_num_goals() - num_goals_reached());
+	}
+	
+	void add_static_grid(static_grid* sg)
+	{
+		statics->insert(sg);
+	}
+	
+	void remove_static_grid(static_grid* sg)
+	{
+		STATIC_SET::iterator it = statics->find(sg);
+		if(it != statics->end())
+			statics->erase(it);
 	}
 };

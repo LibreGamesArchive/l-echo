@@ -17,29 +17,40 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <map>
+#include <set>
+
 #include <echo_math.h>
 #include <grid.h>
-#include <static_grid.h>
 #include <echo_stage.h>
+
+#include <static_grid.h>
 
 #ifndef __ECHO_CLASS_ISECT_GRID__
 #define __ECHO_CLASS_ISECT_GRID__
+
 class isect_grid : public static_grid
 {
 	protected:
 		GRID_PTR_SET* level;
 		float level_y;
 		grid* cam_grid;
+		
 	public:
 		isect_grid();
-		isect_grid(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f camera, GRID_PTR_SET* my_level);
-		void init(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f camera, GRID_PTR_SET* my_level);
+		isect_grid(grid_info_t* my_info, grid* my_prev, grid* my_next
+			, vector3f camera, vector3f* my_path_orig, static_grid* my_root, GRID_PTR_SET* my_level);
+		~isect_grid();
+		void init(grid_info_t* my_info, grid* my_prev, grid* my_next
+			, vector3f camera, vector3f* my_path_orig, static_grid* my_root, GRID_PTR_SET* my_level);
 		
 		virtual grid* get_next(vector3f angle, grid* current);
 		virtual void force_refresh(vector3f camera);
 		virtual grid_info_t* get_info(vector3f angle);
 		virtual void init_to_null();
+		
+		virtual grid* where_is_cam_grid();
+		virtual grid* get_cam_grid();
 };
 #endif
-
 

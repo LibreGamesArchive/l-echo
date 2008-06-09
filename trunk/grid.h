@@ -18,6 +18,8 @@
 */
 
 #include <set>
+#include <filter.h>
+#include <trigger.h>
 #include <echo_math.h>
 
 #define GRID_SIZE	1
@@ -39,6 +41,7 @@ void dump_grid_info(grid_info_t ginfo);
 
 #ifndef __ECHO_CLASS_GRID__
 #define __ECHO_CLASS_GRID__
+
 class grid;
 
 typedef std::set<grid*> GRID_PTR_SET;
@@ -55,7 +58,7 @@ class grid
 		float goal_angle;
 		int draw_me;
 		
-		GRID_PTR_SET* triggers;
+		TRIGGER_SET* triggers;
 	public:
 		grid();
 		grid(grid_info_t* my_info, grid* my_prev, grid* my_next);
@@ -76,10 +79,11 @@ class grid
 
 		virtual grid* get_real_next();
 		virtual grid* get_real_prev();
+		virtual grid_info_t* get_real_info();
 		virtual void set_real_next(grid* g);
 		virtual void set_real_prev(grid* g);
 
-		virtual void add_trigger(grid* trig);
+		virtual void add_trigger(trigger* trig);
 		virtual void toggle_goal(vector3f angle);
 		virtual int is_goal(vector3f angle);
 		virtual void set_as_goal();
