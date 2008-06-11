@@ -88,6 +88,8 @@ static char* message = MSG_READY;
 static float null_char_opacity;
 static int opacity_incr;
 
+static int touch_started = 0, start_x = 0, start_y = 0;
+static vector3f real_angle(0, 0, 0);
 static echo_files* files;
 
 static void load(const char* fname);
@@ -101,8 +103,10 @@ static void display();
 #ifdef ARM9
 	static void get_key();
 #else
+	static void mouse(int button, int state, int x, int y);
 	static void key(unsigned char key, int x, int y);
 	static void spec_key(int key, int x, int y);
+	static void pointer(int x, int y);
 #endif
 
 int main(int argc, char **argv)
@@ -282,6 +286,8 @@ static void init(int argc, char **argv, int w, int h)
 	glutReshapeFunc(&resize);
 	glutKeyboardFunc(&key);
 	glutSpecialFunc(&spec_key);
+	glutMouseFunc(&mouse);
+	glutMotionFunc(&pointer);
 	
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClearDepth(1.0);
@@ -565,25 +571,35 @@ static void display()
 static void up()
 {
 	if(echo_ns::angle.x > -60)
+	{
+		if(touch_started) real_angle.x -= ROTATE_ANG;
 		echo_ns::angle.x -= ROTATE_ANG;
+	}
 }
 
 static void down()
 {
 	if(echo_ns::angle.x < 60)
+	{
+		if(touch_started) real_angle.x += ROTATE_ANG;
 		echo_ns::angle.x += ROTATE_ANG;
+	}
 }
 
 static void left()
 {
+	if(touch_started)
+		real_angle.y -= ROTATE_ANG;
 	echo_ns::angle.y -= ROTATE_ANG;
-	if(echo_ns::angle.y < -180)	echo_ns::angle.y += 360;
+	if(echo_ns::angle.y < -180)		echo_ns::angle.y += 360;
 }
 
 static void right()
 {
+	if(touch_started)
+		real_angle.y += ROTATE_ANG;
 	echo_ns::angle.y += ROTATE_ANG;
-	if(echo_ns::angle.y > 180)	echo_ns::angle.y -= 360;
+	if(echo_ns::angle.y > 180)		echo_ns::angle.y -= 360;
 }
 
 static void echo_pause()
@@ -610,13 +626,55 @@ static void start_or_pause()
 	}
 }
 
+static void pointer(int x, int y)
+{
+	echo_ns::angle = real_angle;
+	echo_ns::angle.x += -(int)TO_DEG(atanf(4.0f * (y - start_y) / my_height)) / 5 * 5;
+	if(echo_ns::angle.x < -60)		echo_ns::angle.x = -60;
+	else if(echo_ns::angle.x > 60)		echo_ns::angle.x = 60;
+	echo_ns::angle.y += -(int)TO_DEG(atanf(4.0f * (x - start_x) / my_width)) / 5 * 5;
+	if(echo_ns::angle.y < -180)		echo_ns::angle.y += 360;
+	else if(echo_ns::angle.y > 180)		echo_ns::angle.y -= 360;
+}
+
+static void pressed(int x, int y)
+{
+	touch_started = 1;
+	start_x = x;
+	start_y = y;
+	real_angle = echo_ns::angle;
+}
+
+#ifndef ARM9
+static void mouse(int button, int state, int x, int y)
+{
+	if(button == GLUT_LEFT_BUTTON)
+	{
+		if(state == GLUT_DOWN)
+			pressed(x, y);
+		else
+			touch_started = 0;
+	}
+}
+#endif
+
 #ifdef ARM9
 static void get_key()
 {
 	scanKeys();
 	
+	if(keysHeld() & KEY_TOUCH)
+	{
+		touchPosition t_pos = touchReadXY();
+		if(touch_started)
+			pointer(t_pos.px, t_pos.py);
+		else
+			pressed(t_pos.px, t_pos.py);
+	}
+	else if(touch_started)
+		touch_started = 0;
+	
 	u16 key = keysDown();
-	//echo_sleep(100);
 	if(key & KEY_A)
 		start_or_pause();
 	else if(key & KEY_SELECT)
