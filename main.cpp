@@ -72,6 +72,8 @@
 #define NUM_FILES_DISPLAYED     31
 #define NULL_CHAR_OPACITY_MIN   0.25f
 
+//--VARIABLES
+
 #ifndef ARM9
 	static int window;
 #endif
@@ -91,6 +93,8 @@ static int opacity_incr;
 static int touch_started = 0, start_x = 0, start_y = 0;
 static vector3f real_angle(0, 0, 0);
 static echo_files* files;
+
+//--METHODS
 
 static void load(const char* fname);
 static void init(int argc, char **argv, int w, int h);
@@ -113,18 +117,6 @@ int main(int argc, char **argv)
 {
 #ifdef ARM9
 	init(argc, argv, 255, 191);
-	
-	vector3f* vec = new vector3f(1, 2, 2);
-	CHKPTR(vec);
-	vector3f* angle = vec->angle_xy();
-	angle->dump();
-	ECHO_PRINT("\n");
-	vector3f* norm = vec->neg_rotate_yx(*angle);
-	norm->dump();
-	ECHO_PRINT("\n");
-	vector3f* back = norm->rotate_xy(*angle);
-	back->dump();
-	ECHO_PRINT("\n");
 	
 	fatInitDefault();
 	init_math();
@@ -207,10 +199,9 @@ int main(int argc, char **argv)
 		load("sample1.xml");
 	}
 	
-	char* pwd = new char[4096];
-	CHKPTR(pwd);
-	files = get_files(getcwd(pwd, 4096));
+	files = get_files(getenv("PWD"));
 	init(argc, argv, 640, 480);
+	
 	glutMainLoop();
 #endif
 	return(1);
@@ -230,7 +221,6 @@ static void load(const char* fname)
 	depth = echo_ns::current_stage->get_farthest() + 1;
 	file_space = FILE_SPACE_PER_DEPTH * depth;
 	font_div = 150 / depth;
-	ECHO_PRINT("depth: %f\n", depth);
 	resize(my_width, my_height);
 }
 
@@ -483,14 +473,14 @@ static void draw_loader()
 static void draw_character()
 {
 #ifdef ARM9
-		glBegin(GL_QUADS);
-			glVertex3f(0, HALF_GRID, 0);
-			glVertex3f(HALF_GRID, 0, 0);
-			glVertex3f(0, -HALF_GRID, 0);
-			glVertex3f(-HALF_GRID, 0, 0);
-		glEnd();
+	glBegin(GL_QUADS);
+		glVertex3f(0, HALF_GRID, 0);
+		glVertex3f(HALF_GRID, 0, 0);
+		glVertex3f(0, -HALF_GRID, 0);
+		glVertex3f(-HALF_GRID, 0, 0);
+	glEnd();
 #else
-		glutSolidSphere(0.1, 8, 8);
+	glutSolidSphere(0.1, 8, 8);
 #endif
 }
 
@@ -498,15 +488,14 @@ static void display()
 {
 #ifndef ARM9
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-#endif
+	
 	glLoadIdentity();
 	
 	glColor3f(0, 0, 0);
 	
-#ifndef ARM9
 	draw_HUD();
 #endif
-
+	
 	glLoadIdentity();
 	
 #ifdef ARM9
@@ -555,12 +544,11 @@ static void display()
 		}
 	}
 	
-	
 #ifndef ARM9
 	draw_loader();
 	
 	glutSwapBuffers();
-	echo_sleep(30000);
+	echo_sleep(30);
 #endif
 }
 

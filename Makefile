@@ -1,7 +1,7 @@
 CXXFLAGS = -I./ -I../include -DSTRICT_MEM -DDEBUG -DTIXML_USE_STL -g3 -Wall
 TINYXML_USE_STL := YES
 
-CPPFILES  := $(wildcard *.cpp) $(wildcard tinyxml/*.cpp)
+CPPFILES  := $(wildcard *.cpp) $(wildcard tinyxml/*.cpp) $(wildcard ext/*.cpp)
 
 LINFILES  := $(wildcard lin/*.cpp)
 OFILES    := $(CPPFILES:.cpp=.o) $(LINFILES:.cpp=.o)
@@ -9,7 +9,7 @@ OFILES    := $(CPPFILES:.cpp=.o) $(LINFILES:.cpp=.o)
 WINFILES  := $(wildcard win/*.cpp)
 OBJFILES  := $(CPPFILES:.cpp=.OBJ) $(WINFILES:.cpp=.OBJ)
 
-PKGPREFIX := ../l-echo-0.1.1_r31-
+PKGPREFIX := ../l-echo-0.2.2_r38-
 
 all: $(OFILES)
 	gcc tinyxml/*.o *.o lin/*.o -DTIXML_USE_STL -lGL -lGLU  /usr/lib/libglut.so.3.8.0 -lpthread -g3 -Wall -o l-echo

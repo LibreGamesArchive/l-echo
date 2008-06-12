@@ -70,8 +70,7 @@ vector3f::vector3f(float my_x, float my_y, float my_z)
 int vector3f::angle_similar(vector3f v)
 {
 	return(ABS(x - v.x) < EPSILON &&
-		(ABS(y - v.y) < EPSILON || ABS(ABS(y - v.y) - 360) < EPSILON) &&
-		ABS(z - v.z) < EPSILON);
+		ABS(y - v.y) < EPSILON);
 }
 
 int vector3f::operator !=(vector3f v)
@@ -157,8 +156,8 @@ vector3f* vector3f::angle_xy()
 		ret = new vector3f(0, TO_DEG(atan2f(x, z)), 0);
 	else
 	{
-		float temp = sqrt(x * x  + z * z);
-		ret = new vector3f(-TO_DEG(atan2f(y, z > 0 ? temp : -temp)),
+		ret = new vector3f(-TO_DEG(atan2f(y, z > 0 
+				? sqrt(x * x  + z * z) : -sqrt(x * x  + z * z))),
 					TO_DEG(atan2f(x, z)), 0);
 	}
         CHKPTR(ret);
