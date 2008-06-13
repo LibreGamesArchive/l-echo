@@ -19,6 +19,10 @@
 
 #ifdef ARM9
 	#include <nds.h>
+#elif __MACH__	//OS X
+	#include <OpenGL/gl.h>
+	#include <OpenGL/glu.h>
+	#include <GLUT/glut.h>
 #else
 	#include <GL/gl.h>
 	#include <GL/glu.h>
