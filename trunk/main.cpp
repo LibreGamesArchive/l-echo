@@ -40,17 +40,19 @@
 #define _STDCALL_SUPPORTED
 
 #ifdef ARM9
-
 	#include <nds.h>
 	#include <fat.h>
-
 #else
-
-	#include <GL/glut.h>
-	#include <GL/gl.h>
-	#include <GL/glu.h>
+	#ifdef __MACH__	//OS X
+		#include <OpenGL/gl.h>
+		#include <OpenGL/glu.h>
+		#include <GLUT/glut.h>
+	#else
+		#include <GL/glut.h>
+		#include <GL/gl.h>
+		#include <GL/glu.h>
+	#endif
 	#include <libgen.h>
-
 #endif
 
 #define ESCAPE 27
@@ -548,7 +550,7 @@ static void display()
 	draw_loader();
 	
 	glutSwapBuffers();
-	echo_sleep(30);
+	ECHO_SLEEP(30);
 #endif
 }
 

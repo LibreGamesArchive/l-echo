@@ -17,5 +17,16 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-void echo_sleep(int millis);
+//void echo_sleep(int millis);
+
+#ifndef ARM9
+	#ifdef WIN32
+		#include <windows.h>
+		#define ECHO_SLEEP(arg)	Sleep(arg)
+	#else		//Assume it's Unix
+		#warning "Assuming system is Unix-based, using usleep"
+		#include <unistd.h>
+		#define ECHO_SLEEP(arg) usleep((arg) * 1000)
+	#endif
+#endif
 
