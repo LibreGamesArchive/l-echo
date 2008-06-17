@@ -27,13 +27,18 @@ typedef struct
 	char* current_dir;
 	char** file_names;
 	int num_files;
+#ifdef ARM9
+	int num_dir;
+#endif
 } echo_files;
 #endif
 
-char* echo_merge(const char* arg1, const char* arg2);
-echo_files* get_files(const char* dirname);
-void dump_files(echo_files* files);
+#ifndef ARM9
 int is_dir(const char* dir, const char* fname);
 int is_dir(const char* fname);
+#endif
 
-
+char* echo_merge(const char* arg1, const char* arg2);
+int is_dir(echo_files* files, int file_index);
+echo_files* get_files(const char* dirname);
+void dump_files(echo_files* files);

@@ -79,10 +79,10 @@ void stage::add_pos(vector3f pos, grid* g)
 void stage::dump_levels()
 {
 	LEVEL_MAP::iterator it = levels->begin(), end = levels->end();
-	ECHO_PRINT("levels (* 100): \n");
+	ECHO_PRINT("levels: \n");
 	while(it != end)
 	{
-		ECHO_PRINT("%i: size: %i\n", (int)(it->first * 100), it->second->size());
+		ECHO_PRINT("%f: size: %i\n", it->first, it->second->size());
 		it++;
 	}
 }

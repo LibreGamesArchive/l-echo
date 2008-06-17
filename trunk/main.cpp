@@ -41,7 +41,12 @@
 
 #ifdef ARM9
 	#include <nds.h>
+	#include <nds/arm9/video.h>
 	#include <fat.h>
+	
+	#include "freeserif16.h"
+	#include "font.h"
+	#include "topscreen.h"
 #else
 	#ifdef __MACH__	//OS X
 		#include <OpenGL/gl.h>
@@ -63,7 +68,11 @@
 #define MSG_PAUSE "thinking"
 #define MSG_BLANK ""
 
-#define COUNTER_HEAD    "goals: %i"
+#ifdef ARM9
+	#define COUNTER_HEAD    "goals: "
+#else
+	#define COUNTER_HEAD    "goals: %i"
+#endif
 #define SUCCESS         "success"
 #define	NO_GOALS	"no goals"
 
@@ -73,6 +82,43 @@
 #define FILE_SPACE_PER_DEPTH	0.06f
 #define NUM_FILES_DISPLAYED     31
 #define NULL_CHAR_OPACITY_MIN   0.25f
+
+#ifdef ARM9
+	//From LiraNuna =D
+	// Macro to translate 2D coord into 1D map array
+	#define POS2IDX(x, y)		((x) + ((y) * 32))
+	
+	// Set of defines for tile flipping
+	#define TILE_FLIP_NONE		(0<<10)
+	#define TILE_FLIP_X		(1<<10)
+	#define TILE_FLIP_Y		(2<<10)
+	#define TILE_FLIP_XY		(TILE_FLIP_X | TILE_FLIP_Y)
+	
+	// Macro for palette selecting
+	#define TILE_PALETTE(n)		((n)<<12)
+
+	#define CHAR2TILE(c)		((c) - 32)
+
+	#define WRITE16(map, x, y, c) 	(map)[POS2IDX((x)	, (y))] 	= CHAR2TILE((c)) * 4; \
+					(map)[POS2IDX((x) + 1	, (y))] 	= CHAR2TILE((c)) * 4 + 1; \
+					(map)[POS2IDX((x)	, (y) + 1)] 	= CHAR2TILE((c)) * 4 + 2; \
+					(map)[POS2IDX((x) + 1	, (y) + 1)] 	= CHAR2TILE((c)) * 4 + 3;
+	
+	#define NDS_INFO_MODE		-2
+	#define NDS_LOAD_MODE		-1
+	#define NDS_START_MODE		0
+	#define NDS_DEBUG_MODE		1
+	
+	#define NDS_MODE_MIN		-2
+	#define NDS_MODE_MAX		1
+	
+	
+	
+	#define LOAD_BG			DISPLAY_BG1_ACTIVE
+	#define INFO_BG			DISPLAY_BG1_ACTIVE
+	#define START_BG		DISPLAY_BG0_ACTIVE
+	#define DEBUG_BG		DISPLAY_BG3_ACTIVE
+#endif
 
 //--VARIABLES
 
@@ -94,11 +140,18 @@ static int opacity_incr;
 
 static int touch_started = 0, start_x = 0, start_y = 0;
 static vector3f real_angle(0, 0, 0);
-static echo_files* files;
+static echo_files* files = NULL;
+
+#ifdef ARM9
+	static int sub_mode = NDS_START_MODE;
+	static u16* string_map = NULL;
+	static uint32 basic_modes = MODE_0_2D | DISPLAY_BG_EXT_PALETTE;
+#endif
 
 //--METHODS
 
 static void load(const char* fname);
+
 static void init(int argc, char **argv, int w, int h);
 
 static void resize(int w, int h);
@@ -108,6 +161,19 @@ static void display();
 
 #ifdef ARM9
 	static void get_key();
+	static void refresh_sub_mode();
+	
+	static void serif16_draw_string(int x, int y, const char* str);
+	static void serif16_draw_string(int x, int y, const char* str, int num);
+	static void serif16_clear();
+	static void serif16_clear_row(int y);
+	
+	//static void toggle_loader();
+	static void update_loader();
+	
+	static void toggle_info();
+	static void update_num_goals();
+	static void update_char_state();
 #else
 	static void mouse(int button, int state, int x, int y);
 	static void key(unsigned char key, int x, int y);
@@ -123,7 +189,8 @@ int main(int argc, char **argv)
 	fatInitDefault();
 	init_math();
 	files = get_files("/");
-	load("fat:/sample1.xml");
+	//dump_files(files);
+	load("/sample1.xml");
 	resize(255, 191);
 	ECHO_PRINT("is stage null?: %i\n", echo_ns::current_stage == NULL);
 	ECHO_PRINT("is stage start null?: %i\n", echo_ns::current_stage->get_start() == NULL);
@@ -169,6 +236,14 @@ int main(int argc, char **argv)
 	new_pos.dump();
 	ECHO_PRINT("\n");
 	// */
+#ifdef WIN32
+	TCHAR buffer[MAX_PATH] = "";
+	GetCurrentDirectory(MAX_PATH, buffer);
+	ECHO_PRINT("current dir : %s\n", buffer);
+	files = get_files(buffer);
+#else
+	files = get_files(getenv("PWD"));
+#endif
 	
 	if(argc >= 2)
 	{
@@ -201,7 +276,6 @@ int main(int argc, char **argv)
 		load("sample1.xml");
 	}
 	
-	files = get_files(getenv("PWD"));
 	init(argc, argv, 640, 480);
 	
 	glutMainLoop();
@@ -218,7 +292,7 @@ static void load(const char* fname)
 	opacity_incr = 1;
 	null_char_opacity = NULL_CHAR_OPACITY_MIN;
 	
-	echo_ns::init(load_stage(fname));
+	echo_ns::init(load_stage(echo_merge(files->current_dir, fname)));
 	
 	depth = echo_ns::current_stage->get_farthest() + 1;
 	file_space = FILE_SPACE_PER_DEPTH * depth;
@@ -226,47 +300,72 @@ static void load(const char* fname)
 	resize(my_width, my_height);
 }
 
+#ifdef ARM9
+	static void refresh_sub_mode()
+	{
+		if(sub_mode > NDS_MODE_MAX)		sub_mode = NDS_MODE_MIN;
+		else if(sub_mode < NDS_MODE_MIN)	sub_mode = NDS_MODE_MAX;
+		switch(sub_mode)
+		{
+			case NDS_LOAD_MODE:		videoSetModeSub(basic_modes | LOAD_BG);	update_loader();	break;
+			case NDS_INFO_MODE:		videoSetModeSub(basic_modes | INFO_BG);	toggle_info();		break;
+			case NDS_START_MODE:		videoSetModeSub(basic_modes | START_BG);					break;
+			case NDS_DEBUG_MODE:	videoSetModeSub(basic_modes | DEBUG_BG);				break;
+			default:
+			break;
+		}
+	}
+#endif
+
 static void init(int argc, char **argv, int w, int h)
 {
 #ifdef ARM9
-	// Turn on everything
         powerON(POWER_ALL);
-
-        // Setup the Main screen for 3D
         videoSetMode(MODE_0_3D);
-
-        // IRQ basic setup
         irqInit();
         irqSet(IRQ_VBLANK, 0);
-
-        // initialize the geometry engine
-        glInit();
-
-        // enable antialiasing
+        
+	//Main Screen
+	
+	glInit();
         glEnable(GL_ANTIALIAS);
-	
-	videoSetModeSub(MODE_1_2D | DISPLAY_BG0_ACTIVE);        //sub bg 0 will be used to print text
-        vramSetBankC(VRAM_C_SUB_BG);
-
-        SUB_BG0_CR = BG_MAP_BASE(31);
-
-        BG_PALETTE_SUB[255] = RGB15(31,31,31);  //by default font will be rendered with color 255
-
-        //consoleInit() is a lot more flexible but this gets you up and running quick
-        consoleInitDefault((u16*)SCREEN_BASE_BLOCK_SUB(31), (u16*)CHAR_BASE_BLOCK_SUB(0), 16);
-	
-	lcdSwap();
-	
-	ECHO_PRINT("console init\n", 0, 0);
-	
-        // setup the rear plane
         glClearColor(31,31,31,31); // BG must be opaque for AA to work
         glClearPolyID(63); // BG must have a unique polygon ID for AA to work
         glClearDepth(0x7FFF);
 	
-        //resize(w, h);
+	//Sub Screen
 	
-	ECHO_PRINT("finished init\n");
+	refresh_sub_mode();
+	
+        vramSetBankC(VRAM_C_SUB_BG);
+	vramSetBankI(VRAM_I_SUB_BG);
+	
+	SUB_BG0_CR = (0 << 14) | BG_COLOR_256 | BG_MAP_BASE(0) | BG_TILE_BASE(1) | BG_PRIORITY(2);
+	memcpy((u16*)BG_TILE_RAM_SUB(1), topscreenTiles, topscreenTilesLen);
+	memcpy((u16*)BG_MAP_RAM_SUB(0), topscreenMap, topscreenMapLen);
+	
+	SUB_BG1_CR = (0 << 14) | BG_COLOR_256 | BG_MAP_BASE(1) | BG_TILE_BASE(3) | BG_PRIORITY(0);
+	u16* text1_tile = (u16*)CHAR_BASE_BLOCK_SUB(3);
+        string_map = (u16*)SCREEN_BASE_BLOCK_SUB(1);
+	memcpy(text1_tile, freeserif16Tiles, freeserif16TilesLen);
+	
+	SUB_BG3_CR = (0 << 14) | BG_COLOR_256 | BG_MAP_BASE(4) | BG_TILE_BASE(5) | BG_PRIORITY(3);
+	u16* text_tile = (u16*)CHAR_BASE_BLOCK_SUB(5);
+        u16* text_map = (u16*)SCREEN_BASE_BLOCK_SUB(4);
+	consoleInit((u16*)fontTiles, text_tile, 95, 32, text_map, CONSOLE_USE_COLOR255, 8);
+	memcpy(text_tile, fontTiles, fontTilesLen);
+	
+	vramSetBankH(VRAM_H_LCD);
+	memcpy(VRAM_H_EXT_PALETTE[3], fontPal, fontPalLen);
+	memcpy(VRAM_H_EXT_PALETTE[1], freeserif16Pal, freeserif16PalLen);
+	memcpy(VRAM_H_EXT_PALETTE[0], topscreenPal, topscreenPalLen);
+	vramSetBankH(VRAM_H_SUB_BG_EXT_PALETTE);
+	
+	text_map[POS2IDX(1, 1)] = CHAR2TILE('A');
+	
+	lcdSwap();
+	
+	ECHO_PRINT("\x1b[2;2Hconsole init\n");
 #else
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGBA);
@@ -285,6 +384,8 @@ static void init(int argc, char **argv, int w, int h)
 	glClearDepth(1.0);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
+	
+	glEnable(GL_LINE_SMOOTH);
 	
 	glLineWidth(2.5);
 	glEnable(GL_BLEND);
@@ -332,95 +433,180 @@ static void set_proj(int w, int h)
 
 // ----DISPLAY STRING----
 
-#ifndef ARM9
-//copied from http://lighthouse3d.com/opengl/glut/index.php?bmpfontortho
-static void draw_message_string(float x, float y, char *string)
-{
-	char *c = string;
-	while(*c != '\0')
+#ifdef ARM9
+	static void serif16_draw_string(int x, int y, const char* str)
 	{
-		glRasterPos2f(x, y);
-		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
-		x += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c) / font_div * 2;
-		c++;
+		while(*str != '\0')
+		{
+			WRITE16(string_map, x, y, *str);
+			x += 2;
+			str++;
+		}
 	}
-}
+	static void serif16_draw_string(int x, int y, const char* str, int num)
+	{
+		int i = 0;
+		while(*str != '\0' && i < num)
+		{
+			WRITE16(string_map, x, y, *str);
+			x += 2;
+			str++;
+			i++;
+		}
+	}
+	static void serif16_clear()
+	{
+		memset(string_map, (u16)0, 1024 * sizeof(u16));
+	}
+	static void serif16_clear_row(int y)
+	{
+		memset(string_map + y * 32, (u16)0, 32 * sizeof(u16));
+	}
+#else
+	//copied from http://lighthouse3d.com/opengl/glut/index.php?bmpfontortho
+	static void draw_message_string(float x, float y, char *string)
+	{
+		char *c = string;
+		while(*c != '\0')
+		{
+			glRasterPos2f(x, y);
+			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+			x += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c) / font_div * 2;
+			c++;
+		}
+	}
 
-static void draw_string(float x, float y, char *string)
-{
-	char *c = string;
-	while(*c != '\0')
+	static void draw_string(float x, float y, char *string)
 	{
-		glRasterPos2f(x, y);
-		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
-		x += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c) / font_div;
-		c++;
+		char *c = string;
+		while(*c != '\0')
+		{
+			glRasterPos2f(x, y);
+			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+			x += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c) / font_div;
+			c++;
+		}
 	}
-}
 
-static void draw_fname_string(float x, float y, char *string)
-{
-	char *c = string;
-	while(*c != '\0')
+	static void draw_fname_string(float x, float y, char *string)
 	{
-		glRasterPos2f(x, y);
-		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *c);
-		x += glutBitmapWidth(GLUT_BITMAP_HELVETICA_12, *c) / font_div;
-		c++;
+		char *c = string;
+		while(*c != '\0')
+		{
+			glRasterPos2f(x, y);
+			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *c);
+			x += glutBitmapWidth(GLUT_BITMAP_HELVETICA_12, *c) / font_div;
+			c++;
+		}
 	}
-}
 #endif
 
 // ----DRAW MAIN----
 
-#ifndef ARM9
-static void draw_HUD()
-{
-	if(message == MSG_START)
+#ifdef ARM9
+	static void update_loader()
 	{
-		glColor4f(0, 0, 0, 1.0f - start_frame * 1.0f / START_MAX);
-		if(start_frame > START_MAX)
-			message = MSG_BLANK;
-		else
-			start_frame++;
-	}
-	else if(message == MSG_PAUSE)
-	{
-		glColor4f(0, 0, 0, 0.4f * sin(TO_RAD(start_frame)) + 0.6f);
-		start_frame += 10;
-	}
-	
-	draw_message_string(-0.8f * real_width, -0.9f * real_height, message);
-	
-	if(name_display > 0)
-	{
-		glColor3f(0, 0, 0);
+		serif16_clear();
+		serif16_draw_string(0, 0, files->current_dir, 16);
 		
-		if(name_display < NAME_DISPLAY_MAX)
+		int each_file = 0;
+		while(each_file < 10)
 		{
-			glColor4f(0, 0, 0, name_display * 1.0f / NAME_DISPLAY_MAX);
-			name_display--;
+			if(file_start + each_file == file_index)
+				serif16_draw_string(0, 4 + each_file * 2, "->");
+			serif16_draw_string(4, 4 + each_file * 2, files->file_names[file_start + each_file], 14);
+			each_file++;
 		}
-		//std::cout << my_stage->get_name() << std::endl;
-		draw_string(-0.9f * real_width, 0, const_cast<char*>(echo_ns::current_stage->get_name().c_str()));
 	}
 	
-	int goals_left = echo_ns::goals_left();
-	if(goals_left > 0)
+	static void toggle_info()
 	{
-		//not very precise, but oh well
-		counter = new char[(int)log(goals_left) + 10];
-		CHKPTR(counter);
-		sprintf(counter, COUNTER_HEAD, goals_left);
+		serif16_clear();
+		serif16_draw_string(0, 0, "stage: ");
+		serif16_draw_string(14, 0, echo_ns::current_stage->get_name().c_str(), 9);
+		update_num_goals();
+		update_char_state();
 	}
-	else if(echo_ns::num_goals())
-		counter = SUCCESS;
-	else
-		counter = NO_GOALS;
-	
-	glColor3f(0, 0, 0);
-	draw_string(-0.6f * real_width, -0.8f * real_height, counter);
-}
+	static void update_num_goals()
+	{
+		serif16_clear_row(10);	serif16_clear_row(11);
+		serif16_clear_row(12);	serif16_clear_row(13);
+		int goals_left = echo_ns::goals_left();
+		if(goals_left > 0)
+		{
+			char* counter = new char[(int)log(goals_left) + 1];
+			CHKPTR(counter);
+			sprintf(counter, "%i", goals_left);
+			serif16_draw_string(0, 10, COUNTER_HEAD);
+			serif16_draw_string(0, 12, counter, 16);
+			delete counter;
+		}
+		else if(echo_ns::num_goals())
+			serif16_draw_string(0, 11, SUCCESS);
+		else
+			serif16_draw_string(0, 11, NO_GOALS);
+	}
+	static void update_char_state()
+	{
+		serif16_clear_row(22);	serif16_clear_row(23);
+		serif16_draw_string(0, 22, message);
+	}
+#else
+	static void draw_HUD()
+	{
+		//ready, start, or thinking
+		
+		if(message == MSG_START)
+		{
+			glColor4f(0, 0, 0, 1.0f - start_frame * 1.0f / START_MAX);
+			if(start_frame > START_MAX)
+				message = MSG_BLANK;
+			else
+				start_frame++;
+		}
+		else if(message == MSG_PAUSE)
+		{
+			glColor4f(0, 0, 0, 0.4f * sin(TO_RAD(start_frame)) + 0.6f);
+			start_frame += 10;
+		}
+		
+		draw_message_string(-0.8f * real_width, -0.9f * real_height, message);
+		
+		//name of the stage
+		
+		if(name_display > 0)
+		{
+			glColor3f(0, 0, 0);
+			
+			if(name_display < NAME_DISPLAY_MAX)
+			{
+				glColor4f(0, 0, 0, name_display * 1.0f / NAME_DISPLAY_MAX);
+				name_display--;
+			}
+			//std::cout << my_stage->get_name() << std::endl;
+			draw_string(-0.9f * real_width, 0, const_cast<char*>(echo_ns::current_stage->get_name().c_str()));
+		}
+		
+		//num goals left
+		
+		int goals_left = echo_ns::goals_left();
+		if(goals_left > 0)
+		{
+			//not very precise, but oh well
+			counter = new char[(int)log(goals_left) + 10];
+			CHKPTR(counter);
+			sprintf(counter, COUNTER_HEAD, goals_left);
+		}
+		else if(echo_ns::num_goals())
+			counter = SUCCESS;
+		else
+			counter = NO_GOALS;
+		
+		glColor3f(0, 0, 0);
+		draw_string(-0.6f * real_width, -0.8f * real_height, counter);
+		if(goals_left > 0)
+			delete counter;
+	}
 #endif
 
 #ifndef ARM9
@@ -448,7 +634,7 @@ static void draw_loader()
 		glTranslatef(0, 0, 0.05f);
 		glColor3f(1, 1, 1);
 
-		draw_string(side_x, real_height - 0.4f, files->current_dir);
+		draw_string(side_x, real_height - 0.4f, const_cast<char*>(files->current_dir));
 		
 		glColor3f(0.5f, 0.5f, 0.5f);
 		
@@ -496,6 +682,24 @@ static void display()
 	glColor3f(0, 0, 0);
 	
 	draw_HUD();
+#else
+	if(message == MSG_START)
+	{
+		if(start_frame > START_MAX)
+			message = MSG_BLANK;
+		else
+			start_frame++;
+	}
+	
+	if(sub_mode == NDS_INFO_MODE)
+	{
+		update_num_goals();
+		update_char_state();
+	}
+	else if(sub_mode == NDS_LOAD_MODE)
+	{
+		update_loader();
+	}
 #endif
 	
 	glLoadIdentity();
@@ -603,12 +807,15 @@ static void echo_pause()
 
 static void start_or_pause()
 {
+	ECHO_PRINT("s or p\n");
 	start_frame = 0;
 	if(message == MSG_READY)
 	{
 		message = MSG_START;
 		echo_ns::start();
+#ifndef ARM9
 		name_display--;
+#endif
 	}
 	else
 	{
@@ -656,22 +863,84 @@ static void get_key()
 	if(keysHeld() & KEY_TOUCH)
 	{
 		touchPosition t_pos = touchReadXY();
-		if(touch_started)
-			pointer(t_pos.px, t_pos.py);
-		else
-			pressed(t_pos.px, t_pos.py);
+		if(touch_started)	pointer(t_pos.px, t_pos.py);
+		else			pressed(t_pos.px, t_pos.py);
 	}
 	else if(touch_started)
 		touch_started = 0;
 	
 	u16 key = keysDown();
-	if(key & KEY_A)
-		start_or_pause();
-	else if(key & KEY_SELECT)
+	if(sub_mode == NDS_LOAD_MODE)
 	{
-		ECHO_PRINT("angle * 100: %i, %i\n" , (int)(echo_ns::angle.x * 100), (int)(echo_ns::angle.y* 100));
+		if((key & KEY_L) || (key & KEY_R))
+		{
+			if(!is_dir(files, file_index))
+			{
+				//ECHO_PRINT("trying to load:%s\n", echo_merge(files->current_dir, files->file_names[file_index]));
+				load(files->file_names[file_index]);
+			}
+			else
+			{
+				const char* file = files->file_names[file_index];
+				if(!strcmp(file, ".."))
+				{
+					if(strcmp(files->current_dir, "/"))
+					{
+						int len =  strrchr(files->current_dir, '/') - files->current_dir;
+						if(len > 0)
+						{
+							char* dir = new char[len + 1];
+							CHKPTR(dir);
+							memset(dir, '\0', len + 1);
+							strncpy(dir, files->current_dir, len);
+							delete files;
+							files = get_files(dir);
+						}
+						else if(len == 0) //going to root
+						{
+							delete files;
+							files = get_files("/");
+						}
+					}
+				}
+				else
+				{
+					const char* current_dir = files->current_dir;
+					delete files;
+					files = get_files(echo_merge(current_dir, file));
+				}
+				ECHO_PRINT("<new dir>%s</new dir>\n", files->current_dir);
+				file_index = 0;
+				file_start = 0;
+			}
+		}
+		if(((key & KEY_DOWN)	|| (key & KEY_B)) && file_index < files->num_files - 1)	file_index++;
+		if(((key & KEY_UP)		|| (key & KEY_X)) && file_index > 0)					file_index--;
+		file_start = file_index - 9;
+		if(file_start < 0)
+			file_start = 0;
 	}
-	else if(key & KEY_LID)
+	else
+	{
+		if((key & KEY_L) || (key & KEY_R))
+			start_or_pause();
+		if((key & KEY_RIGHT)	|| (key & KEY_A))	right();
+		if((key & KEY_LEFT)		|| (key & KEY_Y))	left();
+		if((key & KEY_DOWN)	|| (key & KEY_B))	down();
+		if((key & KEY_UP)		|| (key & KEY_X))	up();
+	}
+	if(key & KEY_START)
+	{
+		sub_mode++;
+		refresh_sub_mode();
+	}
+	if(key & KEY_SELECT)
+	{
+		sub_mode--;
+		refresh_sub_mode();
+		ECHO_PRINT("angle: %f, %f\n" , echo_ns::angle.x, echo_ns::angle.y);
+	}
+	if(key & KEY_LID)
 	{
 		if(!echo_ns::is_paused())
 		{
@@ -679,14 +948,7 @@ static void get_key()
 			echo_ns::toggle_pause();
 		}
 	}
-	else if(key  & KEY_RIGHT)
-		right();
-	else if(key & KEY_LEFT)
-		left();
-	else if(key & KEY_DOWN)
-		down();
-	else if(key & KEY_UP)
-		up();
+	//The DS doesn't have a FPU, so it isn't very precise
 	echo_ns::angle.x = (int)echo_ns::angle.x;
 	echo_ns::angle.y = (int)echo_ns::angle.y;
 }
@@ -712,6 +974,7 @@ static void key(unsigned char key, int x, int y)
 			}
 			else
 			{
+				//std::cout << "file is dir: " << file << ", " << files->current_dir << std::endl;
 				char* dir;
 				if(!strcmp(file, ".."))
 				{
@@ -723,6 +986,7 @@ static void key(unsigned char key, int x, int y)
 				{
 					dir = echo_merge(files->current_dir, file);
 				}
+				//std::cout << "newdir: " << dir << std::endl;
 				delete files;
 				files = get_files(dir);
 				file_index = 0;
@@ -782,4 +1046,5 @@ static void spec_key(int key, int x, int y)
 }
 
 #endif
+
 

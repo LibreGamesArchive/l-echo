@@ -22,7 +22,7 @@
 	#ifdef ARM9
 		#include <nds.h>
 		
-		#define ECHO_PRINT iprintf
+		#define ECHO_PRINT printf
 	#else
 		#include <cstdio>
 		
