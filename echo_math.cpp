@@ -92,11 +92,7 @@ float vector3f::length()
 
 void vector3f::dump()
 {
-#ifdef ARM9
-	ECHO_PRINT("vector3f (* 100): [%i,%i,%i]", (int)(x * 100), (int)(y * 100), (int)(z * 100));
-#else
 	ECHO_PRINT("vector3f: [%f,%f,%f]", x, y, z);
-#endif
 }
 
 void vector3f::set(vector3f copy_from)

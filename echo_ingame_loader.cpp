@@ -20,6 +20,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#ifdef WIN32
+	#include <windows.h>
+#endif
 //POSIX
 #ifdef ARM9
 	#include <sys/dir.h>
@@ -41,10 +44,23 @@ char* echo_merge(const char* arg1, const char* arg2)
 {
 	char* ret = new char[strlen(arg1) + strlen(arg2) + 2];
 	CHKPTR(ret);
-	strcat(strcat(strcpy(ret, arg1),  "/"), arg2);
+#ifdef WIN32
+	char* slash = strrchr(arg1, '\\');
+#else
+	char* slash = strrchr(arg1, '/');
+#endif
+	if(slash && slash == arg1 + strlen(arg1) - 1)
+		strcat(strcpy(ret, arg1), arg2);
+	else
+#ifdef WIN32
+		strcat(strcat(strcpy(ret, arg1),  "\\"), arg2);
+#else
+		strcat(strcat(strcpy(ret, arg1),  "/"), arg2);
+#endif
 	return(ret);
 }
 
+#ifndef ARM9
 int is_dir(const char* dir, const char* fname)
 {
 	if(!strcmp(fname, ".."))
@@ -57,6 +73,11 @@ int is_dir(const char* dir, const char* fname)
 
 int is_dir(const char* fname)
 {
+#ifdef WIN32
+	DWORD attrs = GetFileAttributes(fname);
+	return(attrs != INVALID_FILE_ATTRIBUTES 
+		&& (attrs & FILE_ATTRIBUTE_DIRECTORY));
+#else
 	int fd = open(fname, O_RDONLY);
 	struct stat *file_stat = new(struct stat);
 	CHKPTR(file_stat);
@@ -70,9 +91,15 @@ int is_dir(const char* fname)
 	}
 	delete file_stat;
 	return(0);
+#endif
 }
 
-static char* cmp_dir;
+int is_dir(echo_files* files, int file_index)
+{
+	return(is_dir(files->current_dir, files->file_names[file_index]));
+}
+
+static const char* cmp_dir;
 
 static int cmp(const void* arg1v, const void* arg2v)
 {
@@ -88,81 +115,139 @@ static int cmp(const void* arg1v, const void* arg2v)
 
 echo_files* get_files(const char* dirname)
 {
+#ifdef WIN32
+	WIN32_FIND_DATA find_data;
+	HANDLE find = FindFirstFile(dirname, &find_data);
+	int exists = (find != INVALID_HANDLE_VALUE);
+	FindClose(find);
+#else
 	int fd = open(dirname, O_RDONLY);
-	struct stat dir_stat;
-	int exists = !fstat(fd, &dir_stat);
-	close(fd);
+        struct stat dir_stat;
+        int exists = !fstat(fd, &dir_stat);
+        close(fd);
+#endif
 	if(exists)
 	{
-#ifdef ARM9
-		DIR_ITER* dir = diropen(dirname);
+                DIR* dir = opendir(dirname);
+                echo_files* ret = new(echo_files);
+                ret->num_files = 0;
+                ret->current_dir = const_cast<char*>(dirname);
+                dirent* each_ent;
+                while(each_ent = readdir(dir))
+                {
+                        //std::cout << "each_ent->d_name: " << each_ent->d_name << std::endl;
+                        if(strcmp(each_ent->d_name, ".") && strcmp(each_ent->d_name, ".."))
+                                ret->num_files++;
+                }
+                //std::cout << "each_ent: " << each_ent << std::endl;
+                ret->num_files++;
+                ret->file_names = new char*[ret->num_files];
+                CHKPTR(ret->file_names);
+                ret->file_names[0] = "..";
+                
+                int each = 1;
+                
+                rewinddir(dir);
+                while(each_ent = readdir(dir))
+                {
+                        /*
+                        fname = new char[strlen(dirname) + strlen(each_ent->d_name) + 1];
+                        ret->file_names[each] = strcat(strcpy(fname, dirname)
+                                , strcmp(".", each_ent->d_name) ? each_ent->d_name : "..");
+                        // */
+                        if(strcmp(each_ent->d_name, ".") && strcmp(each_ent->d_name, ".."))
+                        {
+                                ret->file_names[each] = new char[strlen(each_ent->d_name) + 1];
+                                CHKPTR(ret->file_names[each]);
+                                strcpy(ret->file_names[each], each_ent->d_name);
+                                each++;
+                        }
+                }
+                //std::cout << "num_files + each: " << ret->num_files << ", " << each << std::endl;
+                closedir(dir);
+                
+                cmp_dir = ret->current_dir;
+                //std::cout << "cmp_dir: " << cmp_dir << std::endl;
+                qsort(ret->file_names, ret->num_files, sizeof(char*), cmp);
+                return(ret);
+        }
+        return(NULL);
+}
 #else
-		DIR* dir = opendir(dirname);
-#endif
+int is_dir(echo_files* files, int file_index)
+{
+	return(file_index < files->num_dir);
+}
+
+static int cmp(const void* arg1v, const void* arg2v)
+{
+	return(strcmp(*((char**)arg1v), *((char**)arg2v)));
+}
+
+echo_files* get_files(const char* dirname)
+{
+	DIR_ITER* dir = diropen(dirname);
+	if(dir)
+	{
 		echo_files* ret = new(echo_files);
 		ret->num_files = 0;
 		ret->current_dir = const_cast<char*>(dirname);
-#ifdef ARM9
+		ret->num_dir = 1;
+		
 		struct stat each_ent;
 		char* filename = new char[MAXPATHLEN];
-		while(dirnext(dir, filename, &each_ent))
+		while(dirnext(dir, filename, &each_ent) == 0)
 		{
+			//ECHO_PRINT("fname: %s\n", filename);
 			if(strcmp(filename, ".") && strcmp(filename, ".."))
+			{
 				ret->num_files++;
+				if(S_ISDIR(each_ent.st_mode))
+					ret->num_dir++;
+			}
 		}
-#else
-		dirent* each_ent;
-		while(each_ent = readdir(dir))
-		{
-			if(strcmp(each_ent->d_name, ".") && strcmp(each_ent->d_name, ".."))
-				ret->num_files++;
-		}
-#endif
 		ret->num_files++;
 		ret->file_names = new char*[ret->num_files];
 		CHKPTR(ret->file_names);
 		ret->file_names[0] = "..";
 		
-		int each = 1;
-#ifdef ARM9
+		int each_dir = 1, each_file = ret->num_dir, each = 1;
 		dirreset(dir);
-		while(dirnext(dir, filename, &each_ent))
+		while(dirnext(dir, filename, &each_ent) == 0)
 		{
 			if(strcmp(filename, ".") && strcmp(filename, ".."))
 			{
+				if(S_ISDIR(each_ent.st_mode))
+				{
+					each = each_dir;
+					each_dir++;
+				}
+				else
+				{
+					each = each_file;
+					each_file++;
+				}
 				ret->file_names[each] = new char[strlen(filename) + 1];
 				CHKPTR(ret->file_names[each]);
+				memset(ret->file_names[each], '.'
+					, strlen(ret->file_names[each]));
 				strcpy(ret->file_names[each], filename);
-				each++;
 			}
 		}
-#else
-		rewinddir(dir);
-		while(each_ent = readdir(dir))
-		{
-			if(strcmp(each_ent->d_name, ".") && strcmp(each_ent->d_name, ".."))
-			{
-				ret->file_names[each] = new char[strlen(each_ent->d_name) + 1];
-				CHKPTR(ret->file_names[each]);
-				strcpy(ret->file_names[each], each_ent->d_name);
-				each++;
-			}
-		}
-#endif
 		
-#ifdef ARM9
 		delete[] filename;
 		dirclose(dir);
-#else
-		closedir(dir);
-#endif
 		
-		cmp_dir = ret->current_dir;
-		qsort(ret->file_names, ret->num_files, sizeof(char*), cmp);
+		ECHO_PRINT("num_dir: %i\n", ret->num_dir);
+		//cmp_dir = ret->current_dir;
+		qsort(ret->file_names, ret->num_dir, sizeof(char*), cmp);
+		qsort(ret->file_names + ret->num_dir
+			, ret->num_files - ret->num_dir, sizeof(char*), cmp);
 		return(ret);
 	}
 	return(NULL);
 }
+#endif
 
 void dump_files(echo_files* files)
 {

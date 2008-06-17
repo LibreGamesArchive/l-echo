@@ -12,8 +12,8 @@ OBJFILES  := $(CPPFILES:.cpp=.OBJ) #$(WINFILES:.cpp=.OBJ)
 DOPFILES  := $(CPPFILES:.cpp=.DOP)
 DOIFILES  := $(CPPFILES:.cpp=.DOI)
 
-PKGPREFIX := ../l-echo-0.2.2_r39-
-DESC      := L-Echo 0.2.2
+PKGPREFIX := ../l-echo-0.2.3_r40-
+DESC      := L-Echo 0.2.3
 
 all: $(OFILES)
 	gcc tinyxml/*.o *.o -DTIXML_USE_STL -lGL -lGLU  /usr/lib/libglut.so.3.8.0 -lpthread -g3 -Wall -o l-echo
@@ -25,10 +25,10 @@ w32: $(OBJFILES)
 	i586-mingw32msvc-g++ *.OBJ tinyxml/*.OBJ glut32.lib -lGL -lGLU -g3 -Wall -o l-echo.exe
 
 %.DOP: %.cpp #DOP stands for "Darwin Object (PowerPC)"
-	powerpc-apple-darwin8-g++ $(CXXFLAGS) -framework OpenGL -framework GLUT -c -o $@ $<
+	powerpc-apple-darwin8-g++ $(CXXFLAGS) -c -o $@ $<
 
 %.DOI: %.cpp #DOP stands for "Darwin Object (Intel)"
-	i686-apple-darwin8-g++ $(CXXFLAGS) -framework OpenGL -framework GLUT -c -o $@ $<
+	i686-apple-darwin8-g++ $(CXXFLAGS) -c -o $@ $<
 
 macppc: $(DOPFILES)
 	powerpc-apple-darwin8-g++ *.DOP tinyxml/*.DOP -framework OpenGL -framework GLUT -g3 -Wall -o l-echo.macppc
@@ -40,7 +40,7 @@ clean:
 	rm *.o *.OBJ l-echo.exe l-echo l-echo.mac* *.DOP *.DOI *~ || echo
 
 clean-all: clean
-	rm tinyxml/*.o tinyxml/*.OBJ || echo
+	rm tinyxml/*.o tinyxml/*.OBJ tinyxml/*.DOP tinyxml/*.DOI || echo
 
 run: all
 	./l-echo perspective_movement.xml
@@ -54,7 +54,7 @@ package: all w32
 
 package-mac: macintel macppc
 	powerpc-apple-darwin8-lipo -create l-echo.macppc l-echo.macintel -output l-echo.mac
-	dd if=/dev/zero of=$(PKGPREFIX)osx.dmg bs=1M count=16
+	dd if=/dev/zero of=$(PKGPREFIX)osx.dmg bs=1M count=8
 	mkfs.hfsplus -v '$(DESC)' $(PKGPREFIX)osx.dmg
 	sudo mkdir -p /mnt/dmg
 	sudo mount -t hfsplus -o loop $(PKGPREFIX)osx.dmg /mnt/dmg
