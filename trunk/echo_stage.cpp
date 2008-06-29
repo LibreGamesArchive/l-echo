@@ -29,22 +29,22 @@
 stage::stage()
 {
 	farthest = 0;
-    grids = new STAGE_MAP();
-    CHKPTR(grids);
-    levels = new LEVEL_MAP();
-    CHKPTR(levels);
+	grids = new STAGE_MAP();
+	CHKPTR(grids);
+	levels = new LEVEL_MAP();
+	CHKPTR(levels);
 }
 
 stage::stage(grid* my_start, std::string my_name, int my_num_goals)
 {
 	farthest = 0;
 	grids = new STAGE_MAP();
-    CHKPTR(grids);
-    levels = new LEVEL_MAP();
-    CHKPTR(levels);
-    start = my_start;
-    name = my_name;
-    num_goals = my_num_goals;
+	CHKPTR(grids);
+	levels = new LEVEL_MAP();
+	CHKPTR(levels);
+	start = my_start;
+	name = my_name;
+	num_goals = my_num_goals;
 }
 
 void stage::add(std::string id, grid* ptr)

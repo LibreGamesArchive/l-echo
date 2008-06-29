@@ -30,6 +30,7 @@ void lderr(const char* msg)
 void ldmemerr()
 {
 	lderr("cannot allocate memory!");
+	std::exit(1);
 }
 void lderr(const char* msg1, const char* msg2)
 {
@@ -45,5 +46,9 @@ void ldwarn(const char* msg)
 void genmemerr()
 {
 	ECHO_PRINT("Cannot allocate memory!\n");
+	std::exit(1);
+	// to force a trace
+	//char* c = NULL;
+	//*c = 'l';
 }
 
