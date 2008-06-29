@@ -18,6 +18,7 @@
 */
 
 #include <cstdlib>
+#include <cstring>
 //#include <iostream>
 #include <cmath>
 
@@ -47,6 +48,7 @@
 	#include "freeserif16.h"
 	#include "font.h"
 	#include "topscreen.h"
+	#include "menu.h"
 #else
 	#ifdef __MACH__	//OS X
 		#include <OpenGL/gl.h>
@@ -126,6 +128,8 @@
 	static int window;
 #endif
 
+static int menu_mode = 1;
+
 static int my_width, my_height;
 static float depth, file_space, font_div;
 static float real_width, real_height;
@@ -133,7 +137,7 @@ static int loading = 0, load_frame = 0, file_index = 0, file_start = 0;
 
 static int start_frame = 0, name_display = NAME_DISPLAY_MAX;
 static char* counter;
-static char* message = MSG_READY;
+static char* message = MSG_READY;                                                                                  
 
 static float null_char_opacity;
 static int opacity_incr;
@@ -190,7 +194,7 @@ int main(int argc, char **argv)
 	init_math();
 	files = get_files("/");
 	//dump_files(files);
-	load("/sample1.xml");
+	load(NULL);
 	resize(255, 191);
 	ECHO_PRINT("is stage null?: %i\n", echo_ns::current_stage == NULL);
 	ECHO_PRINT("is stage start null?: %i\n", echo_ns::current_stage->get_start() == NULL);
@@ -271,10 +275,13 @@ int main(int argc, char **argv)
 		else
 			load(argv[1]);
 	}
+	//*
 	else
 	{
-		load("sample1.xml");
+		//load("sample1.xml");
+		load(NULL);
 	}
+	// */
 	
 	init(argc, argv, 640, 480);
 	
@@ -292,9 +299,25 @@ static void load(const char* fname)
 	opacity_incr = 1;
 	null_char_opacity = NULL_CHAR_OPACITY_MIN;
 	
-	echo_ns::init(load_stage(echo_merge(files->current_dir, fname)));
+	if(fname != NULL)
+	{
+		echo_ns::init(load_stage(echo_merge(files->current_dir, fname)));
+#ifdef ARM9
+		videoSetMode(MODE_0_3D);
+#endif
+		menu_mode = 0;
+		depth = echo_ns::current_stage->get_farthest() + 1;
+	}
+	else
+	{
+		echo_ns::init(NULL);
+#ifdef ARM9
+		videoSetMode(MODE_0_3D | DISPLAY_BG1_ACTIVE);
+#endif
+		menu_mode = 1;
+		depth = 5;
+	}
 	
-	depth = echo_ns::current_stage->get_farthest() + 1;
 	file_space = FILE_SPACE_PER_DEPTH * depth;
 	font_div = 150 / depth;
 	resize(my_width, my_height);
@@ -321,11 +344,23 @@ static void init(int argc, char **argv, int w, int h)
 {
 #ifdef ARM9
         powerON(POWER_ALL);
-        videoSetMode(MODE_0_3D);
+        
         irqInit();
         irqSet(IRQ_VBLANK, 0);
         
+	vramSetBankA(VRAM_A_MAIN_BG);
+	vramSetBankB(VRAM_B_LCD);
+        vramSetBankC(VRAM_C_SUB_BG);
+	vramSetBankD(VRAM_D_LCD);
+	vramSetBankE(VRAM_E_LCD);
+	vramSetBankF(VRAM_F_LCD);
+	vramSetBankG(VRAM_G_LCD);
+	vramSetBankH(VRAM_H_LCD);
+	vramSetBankI(VRAM_I_SUB_BG);
+	
 	//Main Screen
+	
+	videoSetMode(MODE_0_3D | DISPLAY_BG1_ACTIVE);
 	
 	glInit();
         glEnable(GL_ANTIALIAS);
@@ -333,12 +368,14 @@ static void init(int argc, char **argv, int w, int h)
         glClearPolyID(63); // BG must have a unique polygon ID for AA to work
         glClearDepth(0x7FFF);
 	
+	BG1_CR = (0 << 14) | BG_COLOR_256 | BG_MAP_BASE(8) | BG_TILE_BASE(2);
+	memcpy((u16*)BG_TILE_RAM(2), menuTiles, menuTilesLen);
+	memcpy((u16*)BG_MAP_RAM(8), menuMap, menuMapLen);
+	memcpy(BG_PALETTE, menuPal, menuPalLen);
+	
 	//Sub Screen
 	
 	refresh_sub_mode();
-	
-        vramSetBankC(VRAM_C_SUB_BG);
-	vramSetBankI(VRAM_I_SUB_BG);
 	
 	SUB_BG0_CR = (0 << 14) | BG_COLOR_256 | BG_MAP_BASE(0) | BG_TILE_BASE(1) | BG_PRIORITY(2);
 	memcpy((u16*)BG_TILE_RAM_SUB(1), topscreenTiles, topscreenTilesLen);
@@ -681,7 +718,8 @@ static void display()
 	
 	glColor3f(0, 0, 0);
 	
-	draw_HUD();
+	if(!menu_mode)
+		draw_HUD();
 #else
 	if(message == MSG_START)
 	{
@@ -711,44 +749,58 @@ static void display()
 	glRotatef(-echo_ns::angle.x, 1, 0, 0);
 	glRotatef(-echo_ns::angle.y, 0, 1, 0);
 #endif
-	
-	echo_ns::draw();
-	
-	glColor3f(0.5f, 0.5f, 0.5f);
-	vector3f* vec = echo_ns::step_char();
-	//ECHO_PRINT("is vec null?: %i\n", vec == NULL);
-	if(vec)
+	if(!menu_mode)
 	{
-		glTranslatef(vec->x, vec->y + 0.25, vec->z);
-		draw_character();
-		delete vec;
-	}
-	else
-	{
-		grid* g = echo_ns::current_stage->get_start();
-		if(g)
+		echo_ns::draw();
+	
+		glColor3f(0.5f, 0.5f, 0.5f);
+		vector3f* vec = echo_ns::step_char();
+		//ECHO_PRINT("is vec null?: %i\n", vec == NULL);
+		if(vec)
 		{
-			grid_info_t* info = g->get_info(echo_ns::angle);
-			if(info)
+			glTranslatef(vec->x, vec->y + 0.25, vec->z);
+			draw_character();
+			delete vec;
+		}
+		else
+		{
+			grid* g = echo_ns::current_stage->get_start();
+			if(g)
 			{
-				glColor3f(null_char_opacity, null_char_opacity, null_char_opacity);
-				glTranslatef(info->pos.x, info->pos.y + 0.25, info->pos.z);
-				draw_character();
-				if(opacity_incr)
+				grid_info_t* info = g->get_info(echo_ns::angle);
+				if(info)
 				{
-					null_char_opacity += 0.05f;
-					if(null_char_opacity >= 1)
-						opacity_incr = 0;
-				}
-				else
-				{
-					null_char_opacity -= 0.05f;
-					if(null_char_opacity <= NULL_CHAR_OPACITY_MIN)
-						opacity_incr = 1;
+					glColor3f(null_char_opacity, null_char_opacity, null_char_opacity);
+					glTranslatef(info->pos.x, info->pos.y + 0.25, info->pos.z);
+					draw_character();
+					if(opacity_incr)
+					{
+						null_char_opacity += 0.05f;
+						if(null_char_opacity >= 1)
+							opacity_incr = 0;
+					}
+					else
+					{
+						null_char_opacity -= 0.05f;
+						if(null_char_opacity <= NULL_CHAR_OPACITY_MIN)
+							opacity_incr = 1;
+					}
 				}
 			}
 		}
 	}
+#ifndef ARM9
+	else
+	{
+		draw_message_string(-2, 3, "L-Echo");
+		draw_string(-3, 0, "Please load a stage.");
+		draw_string(-6, -2, "Press L To Toggle Loader.");
+		draw_string(-6, -2.5, "Press P To Start/Pause/Resume.");
+		draw_string(-6, -3, "Press Arrow Keys or use Mouse to ");
+		draw_string(-3, -3.5, "Rotate World.");
+		draw_string(-6, -4, "Press Esc To Quit.");
+	}
+#endif
 	
 #ifndef ARM9
 	draw_loader();
@@ -807,7 +859,7 @@ static void echo_pause()
 
 static void start_or_pause()
 {
-	ECHO_PRINT("s or p\n");
+	//ECHO_PRINT("s or p\n");
 	start_frame = 0;
 	if(message == MSG_READY)
 	{
@@ -920,7 +972,7 @@ static void get_key()
 		if(file_start < 0)
 			file_start = 0;
 	}
-	else
+	else if(!menu_mode)
 	{
 		if((key & KEY_L) || (key & KEY_R))
 			start_or_pause();
@@ -940,7 +992,7 @@ static void get_key()
 		refresh_sub_mode();
 		ECHO_PRINT("angle: %f, %f\n" , echo_ns::angle.x, echo_ns::angle.y);
 	}
-	if(key & KEY_LID)
+	if(key & KEY_LID && !menu_mode)
 	{
 		if(!echo_ns::is_paused())
 		{
@@ -962,7 +1014,10 @@ static void key(unsigned char key, int x, int y)
 		exit(0);
 	}
 	else if(key == 'p' || key == 'P')
-		start_or_pause();
+	{
+		if(!menu_mode)
+			start_or_pause();
+	}
 	else if(key == ENTER)
 	{
 		if(loading)
@@ -1010,9 +1065,12 @@ static void key(unsigned char key, int x, int y)
 	}
 	else if(key == 'a' || key == 'A')
 	{
-		ECHO_PRINT("ang: ");
-		echo_ns::angle.dump();
-		ECHO_PRINT("\n");
+		if(!menu_mode)
+		{
+			ECHO_PRINT("ang: ");
+			echo_ns::angle.dump();
+			ECHO_PRINT("\n");
+		}
 	}
 }
 
@@ -1020,14 +1078,17 @@ static void spec_key(int key, int x, int y)
 {
 	if(!loading)
 	{
-		if(key == GLUT_KEY_RIGHT)
-			right();
-		else if(key == GLUT_KEY_LEFT)
-			left();
-		else if(key == GLUT_KEY_DOWN)
-			down();
-		else if(key == GLUT_KEY_UP)
-			up();
+		if(!menu_mode)
+		{
+			if(key == GLUT_KEY_RIGHT)
+				right();
+			else if(key == GLUT_KEY_LEFT)
+				left();
+			else if(key == GLUT_KEY_DOWN)
+				down();
+			else if(key == GLUT_KEY_UP)
+				up();
+		}
 	}
 	else
 	{

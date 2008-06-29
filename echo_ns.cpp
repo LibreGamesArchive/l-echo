@@ -45,8 +45,14 @@ namespace echo_ns
 	{
 		started = 0;
 		current_stage = st;
-		main_char = new echo_char(st->get_start());
-		CHKPTR(main_char);
+		if(st != NULL)
+		{
+			main_char = new echo_char(st->get_start());
+			CHKPTR(main_char);
+		}
+		else
+			main_char = NULL;
+		
 	}
 	void start()
 	{
@@ -55,13 +61,16 @@ namespace echo_ns
 	}
 	void draw()
 	{
-		STATIC_SET::iterator it = statics->begin(), end = statics->end();
-		while(it != end)
+		if(current_stage != NULL)
 		{
-			(*it)->refresh(angle);
-			it++;
+			STATIC_SET::iterator it = statics->begin(), end = statics->end();
+			while(it != end)
+			{
+				(*it)->refresh(angle);
+				it++;
+			}
+			current_stage->draw(angle);
 		}
-		current_stage->draw(angle);
 	}
 	void kill_char()
 	{
@@ -69,7 +78,8 @@ namespace echo_ns
 	}
 	void toggle_pause()
 	{
-		main_char->toggle_pause();
+		if(current_stage != NULL)
+			main_char->toggle_pause();
 	}
 	vector3f *step_char()	//CHANGE FOR NORMALS
 	{

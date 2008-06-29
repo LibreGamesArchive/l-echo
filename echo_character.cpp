@@ -19,6 +19,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <typeinfo>
 
 #include <echo_debug.h>
 #include <launcher.h>
