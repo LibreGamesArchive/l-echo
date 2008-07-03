@@ -95,11 +95,6 @@ void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, int my_num_n
 	lines = ginfo != NULL ? generate_lines(*ginfo) : NULL;
 }
 
-static int has_line(line3f* ptr, line3f line)
-{
-	return(ptr[0] == line || ptr[1] == line || ptr[2] == line || ptr[3] == line);
-}
-
 static void dump_lines(line3f* ptr)
 {
 	dump_line3f(ptr[0]);
@@ -173,17 +168,32 @@ line3f* grid::generate_lines(grid_info_t my_info)
 {
 	line3f* ret = new line3f[4];
 	CHKPTR(ret);
+
+#ifdef STRICT_MEM
+	vector3f* p1 = new vector3f(my_info.pos.x - HALF_GRID, my_info.pos.y, my_info.pos.z - HALF_GRID);
+	CHKPTR(p1);
+	vector3f* p2 = new vector3f(my_info.pos.x - HALF_GRID, my_info.pos.y, my_info.pos.z + HALF_GRID);
+	CHKPTR(p2);
+	vector3f* p3 = new vector3f(my_info.pos.x + HALF_GRID, my_info.pos.y, my_info.pos.z + HALF_GRID);
+	CHKPTR(p3);
+	vector3f* p4 = new vector3f(my_info.pos.x + HALF_GRID, my_info.pos.y, my_info.pos.z - HALF_GRID);
+	CHKPTR(p4);
 	
-	vector3f pos = my_info.pos;
-	vector3f p1(pos.x - HALF_GRID, pos.y, pos.z - HALF_GRID);
-	vector3f p2(pos.x - HALF_GRID, pos.y, pos.z + HALF_GRID);
-	vector3f p3(pos.x + HALF_GRID, pos.y, pos.z + HALF_GRID);
-	vector3f p4(pos.x + HALF_GRID, pos.y, pos.z - HALF_GRID);
+	ret[0].p1 = *p1;	ret[0].p2 = *p2;
+	ret[1].p1 = *p2;	ret[1].p2 = *p3;
+	ret[2].p1 = *p3;	ret[2].p2 = *p4;
+	ret[3].p1 = *p4;	ret[3].p2 = *p1;
+#else
+	vector3f p1(my_info.pos.x - HALF_GRID, my_info.pos.y, my_info.pos.z - HALF_GRID);
+	vector3f p2(my_info.pos.x - HALF_GRID, my_info.pos.y, my_info.pos.z + HALF_GRID);
+	vector3f p3(my_info.pos.x + HALF_GRID, my_info.pos.y, my_info.pos.z + HALF_GRID);
+	vector3f p4(my_info.pos.x + HALF_GRID, my_info.pos.y, my_info.pos.z - HALF_GRID);
 	
 	ret[0].p1 = p1;	ret[0].p2 = p2;
 	ret[1].p1 = p2;	ret[1].p2 = p3;
 	ret[2].p1 = p3;	ret[2].p2 = p4;
 	ret[3].p1 = p4;	ret[3].p2 = p1;
+#endif
 	
 	return(ret);
 }

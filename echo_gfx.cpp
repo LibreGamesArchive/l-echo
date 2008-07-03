@@ -64,11 +64,6 @@ void draw_line(line3f ln)
 	draw_line(ln.p1, ln.p2);
 }
 
-static int has_line(line3f* ptr, line3f line)
-{
-	return(ptr[0] == line || ptr[1] == line || ptr[2] == line || ptr[3] == line);
-}
-
 void draw_hole(vector3f pos)
 {
 	glColor3f(0, 0, 0);

@@ -17,49 +17,92 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <cstdlib>
-
 #include <echo_error.h>
-#include <stair.h>
 #include <echo_math.h>
+#include <echo_gfx.h>
+
 #include <grid.h>
+#include <stair.h>
 
-stair::stair()
+stair::stair() : grid()
 {
-    init(NULL, NULL, NULL, new vector3f(0.5f, 0.5f, 0), new vector3f(0, 0, 0.5f));
+	init(NULL, NULL, NULL, 0);
 }
 
-stair::stair(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f* my_dir, vector3f* my_width)
+stair::stair(grid_info_t* my_info, grid* my_prev, grid* my_next, float my_angle) : grid()
 {
-    dir = my_dir;
-    width = my_width;
-    init(my_info, my_prev, my_next, my_dir, my_width);
+	init(my_info, my_prev, my_next, my_angle);
 }
 
-void stair::init(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f* my_dir, vector3f* my_width)
+void stair::init(grid_info_t* my_info, grid* my_prev, grid* my_next, float my_angle)
 {
-    dir = my_dir;
-    width = my_width;
-    grid::init(my_info, my_prev, my_next);
+	grid::init(my_info, my_prev, my_next);
+	angle = my_angle;
+}
+
+void stair::init_to_null()
+{
+	grid::init_to_null();
+	angle = 0;
 }
 
 line3f* stair::generate_lines(grid_info_t my_info)
 {
-	line3f* ret = new line3f[4];
+	line3f* ret = new line3f[2];
 	CHKPTR(ret);
+
+#ifdef STRICT_MEM
+	vector3f* p1 = new vector3f(0.5, 0.5, 0.5);
+	CHKPTR(p1);
+	p1->self_rotate_about_y(angle);
+	vector3f* p2 = new vector3f(-0.5, 0.5, 0.5);
+	CHKPTR(p2);
+	p2->self_rotate_about_y(angle);
 	
-	vector3f pos = my_info.pos;
-	vector3f p1 = pos + *dir + *width;
-	vector3f p2 = pos - *dir + *width;
-	vector3f p3 = pos - *dir - *width;
-	vector3f p4 = pos + *dir - *width;
-
+	vector3f* p3 = new vector3f(0.5, -0.5, -0.5);
+	CHKPTR(p3);
+	p3->self_rotate_about_y(angle);
+	vector3f* p4 = new vector3f(-0.5, -0.5, -0.5);
+	CHKPTR(p4);
+	p4->self_rotate_about_y(angle);
+	
+	ret[0].p1 = *p1;	ret[0].p2 = *p2;
+	ret[1].p1 = *p3;	ret[1].p2 = *p4;
+#else
+	vector3f p1(0.5, 0.5, 0.5);
+	p1.self_rotate_about_y(angle);
+	vector3f p2(-0.5, 0.5, 0.5);
+	p2.self_rotate_about_y(angle);
+	
+	vector3f p3(0.5, -0.5, -0.5);
+	p3.self_rotate_about_y(angle);
+	vector3f p4(-0.5, -0.5, -0.5);
+	p4.self_rotate_about_y(angle);
+	
 	ret[0].p1 = p1;	ret[0].p2 = p2;
-	ret[1].p1 = p2;	ret[1].p2 = p3;
-	ret[2].p1 = p3;	ret[2].p2 = p4;
-	ret[3].p1 = p4;	ret[3].p2 = p1;
-
+	ret[1].p1 = p3;	ret[1].p2 = p4;
+#endif
+	
 	return(ret);
 }
 
+void stair::draw(vector3f angle)
+{
+	draw_goal(angle);
+	
+	line3f* my_lines = get_lines(angle);
+	//draw_rect(my_lines[0].p1, my_lines[1].p1, my_lines[2].p1, my_lines[3].p1);
+	grid* my_next = get_real_next();
+	line3f* next_lines = my_next != NULL ? my_next->get_lines(angle) : NULL;
+	grid* my_prev = get_real_prev();
+	line3f* prev_lines = my_prev != NULL ? my_prev->get_lines(angle) : NULL;
+	int each = 0;
+	while(each < 2)
+	{
+		if( ( next_lines == NULL || !has_line(next_lines, my_lines[each]) )
+			&& ( prev_lines == NULL || !has_line(prev_lines, my_lines[each]) ) )
+		draw_line(my_lines[each]);
+		each++;
+	}
+}
 

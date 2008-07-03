@@ -1,4 +1,4 @@
-// stair.h
+// freeform_grid.h
 
 /*
     This file is part of L-Echo.
@@ -20,20 +20,19 @@
 #include <echo_math.h>
 #include <grid.h>
 
-#ifndef __ECHO_CLASS_STAIR__
-#define __ECHO_CLASS_STAIR__
-class stair : public grid
+#ifndef __ECHO_CLASS_FREEFORM_GRID__
+#define __ECHO_CLASS_FREEFORM_GRID__
+class freeform_grid : public grid
 {
-	protected:
-		float angle;
-	public:
-		stair();
-		stair(grid_info_t* my_info, grid* my_prev, grid* my_next, float my_angle);
-		void init(grid_info_t* my_info, grid* my_prev, grid* my_next, float my_angle);
-		
-		virtual void init_to_null();
-		virtual line3f* generate_lines(grid_info_t my_info);
-		virtual void draw(vector3f angle);
+    protected:
+        vector3f* dir;
+        vector3f* width;
+    public:
+        freeform_grid();
+        freeform_grid(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f* my_dir, vector3f* my_width);
+        void init(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f* my_dir, vector3f* my_width);
+        virtual line3f* generate_lines(grid_info_t my_info);
+        virtual void init_to_null();
+	//virtual void draw(vector3f angle);
 };
 #endif
-
