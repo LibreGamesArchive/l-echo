@@ -9,15 +9,15 @@
 		</trigger>
 	</triggers>
     </grid>
-    <stair id="s1" x="2" y="-1.5f" z="0" prev="g1" next="g2">
+    <freeform_grid id="s1" x="2" y="-1.5f" z="0" prev="g1" next="g2">
     	<angle x="-0.5f" y="0.5f" z="0"/>
 	<angle x="0" y="0" z="0.5f" />
-    </stair>
+    </freeform_grid>
     <grid id="g2" x="3" y="-2" z="0" prev="s1" next="s2" />
-    <stair id="s2" x="3" y="-2.5f" z="1" prev="g2" next="g3">
+    <freeform_grid id="s2" x="3" y="-2.5f" z="1" prev="g2" next="g3">
     	<angle x="0" y="-.5f" z=".5f" />
 	<angle x="0.5f" y="0" z="0" />
-    </stair>
+    </freeform_grid>
    
     <escgrid id="g4" x="2" y="-3" z="2" prev="g3" next="g3">
     <!-- lol -->
@@ -25,10 +25,10 @@
     		<grid id="g4" x="2" y="-3" z="2" prev="g3" next="st1"/>
 	</angle>
     </escgrid>
-    <stair id="s3" x="3" y="-3.5f" z="3" prev="g3" next="g5">
+    <freeform_grid id="s3" x="3" y="-3.5f" z="3" prev="g3" next="g5">
     	<angle x="0" y="-.5f" z=".5f" />
 	<angle x="0.5f" y="0" z="0" />
-    </stair>
+    </freeform_grid>
     <t_grid id="g3" x="3" y="-3" z="2" prev="s2" next="g4" next2="s3"/>
     
     <grid id="g5" x="3" y="-4" z="4" prev="s3" next="s3" goal="1">

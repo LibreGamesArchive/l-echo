@@ -230,6 +230,13 @@ vector3f* vector3f::rotate_about_y(float angle)
 #endif
 }
 
+void vector3f::self_rotate_about_y(float angle)
+{
+	float x_save = x;
+	x = z * ECHO_SINF(angle) + x * ECHO_COSF(angle);
+	z = z * ECHO_COSF(angle) - x_save * ECHO_SINF(angle);
+}
+
 vector3f* vector3f::angle_to_real()
 {
 #ifdef STRICT_MEM
@@ -238,5 +245,10 @@ vector3f* vector3f::angle_to_real()
 #else
 	return((new vector3f(0, 0, 10))->rotate_xy(*this));
 #endif
+}
+
+int has_line(line3f* ptr, line3f line)
+{
+	return(ptr[0] == line || ptr[1] == line || ptr[2] == line || ptr[3] == line);
 }
 

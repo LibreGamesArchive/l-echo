@@ -12,8 +12,8 @@ OBJFILES  := $(CPPFILES:.cpp=.OBJ) #$(WINFILES:.cpp=.OBJ)
 DOPFILES  := $(CPPFILES:.cpp=.DOP)
 DOIFILES  := $(CPPFILES:.cpp=.DOI)
 
-PKGPREFIX := ../l-echo-0.2.3_r40-
-DESC      := L-Echo 0.2.3
+PKGPREFIX := ../l-echo-0.2.4_r41-
+DESC      := L-Echo 0.2.4
 
 all: $(OFILES)
 	gcc tinyxml/*.o *.o -DTIXML_USE_STL -lGL -lGLU  /usr/lib/libglut.so.3.8.0 -lpthread -g3 -Wall -o l-echo

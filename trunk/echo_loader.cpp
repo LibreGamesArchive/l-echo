@@ -34,11 +34,12 @@
 #include <echo_stage.h>
 
 #include <launcher.h>
-#include <stair.h>
+#include <freeform_grid.h>
 #include <t_grid.h>
 #include <escgrid.h>
 #include <hole.h>
 #include <grid.h>
+#include <stair.h>
 
 #ifdef ARM9
 	#include <tinyxml.h>
@@ -520,14 +521,14 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 		LD_CHKPTR(new_grid);
 		add_escs(txe, st, map, escroot, (escgrid*)new_grid);
 	}
-	else if(!strcmp(type, "stair"))
+	else if(!strcmp(type, "freeform_grid"))
 	{
-		LD_PRINT("%s is a stair!\n", name);
+		LD_PRINT("%s is a freeform_grid!\n", name);
 		TiXmlNode* vec_element = txe->FirstChild();
 		while(vec_element != NULL && vec_element->Type() != TiXmlNode::ELEMENT)
 			vec_element = vec_element->NextSiblingElement();
 		if(!vec_element)
-			lderr("cannot find direction element of stair: " , name);
+			lderr("cannot find direction element of freeform_grid: " , name);
 		vector3f* dir_angle = new vector3f();
 		LD_CHKPTR(dir_angle);
 		get_vec(vec_element->ToElement(), dir_angle);
@@ -535,11 +536,11 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 		while(vec_element != NULL && vec_element->Type() != TiXmlNode::ELEMENT)
 			vec_element = vec_element->NextSiblingElement();
 		if(!vec_element)
-			lderr("cannot find width element of stair: " , name);
+			lderr("cannot find width element of freeform_grid: " , name);
 		vector3f* width_angle = new vector3f();
 		LD_CHKPTR(width_angle);
 		get_vec(vec_element->ToElement(), width_angle);
-		new_grid = new stair(info, prev, next, dir_angle, width_angle);
+		new_grid = new freeform_grid(info, prev, next, dir_angle, width_angle);
 		LD_CHKPTR(new_grid);
 	}
 	else

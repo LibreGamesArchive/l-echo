@@ -53,6 +53,7 @@ class vector3f
 		vector3f* rotate_xy(vector3f rot);
 		vector3f* neg_rotate_yx(vector3f rot);
 		vector3f* rotate_about_y(float angle);
+		void self_rotate_about_y(float angle);
 		vector3f* angle_to_real();
 		
 		vector3f normalize_angle();
@@ -73,6 +74,8 @@ typedef struct
 	vector3f p2;
 }
 line3f;
+
+int has_line(line3f* ptr, line3f line);
 #endif
 
 #ifndef __ECHO_ANGLE_RANGE__
