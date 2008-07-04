@@ -233,8 +233,15 @@ vector3f* vector3f::rotate_about_y(float angle)
 void vector3f::self_rotate_about_y(float angle)
 {
 	float x_save = x;
-	x = z * ECHO_SINF(angle) + x * ECHO_COSF(angle);
+	x = z * ECHO_SINF(angle) + x_save * ECHO_COSF(angle);
 	z = z * ECHO_COSF(angle) - x_save * ECHO_SINF(angle);
+}
+
+void vector3f::add(vector3f vec)
+{
+	x += vec.x;
+	y += vec.y;
+	z += vec.z;
 }
 
 vector3f* vector3f::angle_to_real()

@@ -20,10 +20,22 @@
 #include <grid.h>
 #include <echo_math.h>
 
+void draw_line(float x1, float y1, float z1, float x2, float y2, float z2);
 void draw_n_lines(line3f* my_lines, vector3f angle, grid** others, int num_lines);
 void draw_line(vector3f p1, vector3f p2);
 void draw_line(line3f ln);
 void draw_rect(vector3f p1, vector3f p2, vector3f p3, vector3f p4);
+void draw_rect(float x1, float y1, float z1
+		, float x2, float y2, float z2
+		, float x3, float y3, float z3
+		, float x4, float y4, float z4);
 void draw_hole(vector3f pos);
 void draw_launcher(vector3f pos);
 void draw_goal_gfx(vector3f pos, float goal_angle);
+
+void gfx_identity();
+void gfx_push_matrix();
+void gfx_pop_matrix();
+void gfx_rotatef(float angle, float x, float y, float z);
+void gfx_translatef(float x, float y, float z);
+

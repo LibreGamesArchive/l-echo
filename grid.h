@@ -61,12 +61,14 @@ class grid
 		TRIGGER_SET* triggers;
 	public:
 		grid();
+		grid(int is_generate_lines);
 		grid(grid_info_t* my_info, grid* my_prev, grid* my_next);
 		grid(grid_info_t* my_info, grid* my_prev, grid* my_next, int num_neighbor);
 		grid(grid_info_t* my_info);
 		virtual void init_to_null();
 		void init(grid_info_t* my_info, grid* my_prev, grid* my_next);
-		void init(grid_info_t* my_info, grid* my_prev, grid* my_next, int num_neighbor);
+		//void init(grid_info_t* my_info, grid* my_prev, grid* my_next, int is_generate_lines);
+		void init(grid_info_t* my_info, grid* my_prev, grid* my_next, int num_neighbor, int is_generate_lines);
 
 		virtual ~grid();
 		virtual grid_info_t* get_info(vector3f angle);

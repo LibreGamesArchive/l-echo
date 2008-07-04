@@ -27,12 +27,14 @@ along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 
 escgrid::escgrid() : grid()
 {
+	init_to_null();
 	delete_at_deconstruct = 1;
 	init(NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 }
 
 escgrid::escgrid(grid_info_t* my_info, grid* my_prev, grid* my_next) : grid()
 {
+	init_to_null();
 	delete_at_deconstruct = 1;
 	init(my_info, my_prev, my_next);
 }
@@ -40,6 +42,7 @@ escgrid::escgrid(grid_info_t* my_info, grid* my_prev, grid* my_next) : grid()
 escgrid::escgrid(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info_t* my_esc_info
 	, grid* my_normal_prev, grid* my_esc_prev, grid* my_normal_next, grid* my_esc_next) : grid()
 {
+	init_to_null();
 	delete_at_deconstruct = 1;
 	init(my_escangle, my_normal_info, my_esc_info, my_normal_prev, my_esc_prev, my_normal_next, my_esc_next);
 }

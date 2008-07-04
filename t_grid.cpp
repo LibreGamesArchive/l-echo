@@ -34,7 +34,7 @@ t_grid::t_grid(grid_info_t* my_info, grid* my_prev, grid* my_next, grid* my_next
 }
 void t_grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, grid* my_next2)
 {
-	grid::init(my_info, my_prev, my_next, 3);
+	grid::init(my_info, my_prev, my_next, 3, 1);
 	neighbors[2] = my_next2;
 }
 t_grid::~t_grid()
