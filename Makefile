@@ -1,4 +1,4 @@
-CXXFLAGS = -I./ -I../include -DSTRICT_MEM -DDEBUG -DTIXML_USE_STL -g3 -Wall
+CXXFLAGS = -I./ -DSTRICT_MEM -DDEBUG -DTIXML_USE_STL -g3 -Wall
 TINYXML_USE_STL := YES
 
 CPPFILES  := $(wildcard *.cpp) $(wildcard tinyxml/*.cpp) $(wildcard ext/*.cpp)
@@ -12,11 +12,11 @@ OBJFILES  := $(CPPFILES:.cpp=.OBJ) #$(WINFILES:.cpp=.OBJ)
 DOPFILES  := $(CPPFILES:.cpp=.DOP)
 DOIFILES  := $(CPPFILES:.cpp=.DOI)
 
-PKGPREFIX := ../l-echo-0.2.4_r41-
-DESC      := L-Echo 0.2.4
+PKGPREFIX := ../l-echo-0.2.5_r44-
+DESC      := L-Echo 0.2.5
 
 all: $(OFILES)
-	gcc tinyxml/*.o *.o -DTIXML_USE_STL -lGL -lGLU  /usr/lib/libglut.so.3.8.0 -lpthread -g3 -Wall -o l-echo
+	gcc tinyxml/*.o *.o -DTIXML_USE_STL -lGL -lGLU -lglut -lpthread -g3 -Wall -o l-echo
 
 %.OBJ: %.cpp
 	i586-mingw32msvc-g++ $(CXXFLAGS) -c -o $@ $<
@@ -54,7 +54,7 @@ package: all w32
 
 package-mac: macintel macppc
 	powerpc-apple-darwin8-lipo -create l-echo.macppc l-echo.macintel -output l-echo.mac
-	dd if=/dev/zero of=$(PKGPREFIX)osx.dmg bs=1M count=8
+	dd if=/dev/zero of=$(PKGPREFIX)osx.dmg bs=1M count=5
 	mkfs.hfsplus -v '$(DESC)' $(PKGPREFIX)osx.dmg
 	sudo mkdir -p /mnt/dmg
 	sudo mount -t hfsplus -o loop $(PKGPREFIX)osx.dmg /mnt/dmg
