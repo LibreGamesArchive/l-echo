@@ -42,6 +42,23 @@
 	#define POP_MATRIX glPopMatrix()
 #endif
 
+void draw_line(float x1, float y1, float z1, float x2, float y2, float z2)
+{
+	glColor3f(0, 0, 0);
+#ifdef ARM9
+	glBegin(GL_TRIANGLES);
+                glVertex3f(x1, y1, z1);
+                glVertex3f(x2, y2, z2);
+                glVertex3f(x2, y2, z2);
+        glEnd();
+#else
+	glBegin(GL_LINES);
+		glVertex3f(x1, y1, z1);
+		glVertex3f(x2, y2, z2);
+	glEnd();
+#endif
+}
+
 void draw_line(vector3f p1, vector3f p2)
 {
 	glColor3f(0, 0, 0);
@@ -141,6 +158,20 @@ void draw_rect(vector3f p1, vector3f p2, vector3f p3, vector3f p4)
 	glEnd();
 }
 
+void draw_rect(float x1, float y1, float z1
+		, float x2, float y2, float z2
+		, float x3, float y3, float z3
+		, float x4, float y4, float z4)
+{
+	glColor3f(1, 1, 1);
+	glBegin(GL_QUADS);
+		glVertex3f(x1, y1, z1);
+		glVertex3f(x2, y2, z2);
+		glVertex3f(x3, y3, z3);
+		glVertex3f(x4, y4, z4);
+	glEnd();
+}
+
 void draw_goal_gfx(vector3f pos, float goal_angle)
 {
 	glColor3f(0.25f, 0.25f, 0.25f);
@@ -159,3 +190,29 @@ void draw_goal_gfx(vector3f pos, float goal_angle)
 #endif
 	POP_MATRIX;
 }
+
+void gfx_rotatef(float angle, float x, float y, float z)
+{
+	glRotatef(angle, x, y, z);
+}
+
+void gfx_translatef(float x, float y, float z)
+{
+	glTranslatef(x, y, z);
+}
+
+void gfx_push_matrix()
+{
+	glPushMatrix();
+}
+
+void gfx_pop_matrix()
+{
+	POP_MATRIX;
+}
+
+void gfx_identity()
+{
+	glLoadIdentity();
+}
+

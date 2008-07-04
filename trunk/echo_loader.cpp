@@ -19,7 +19,7 @@
 
 #include <cstdlib>
 #include <cstring>
-//#include <iostream>
+#include <iostream>
 #include <string>
 #include <typeinfo>
 
@@ -541,6 +541,14 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 		LD_CHKPTR(width_angle);
 		get_vec(vec_element->ToElement(), width_angle);
 		new_grid = new freeform_grid(info, prev, next, dir_angle, width_angle);
+		LD_CHKPTR(new_grid);
+	}
+	else if(!strcmp(type, "stair"))
+	{
+		float angle = 45;
+		get_float(txe, "direction", &angle);
+		ECHO_PRINT("angle: %f\n", angle);
+		new_grid = new stair(info, prev, next, angle);
 		LD_CHKPTR(new_grid);
 	}
 	else

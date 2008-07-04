@@ -40,28 +40,38 @@ grid::grid()
 	init(NULL, NULL, NULL);
 }
 
+grid::grid(int is_generate_lines)
+{
+	init_to_null();
+	//ECHO_PRINT("1\n");
+	init(NULL, NULL, NULL, 2, is_generate_lines);
+}
+
 grid::grid(grid_info_t* my_info)
 {
 	init_to_null();
+	//ECHO_PRINT("2\n");
 	init(my_info, NULL, NULL);
 }
 
 grid::grid(grid_info_t* my_info, grid* my_prev, grid* my_next)
 {
 	init_to_null();
+	//ECHO_PRINT("3\n");
 	init(my_info, my_prev, my_next);
 }
 
 grid::grid(grid_info_t* my_info, grid* my_prev, grid* my_next, int num_neighbor)
 {
 	init_to_null();
-	init(my_info, my_prev, my_next, num_neighbor);
+	//ECHO_PRINT("4\n");
+	init(my_info, my_prev, my_next, num_neighbor, 1);
 }
 
 void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next)
 {
-	init_to_null();
-	init(my_info, my_prev, my_next, 2);
+	//ECHO_PRINT("5\n");
+	init(my_info, my_prev, my_next, 2, 1);
 }
 
 void grid::init_to_null()
@@ -72,8 +82,9 @@ void grid::init_to_null()
 	triggers = NULL;
 }
 
-void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, int my_num_neighbors)
+void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, int my_num_neighbors, int is_generate_lines)
 {
+	//ECHO_PRINT("6: %i\n", is_generate_lines);
 	am_goal = 0;
 	goal_angle = 0;
 	draw_me = 1;
@@ -92,7 +103,8 @@ void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, int my_num_n
 	neighbors[1] = my_next;
 	if(lines)
 		delete[] lines;
-	lines = ginfo != NULL ? generate_lines(*ginfo) : NULL;
+	if(is_generate_lines)
+		lines = ginfo != NULL ? generate_lines(*ginfo) : NULL;
 }
 
 static void dump_lines(line3f* ptr)

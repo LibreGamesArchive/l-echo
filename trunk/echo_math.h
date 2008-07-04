@@ -59,7 +59,9 @@ class vector3f
 		vector3f normalize_angle();
 		vector3f negate();
 		float dist(vector3f other);
-
+		
+		void add(vector3f vec);
+		
 		vector3f operator *(float f);
 		vector3f operator +(vector3f vec);
 		vector3f operator -(vector3f vec);
