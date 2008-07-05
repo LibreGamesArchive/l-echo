@@ -12,8 +12,15 @@ OBJFILES  := $(CPPFILES:.cpp=.OBJ) #$(WINFILES:.cpp=.OBJ)
 DOPFILES  := $(CPPFILES:.cpp=.DOP)
 DOIFILES  := $(CPPFILES:.cpp=.DOI)
 
-PKGPREFIX := ../l-echo-0.2.5_r44-
-DESC      := L-Echo 0.2.5
+VERSION   := 0.2.5
+REVISION  := 44
+
+PKGCOMMON := -echo-$(VERSION)_r$(REVISION)
+PKGPREFIX := ../l$(PKGCOMMON)-
+NPKG 	:= ../n$(PKGCOMMON).zip
+
+DESC      := L-Echo $(VERSION)
+UPLOAD := python googlecode_upload.py -p 'l-echo' -s 
 
 all: $(OFILES)
 	gcc tinyxml/*.o *.o -DTIXML_USE_STL -lGL -lGLU -lglut -lpthread -g3 -Wall -o l-echo
@@ -41,6 +48,7 @@ clean:
 
 clean-all: clean
 	rm tinyxml/*.o tinyxml/*.OBJ tinyxml/*.DOP tinyxml/*.DOI || echo
+	rm -rf n-echo || echo
 
 run: all
 	./l-echo perspective_movement.xml
@@ -60,6 +68,22 @@ package-mac: macintel macppc
 	sudo mount -t hfsplus -o loop $(PKGPREFIX)osx.dmg /mnt/dmg
 	sudo cp -t /mnt/dmg l-echo.mac *.xml L_ECHO_README
 	sudo umount /mnt/dmg
+	
+setup-nds:
+	cp -r ../n-echo .
+	cp -t n-echo A*.xml.real
+	cp -t n-echo/source *.cpp tinyxml/*.cpp
+	cp -t n-echo/include *.h tinyxml/*.h
+
+nds:
+	make -C n-echo
+	zip -r $(NPKG) n-echo/n-echo.nds n-echo/n-echo.ds.gba n-echo/A*.xml.real n-echo/N_ECHO_README
+	
+upload: package package-mac nds
+	$(UPLOAD) 'Linux (32) binary + xml stages - $(VERSION) (revision $(REVISION))' $(PKGPREFIX)lin32.zip 
+	$(UPLOAD)  'Windows (32) binary + xml stages - $(VERSION) (revision $(REVISION))' $(PKGPREFIX)w32.zip
+	$(UPLOAD)  'Mac OS X (universal, for 10.4+) binary + xml stages - $(VERSION) (revision $(REVISION))' $(PKGPREFIX)osx.dmg
+	$(UPLOAD) 'N-Echo .nds, .ds.gba + xml stages - $(VERSION) (revision $(REVISION))' $(NPKG)
 
 count:
 	wc -l *.cpp *.h lin/*.cpp win/*.cpp
