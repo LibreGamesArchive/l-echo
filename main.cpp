@@ -24,6 +24,7 @@
 
 #include <echo_debug.h>
 #include <echo_error.h>
+#include <echo_gfx.h>
 #include <echo_math.h>
 #include <echo_loader.h>
 #include <echo_ns.h>
@@ -197,7 +198,8 @@ int main(int argc, char **argv)
 	load(NULL);
 	resize(255, 191);
 	ECHO_PRINT("is stage null?: %i\n", echo_ns::current_stage == NULL);
-	ECHO_PRINT("is stage start null?: %i\n", echo_ns::current_stage->get_start() == NULL);
+	if(echo_ns::current_stage)
+		ECHO_PRINT("is stage start null?: %i\n", echo_ns::current_stage->get_start() == NULL);
 	while (1)
         {
                 get_key();
@@ -326,6 +328,7 @@ static void load(const char* fname)
 #ifdef ARM9
 	static void refresh_sub_mode()
 	{
+		//videoSetMode(MODE_0_3D | DISPLAY_BG1_ACTIVE);
 		if(sub_mode > NDS_MODE_MAX)		sub_mode = NDS_MODE_MIN;
 		else if(sub_mode < NDS_MODE_MIN)	sub_mode = NDS_MODE_MAX;
 		switch(sub_mode)
@@ -349,13 +352,13 @@ static void init(int argc, char **argv, int w, int h)
         irqSet(IRQ_VBLANK, 0);
         
 	vramSetBankA(VRAM_A_MAIN_BG);
-	vramSetBankB(VRAM_B_LCD);
+	vramSetBankB(VRAM_B_MAIN_BG);
         vramSetBankC(VRAM_C_SUB_BG);
 	vramSetBankD(VRAM_D_LCD);
 	vramSetBankE(VRAM_E_LCD);
 	vramSetBankF(VRAM_F_LCD);
 	vramSetBankG(VRAM_G_LCD);
-	vramSetBankH(VRAM_H_LCD);
+	//vramSetBankH(VRAM_H_LCD);
 	vramSetBankI(VRAM_I_SUB_BG);
 	
 	//Main Screen
@@ -368,26 +371,26 @@ static void init(int argc, char **argv, int w, int h)
         glClearPolyID(63); // BG must have a unique polygon ID for AA to work
         glClearDepth(0x7FFF);
 	
-	BG1_CR = (0 << 14) | BG_COLOR_256 | BG_MAP_BASE(8) | BG_TILE_BASE(2);
-	memcpy((u16*)BG_TILE_RAM(2), menuTiles, menuTilesLen);
-	memcpy((u16*)BG_MAP_RAM(8), menuMap, menuMapLen);
+	BG1_CR = (0 << 14) | BG_COLOR_256 | BG_MAP_BASE(5) | BG_TILE_BASE(1) | BG_PRIORITY(0);
+	memcpy((u16*)BG_TILE_RAM(1), menuTiles, menuTilesLen);
+	memcpy((u16*)BG_MAP_RAM(5), menuMap, menuMapLen);
 	memcpy(BG_PALETTE, menuPal, menuPalLen);
 	
 	//Sub Screen
 	
 	refresh_sub_mode();
 	
-	SUB_BG0_CR = (0 << 14) | BG_COLOR_256 | BG_MAP_BASE(0) | BG_TILE_BASE(1) | BG_PRIORITY(2);
-	memcpy((u16*)BG_TILE_RAM_SUB(1), topscreenTiles, topscreenTilesLen);
+	SUB_BG0_CR = (0 << 14) | BG_COLOR_256 | BG_MAP_BASE(0) | BG_TILE_BASE(2) | BG_PRIORITY(2);
+	memcpy((u16*)BG_TILE_RAM_SUB(2), topscreenTiles, topscreenTilesLen);
 	memcpy((u16*)BG_MAP_RAM_SUB(0), topscreenMap, topscreenMapLen);
 	
-	SUB_BG1_CR = (0 << 14) | BG_COLOR_256 | BG_MAP_BASE(1) | BG_TILE_BASE(3) | BG_PRIORITY(0);
-	u16* text1_tile = (u16*)CHAR_BASE_BLOCK_SUB(3);
-        string_map = (u16*)SCREEN_BASE_BLOCK_SUB(1);
+	SUB_BG1_CR = (0 << 14) | BG_COLOR_256 | BG_MAP_BASE(2) | BG_TILE_BASE(4) | BG_PRIORITY(0);
+	u16* text1_tile = (u16*)BG_TILE_RAM_SUB(4);
+        string_map = (u16*)BG_MAP_RAM_SUB(2);
 	memcpy(text1_tile, freeserif16Tiles, freeserif16TilesLen);
 	
-	SUB_BG3_CR = (0 << 14) | BG_COLOR_256 | BG_MAP_BASE(4) | BG_TILE_BASE(5) | BG_PRIORITY(3);
-	u16* text_tile = (u16*)CHAR_BASE_BLOCK_SUB(5);
+	SUB_BG3_CR = (0 << 14) | BG_COLOR_256 | BG_MAP_BASE(4) | BG_TILE_BASE(6) | BG_PRIORITY(3);
+	u16* text_tile = (u16*)CHAR_BASE_BLOCK_SUB(6);
         u16* text_map = (u16*)SCREEN_BASE_BLOCK_SUB(4);
 	consoleInit((u16*)fontTiles, text_tile, 95, 32, text_map, CONSOLE_USE_COLOR255, 8);
 	memcpy(text_tile, fontTiles, fontTilesLen);
@@ -493,11 +496,11 @@ static void set_proj(int w, int h)
 	}
 	static void serif16_clear()
 	{
-		memset(string_map, (u16)0, 1024 * sizeof(u16));
+		memset(string_map, 0, 1024 * sizeof(u16));
 	}
 	static void serif16_clear_row(int y)
 	{
-		memset(string_map + y * 32, (u16)0, 32 * sizeof(u16));
+		memset(string_map + y * 32, 0, 32 * sizeof(u16));
 	}
 #else
 	//copied from http://lighthouse3d.com/opengl/glut/index.php?bmpfontortho
@@ -544,6 +547,9 @@ static void set_proj(int w, int h)
 	static void update_loader()
 	{
 		serif16_clear();
+		serif16_clear_row(18);	serif16_clear_row(19);
+		serif16_clear_row(20);	serif16_clear_row(21);
+		serif16_clear_row(22);	serif16_clear_row(23);
 		serif16_draw_string(0, 0, files->current_dir, 16);
 		
 		int each_file = 0;
@@ -559,34 +565,49 @@ static void set_proj(int w, int h)
 	static void toggle_info()
 	{
 		serif16_clear();
-		serif16_draw_string(0, 0, "stage: ");
-		serif16_draw_string(14, 0, echo_ns::current_stage->get_name().c_str(), 9);
-		update_num_goals();
-		update_char_state();
+		if(echo_ns::current_stage)
+		{
+			serif16_draw_string(0, 0, "stage: ");
+			serif16_draw_string(14, 0, echo_ns::current_stage->get_name().c_str(), 9);
+			update_num_goals();
+			update_char_state();
+		}
+		else
+		{
+			serif16_draw_string(0, 0, "no stage loaded");
+		}
 	}
 	static void update_num_goals()
 	{
 		serif16_clear_row(10);	serif16_clear_row(11);
 		serif16_clear_row(12);	serif16_clear_row(13);
-		int goals_left = echo_ns::goals_left();
-		if(goals_left > 0)
+		if(echo_ns::current_stage)
 		{
-			char* counter = new char[(int)log(goals_left) + 1];
-			CHKPTR(counter);
-			sprintf(counter, "%i", goals_left);
-			serif16_draw_string(0, 10, COUNTER_HEAD);
-			serif16_draw_string(0, 12, counter, 16);
-			delete counter;
+			int goals_left = echo_ns::goals_left();
+			if(goals_left > 0)
+			{
+				char* counter = new char[(int)log(goals_left) + 1];
+				CHKPTR(counter);
+				sprintf(counter, "%i", goals_left);
+				serif16_draw_string(0, 10, COUNTER_HEAD);
+				serif16_draw_string(0, 12, counter, 16);
+				delete counter;
+			}
+			else if(echo_ns::num_goals())
+				serif16_draw_string(0, 11, SUCCESS);
+			else
+				serif16_draw_string(0, 11, NO_GOALS);
 		}
-		else if(echo_ns::num_goals())
-			serif16_draw_string(0, 11, SUCCESS);
 		else
 			serif16_draw_string(0, 11, NO_GOALS);
 	}
 	static void update_char_state()
 	{
 		serif16_clear_row(22);	serif16_clear_row(23);
-		serif16_draw_string(0, 22, message);
+		if(echo_ns::current_stage)
+			serif16_draw_string(0, 22, message);
+		else
+			serif16_draw_string(0, 22, "pls load a stage");
 	}
 #else
 	static void draw_HUD()
@@ -742,13 +763,9 @@ static void display()
 	
 	glLoadIdentity();
 	
-#ifdef ARM9
-	glRotatef(echo_ns::angle.x, 1, 0, 0);
-	glRotatef(echo_ns::angle.y, 0, 1, 0);
-#else
-	glRotatef(-echo_ns::angle.x, 1, 0, 0);
-	glRotatef(-echo_ns::angle.y, 0, 1, 0);
-#endif
+	gfx_rotatef(-echo_ns::angle.x, 1, 0, 0);
+	gfx_rotatef(-echo_ns::angle.y, 0, 1, 0);
+	
 	if(!menu_mode)
 	{
 		echo_ns::draw();
@@ -912,14 +929,17 @@ static void get_key()
 {
 	scanKeys();
 	
-	if(keysHeld() & KEY_TOUCH)
+	if(!menu_mode)
 	{
-		touchPosition t_pos = touchReadXY();
-		if(touch_started)	pointer(t_pos.px, t_pos.py);
-		else			pressed(t_pos.px, t_pos.py);
+		if(keysHeld() & KEY_TOUCH)
+		{
+			touchPosition t_pos = touchReadXY();
+			if(touch_started)	pointer(t_pos.px, t_pos.py);
+			else			pressed(t_pos.px, t_pos.py);
+		}
+		else if(touch_started)
+			touch_started = 0;
 	}
-	else if(touch_started)
-		touch_started = 0;
 	
 	u16 key = keysDown();
 	if(sub_mode == NDS_LOAD_MODE)

@@ -193,7 +193,11 @@ void draw_goal_gfx(vector3f pos, float goal_angle)
 
 void gfx_rotatef(float angle, float x, float y, float z)
 {
+#ifdef ARM9
+	glRotatef(-angle, x, y, z);
+#else
 	glRotatef(angle, x, y, z);
+#endif
 }
 
 void gfx_translatef(float x, float y, float z)
