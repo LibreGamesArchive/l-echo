@@ -191,6 +191,20 @@ void draw_goal_gfx(vector3f pos, float goal_angle)
 	POP_MATRIX;
 }
 
+void draw_character()
+{
+#ifdef ARM9
+	glBegin(GL_QUADS);
+		glVertex3f(0, HALF_GRID, 0);
+		glVertex3f(HALF_GRID, 0, 0);
+		glVertex3f(0, -HALF_GRID, 0);
+		glVertex3f(-HALF_GRID, 0, 0);
+	glEnd();
+#else
+	glutSolidSphere(0.1, 8, 8);
+#endif
+}
+
 void gfx_rotatef(float angle, float x, float y, float z)
 {
 #ifdef ARM9
@@ -218,5 +232,10 @@ void gfx_pop_matrix()
 void gfx_identity()
 {
 	glLoadIdentity();
+}
+
+void gfx_color3f(float r, float g, float b)
+{
+	glColor3f(r, g, b);
 }
 

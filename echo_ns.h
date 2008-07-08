@@ -44,7 +44,7 @@ namespace echo_ns
 	int is_paused();
 	void kill_char();
 	void setup_char(grid* g1);
-	vector3f* step_char();
+	void step_char();
 	void draw();
 	void reset();
 	int num_goals();

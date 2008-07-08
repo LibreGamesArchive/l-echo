@@ -24,15 +24,22 @@
 #include <echo_error.h>
 #include <echo_character.h>
 #include <echo_math.h>
-#include <grid.h>
 #include <echo_ns.h>
+#include <echo_gfx.h>
+
+#include <grid.h>
 #include <hole.h>
 #include <isect_grid.h>
+
+#define NULL_CHAR_OPACITY_MIN   0.25f
 
 namespace echo_ns
 {
 	grid *hole_grid = new grid();
 	//CHKPTR(hole_grid);
+	
+	float null_char_opacity = NULL_CHAR_OPACITY_MIN;
+	int opacity_incr = 1;
 	
 	vector3f angle;
 	echo_char* main_char = NULL;
@@ -70,6 +77,37 @@ namespace echo_ns
 				it++;
 			}
 			current_stage->draw(angle);
+			if(started)
+			{
+				//gfx_color3f(0.5f, 0.5f, 0.5f);
+				main_char->step();
+			}
+			else
+			{
+				grid* g = current_stage->get_start();
+				if(g)
+				{
+					grid_info_t* info = g->get_info(echo_ns::angle);
+					if(info)
+					{
+						gfx_color3f(null_char_opacity, null_char_opacity, null_char_opacity);
+						gfx_translatef(info->pos.x, info->pos.y + 0.25, info->pos.z);
+						draw_character();
+						if(opacity_incr)
+						{
+							null_char_opacity += 0.05f;
+							if(null_char_opacity >= 1)
+								opacity_incr = 0;
+						}
+						else
+						{
+							null_char_opacity -= 0.05f;
+							if(null_char_opacity <= NULL_CHAR_OPACITY_MIN)
+								opacity_incr = 1;
+						}
+					}
+				}
+			}
 		}
 	}
 	void kill_char()
@@ -81,9 +119,9 @@ namespace echo_ns
 		if(current_stage != NULL)
 			main_char->toggle_pause();
 	}
-	vector3f *step_char()	//CHANGE FOR NORMALS
+	void step_char()	//CHANGE FOR NORMALS
 	{
-		return(started ? main_char->step() : NULL);
+		if(started)	main_char->step();
 	}
 	void reset()
 	{

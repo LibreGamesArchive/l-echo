@@ -84,7 +84,7 @@
 #define NAME_DISPLAY_MAX    	30
 #define FILE_SPACE_PER_DEPTH	0.06f
 #define NUM_FILES_DISPLAYED     31
-#define NULL_CHAR_OPACITY_MIN   0.25f
+
 
 #ifdef ARM9
 	//From LiraNuna =D
@@ -138,10 +138,7 @@ static int loading = 0, load_frame = 0, file_index = 0, file_start = 0;
 
 static int start_frame = 0, name_display = NAME_DISPLAY_MAX;
 static char* counter;
-static char* message = MSG_READY;                                                                                  
-
-static float null_char_opacity;
-static int opacity_incr;
+static char* message = MSG_READY;
 
 static int touch_started = 0, start_x = 0, start_y = 0;
 static vector3f real_angle(0, 0, 0);
@@ -297,9 +294,6 @@ static void load(const char* fname)
 	start_frame = 0;
 	name_display = NAME_DISPLAY_MAX;
 	message = MSG_READY;
-	
-	opacity_incr = 1;
-	null_char_opacity = NULL_CHAR_OPACITY_MIN;
 	
 	if(fname != NULL)
 	{
@@ -716,20 +710,6 @@ static void draw_loader()
 }
 #endif
 
-static void draw_character()
-{
-#ifdef ARM9
-	glBegin(GL_QUADS);
-		glVertex3f(0, HALF_GRID, 0);
-		glVertex3f(HALF_GRID, 0, 0);
-		glVertex3f(0, -HALF_GRID, 0);
-		glVertex3f(-HALF_GRID, 0, 0);
-	glEnd();
-#else
-	glutSolidSphere(0.1, 8, 8);
-#endif
-}
-
 static void display()
 {
 #ifndef ARM9
@@ -769,42 +749,6 @@ static void display()
 	if(!menu_mode)
 	{
 		echo_ns::draw();
-	
-		glColor3f(0.5f, 0.5f, 0.5f);
-		vector3f* vec = echo_ns::step_char();
-		//ECHO_PRINT("is vec null?: %i\n", vec == NULL);
-		if(vec)
-		{
-			glTranslatef(vec->x, vec->y + 0.25, vec->z);
-			draw_character();
-			delete vec;
-		}
-		else
-		{
-			grid* g = echo_ns::current_stage->get_start();
-			if(g)
-			{
-				grid_info_t* info = g->get_info(echo_ns::angle);
-				if(info)
-				{
-					glColor3f(null_char_opacity, null_char_opacity, null_char_opacity);
-					glTranslatef(info->pos.x, info->pos.y + 0.25, info->pos.z);
-					draw_character();
-					if(opacity_incr)
-					{
-						null_char_opacity += 0.05f;
-						if(null_char_opacity >= 1)
-							opacity_incr = 0;
-					}
-					else
-					{
-						null_char_opacity -= 0.05f;
-						if(null_char_opacity <= NULL_CHAR_OPACITY_MIN)
-							opacity_incr = 1;
-					}
-				}
-			}
-		}
 	}
 #ifndef ARM9
 	else
