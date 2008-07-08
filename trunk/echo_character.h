@@ -60,7 +60,7 @@ class echo_char
 		void reset();
 		
 		//take one step
-		vector3f* step();
+		void step();
 		//kill the character
 		void kill();
 		//go to the next grid
@@ -74,6 +74,9 @@ class echo_char
 		int is_paused();
 		//number of goals/echoes reached
 		int num_goals_reached();
+		
+		void draw(vector3f vec);
+		void draw(float x, float y, float z);
 };
 #endif
 

@@ -32,10 +32,12 @@ void draw_rect(float x1, float y1, float z1
 void draw_hole(vector3f pos);
 void draw_launcher(vector3f pos);
 void draw_goal_gfx(vector3f pos, float goal_angle);
+void draw_character();
 
 void gfx_identity();
 void gfx_push_matrix();
 void gfx_pop_matrix();
 void gfx_rotatef(float angle, float x, float y, float z);
 void gfx_translatef(float x, float y, float z);
+void gfx_color3f(float r, float g, float b);
 

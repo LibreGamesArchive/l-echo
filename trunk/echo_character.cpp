@@ -21,14 +21,16 @@
 #include <iostream>
 #include <typeinfo>
 
+#include <echo_gfx.h>
 #include <echo_debug.h>
-#include <launcher.h>
 #include <echo_math.h>
-#include <grid.h>
 #include <echo_ns.h>
+#include <echo_character.h>
+
+#include <launcher.h>
+#include <grid.h>
 #include <hole.h>
 #include <isect_grid.h>
-#include <echo_character.h>
 
 #define STARTY		30
 #define SPEED_STEP 	0.08f
@@ -140,15 +142,17 @@ void echo_char::next_grid()
 	grid2per = 0;
 }
 
-vector3f* echo_char::step()	//CHANGE FOR NORMALS
+void echo_char::step()	//CHANGE FOR NORMALS
 {
+	gfx_color3f(0.5f, 0.5f, 0.5f);
 	if(startper > 0)
 	{
 		vector3f pos1 = start->get_info(echo_ns::angle)->pos;
 		startper -= 0.05;
 		if (startper < 0)
 			startper = 0;
-		return(new vector3f(pos1.x, pos1.y + STARTY * startper, pos1.z));
+		draw(pos1.x, pos1.y + STARTY * startper, pos1.z);
+		return;
 	}
 	else if(startper < 0)
 	{
@@ -156,7 +160,8 @@ vector3f* echo_char::step()	//CHANGE FOR NORMALS
 		startper -= 0.05;
 		if(startper < -1)
 			init(start);
-		return(new vector3f(pos1.x, pos1.y + STARTY * startper, pos1.z));
+		draw(pos1.x, pos1.y + STARTY * startper, pos1.z);
+		return;
 	} 
 	else if(grid1)
 	{
@@ -193,7 +198,10 @@ vector3f* echo_char::step()	//CHANGE FOR NORMALS
 				grid2 = grid1->get_next(echo_ns::angle, grid1);	//try to get one
 				change_speed();
 				if(!grid2)	//if there still isn't a second grid...
-					return(new vector3f(grid1->get_info(echo_ns::angle)->pos));	//return grid1's position
+				{
+					draw(grid1->get_info(echo_ns::angle)->pos);	//return grid1's position
+					return;
+				}
 			}
 			grid_info_t* i1 = grid1->get_info(echo_ns::angle);
 			if(i1)
@@ -204,13 +212,28 @@ vector3f* echo_char::step()	//CHANGE FOR NORMALS
 				{
 					vector3f pos2 = i2->pos;
 					dist = pos1.dist(pos2);
-					return(new vector3f(pos1.x * grid1per + pos2.x * grid2per,
+					draw(pos1.x * grid1per + pos2.x * grid2per,
 								pos1.y * grid1per + pos2.y * grid2per,
-								pos1.z * grid1per + pos2.z * grid2per));
+								pos1.z * grid1per + pos2.z * grid2per);
+					return;
 				}
-				return(new vector3f(i1->pos));	//there isn't a second grid?  but wait, wouldn't this be return already?
+				else
+				{
+					draw(i1->pos);	//there isn't a second grid?  but wait, wouldn't this be return already?
+					return;
+				}
 			}
 		}
 	}
-	return(NULL);		//i dunno why this would happen, but sure...
+}
+
+void echo_char::draw(vector3f vec)
+{
+	draw(vec.x, vec.y, vec.z);
+}
+
+void echo_char::draw(float x, float y, float z)
+{
+	gfx_translatef(x, y, z);
+	draw_character();
 }
