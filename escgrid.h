@@ -46,7 +46,7 @@ class escgrid : public grid
 		virtual ~escgrid();
 		virtual grid_info_t* get_info(vector3f angle);
 		virtual grid* get_next(vector3f angles, grid* current);
-		virtual line3f* get_lines(vector3f angle);
+		//virtual line3f* get_lines(vector3f angle);
 		virtual void draw(vector3f angle);
 		virtual int equals(grid* g, vector3f angle);
 

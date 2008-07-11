@@ -361,6 +361,8 @@ static void init(int argc, char **argv, int w, int h)
 	
 	glInit();
         glEnable(GL_ANTIALIAS);
+	glEnable(GL_OUTLINE);
+	glSetOutlineColor(1, RGB15(0, 0, 0));
         glClearColor(31,31,31,31); // BG must be opaque for AA to work
         glClearPolyID(63); // BG must have a unique polygon ID for AA to work
         glClearDepth(0x7FFF);

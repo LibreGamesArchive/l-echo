@@ -25,6 +25,7 @@
 #include <echo_error.h>
 #include <grid.h>
 #include <echo_stage.h>
+#include <echo_gfx.h>
 
 stage::stage()
 {
@@ -97,14 +98,26 @@ grid* stage::get(std::string id)
 
 void stage::draw(vector3f angle)
 {
-    STAGE_MAP::iterator it = grids->begin();
-    STAGE_MAP::iterator end = grids->end();
-    while(it != end)
-    {
+	STAGE_MAP::iterator it = grids->begin();
+	STAGE_MAP::iterator end = grids->end();
+	gfx_outline_start();
+	while(it != end)
+	{
 	    if(it->second->should_draw())
 		    it->second->draw(angle);
-        ++it;
-    }
+	++it;
+	}
+#ifndef ARM9
+	gfx_outline_mid();
+	it = grids->begin();
+	while(it != end)
+	{
+	    if(it->second->should_draw())
+		    it->second->draw(angle);
+	++it;
+	}
+#endif
+	gfx_outline_end();
 }
 
 void stage::set_start(grid* g)

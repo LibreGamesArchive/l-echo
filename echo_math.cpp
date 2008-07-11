@@ -109,21 +109,6 @@ vector3f vector3f::negate()
 	return(*ret);
 }
 
-void dump_line3f(line3f ln)
-{
-	ECHO_PRINT("lines3f: [");
-	ln.p1.dump();
-	ECHO_PRINT(",");
-	ln.p2.dump();
-	ECHO_PRINT("]");
-}
-
-int operator ==(line3f ln1, line3f ln2)
-{
-	return( ( (ln1.p1 == ln2.p1) && (ln1.p2 == ln2.p2) )
-		|| ( (ln1.p1 == ln2.p2) && (ln1.p2 == ln2.p1) ) );
-}
-
 vector3f vector3f::operator +(vector3f vec)
 {
     vector3f* ret = new vector3f(x + vec.x, y + vec.y, z + vec.z);
@@ -252,10 +237,5 @@ vector3f* vector3f::angle_to_real()
 #else
 	return((new vector3f(0, 0, 10))->rotate_xy(*this));
 #endif
-}
-
-int has_line(line3f* ptr, line3f line)
-{
-	return(ptr[0] == line || ptr[1] == line || ptr[2] == line || ptr[3] == line);
 }
 

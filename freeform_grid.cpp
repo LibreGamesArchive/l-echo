@@ -50,22 +50,28 @@ void freeform_grid::init_to_null()
 	width = NULL;
 }
 
-line3f* freeform_grid::generate_lines(grid_info_t my_info)
+vector3f** freeform_grid::generate_points(grid_info_t my_info)
 {
-	line3f* ret = new line3f[4];
+	vector3f** ret = new vector3f*[4];
 	CHKPTR(ret);
 	
 	vector3f pos = my_info.pos;
-	vector3f p1 = pos + *dir + *width;
-	vector3f p2 = pos - *dir + *width;
-	vector3f p3 = pos - *dir - *width;
-	vector3f p4 = pos + *dir - *width;
-
-	ret[0].p1 = p1;	ret[0].p2 = p2;
-	ret[1].p1 = p2;	ret[1].p2 = p3;
-	ret[2].p1 = p3;	ret[2].p2 = p4;
-	ret[3].p1 = p4;	ret[3].p2 = p1;
-
+	ret[0] = new vector3f(pos.x + dir->x + width->x
+				, pos.y + dir->y + width->y
+				, pos.z + dir->z + width->z);
+	CHKPTR(ret[0]);
+	ret[1] = new vector3f(pos.x - dir->x + width->x
+				, pos.y - dir->y + width->y
+				, pos.z - dir->z + width->z);
+	CHKPTR(ret[1]);
+	ret[2] = new vector3f(pos.x - dir->x - width->x
+				, pos.y - dir->y - width->y
+				, pos.z - dir->z - width->z);
+	CHKPTR(ret[2]);
+	ret[3] = new vector3f(pos.x + dir->x - width->x
+				, pos.y + dir->y - width->y
+				, pos.z + dir->z - width->z);
+	CHKPTR(ret[3]);
 	return(ret);
 }
 

@@ -91,7 +91,7 @@ namespace echo_ns
 					if(info)
 					{
 						gfx_color3f(null_char_opacity, null_char_opacity, null_char_opacity);
-						gfx_translatef(info->pos.x, info->pos.y + 0.25, info->pos.z);
+						gfx_translatef(info->pos.x, info->pos.y, info->pos.z);
 						draw_character();
 						if(opacity_incr)
 						{

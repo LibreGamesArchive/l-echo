@@ -31,8 +31,8 @@ class freeform_grid : public grid
         freeform_grid();
         freeform_grid(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f* my_dir, vector3f* my_width);
         void init(grid_info_t* my_info, grid* my_prev, grid* my_next, vector3f* my_dir, vector3f* my_width);
-        virtual line3f* generate_lines(grid_info_t my_info);
         virtual void init_to_null();
+	virtual vector3f** generate_points(grid_info_t my_info);
 	//virtual void draw(vector3f angle);
 };
 #endif
