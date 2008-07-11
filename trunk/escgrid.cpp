@@ -178,11 +178,13 @@ grid_info_t* escgrid::get_info(vector3f angle)
 	return(esc ? esc->get_info(angle) : grid::get_info(angle));
 }
 
+/*
 line3f* escgrid::get_lines(vector3f angle)
 {
 	grid* esc = get_esc(angle);
 	return(esc ? esc->get_lines(angle) : grid::get_lines(angle));
 }
+// */
 
 grid* escgrid::get_next(vector3f angle, grid* current)
 {

@@ -29,6 +29,7 @@
 	#include <GL/glut.h>
 #endif
 
+#include <echo_debug.h>
 #include <echo_error.h>
 #include <grid.h>
 #include <echo_gfx.h>
@@ -42,9 +43,13 @@
 	#define POP_MATRIX glPopMatrix()
 #endif
 
+#ifndef ARM9
+	static int drawing_outline = 0;
+#endif
+
 void draw_line(float x1, float y1, float z1, float x2, float y2, float z2)
 {
-	glColor3f(0, 0, 0);
+	gfx_color3f(0, 0, 0);
 #ifdef ARM9
 	glBegin(GL_TRIANGLES);
                 glVertex3f(x1, y1, z1);
@@ -61,7 +66,7 @@ void draw_line(float x1, float y1, float z1, float x2, float y2, float z2)
 
 void draw_line(vector3f p1, vector3f p2)
 {
-	glColor3f(0, 0, 0);
+	gfx_color3f(0, 0, 0);
 #ifdef ARM9
 	glBegin(GL_TRIANGLES);
                 glVertex3f(p1.x, p1.y, p1.z);
@@ -76,14 +81,9 @@ void draw_line(vector3f p1, vector3f p2)
 #endif
 }
 
-void draw_line(line3f ln)
-{
-	draw_line(ln.p1, ln.p2);
-}
-
 void draw_hole(vector3f pos)
 {
-	glColor3f(0, 0, 0);
+	gfx_color3f(0, 0, 0);
 	glPushMatrix();
 	glTranslatef(pos.x, pos.y + 0.03, pos.z);
 	glBegin(GL_QUADS);
@@ -97,7 +97,7 @@ void draw_hole(vector3f pos)
 
 void draw_launcher(vector3f pos)
 {
-	glColor3f(0, 0, 0);
+	gfx_color3f(0, 0, 0);
 	glPushMatrix();
 	glTranslatef(pos.x, pos.y + 0.03, pos.z);
 #ifdef ARM9
@@ -118,38 +118,9 @@ void draw_launcher(vector3f pos)
 	POP_MATRIX;
 }
 
-void draw_n_lines(line3f* my_lines, vector3f angle, grid** others, int num_others)
-{
-	line3f** lines = new line3f*[num_others];
-	CHKPTR(lines);
-	int each = 0, line_count = 0;
-	while(each < num_others)
-	{
-		if(others[each] && (lines[line_count] = others[each]->get_lines(angle)))
-			line_count++;
-		each++;
-	}
-	each = 0;
-	int each_lines = 0;
-	while(each < 4)
-	{
-		each_lines = 0;
-		while(each_lines < line_count)
-		{
-			if(has_line(lines[each_lines], my_lines[each]))
-				goto NODRAW;
-			each_lines++;
-		}
-		draw_line(my_lines[each]);
-	NODRAW:
-		each++;
-	}
-	delete[] lines;
-}
-
 void draw_rect(vector3f p1, vector3f p2, vector3f p3, vector3f p4)
 {
-	glColor3f(1, 1, 1);
+	gfx_color3f(1, 1, 1);
 	glBegin(GL_QUADS);
 		glVertex3f(p1.x, p1.y, p1.z);
 		glVertex3f(p2.x, p2.y, p2.z);
@@ -163,7 +134,7 @@ void draw_rect(float x1, float y1, float z1
 		, float x3, float y3, float z3
 		, float x4, float y4, float z4)
 {
-	glColor3f(1, 1, 1);
+	gfx_color3f(1, 1, 1);
 	glBegin(GL_QUADS);
 		glVertex3f(x1, y1, z1);
 		glVertex3f(x2, y2, z2);
@@ -174,25 +145,31 @@ void draw_rect(float x1, float y1, float z1
 
 void draw_goal_gfx(vector3f pos, float goal_angle)
 {
-	glColor3f(0.25f, 0.25f, 0.25f);
-	glPushMatrix();
-	glTranslatef(pos.x, pos.y + 0.5f, pos.z);
-	glRotatef(goal_angle, 0, 1, 0);
-#ifdef ARM9
-	glBegin(GL_QUADS);
-        glVertex3f(0, HALF_GRID, 0);
-        glVertex3f(HALF_GRID, 0, 0);
-        glVertex3f(0, -HALF_GRID, 0);
-        glVertex3f(-HALF_GRID, 0, 0);
-        glEnd();
-#else
-	glutSolidTorus(0.05f, 0.4f, 8, 8);
+#ifndef ARM9
+	if(!drawing_outline)
 #endif
-	POP_MATRIX;
+	{
+		gfx_color3f(0.25f, 0.25f, 0.25f);
+		glPushMatrix();
+		glTranslatef(pos.x, pos.y + 0.5f, pos.z);
+		glRotatef(goal_angle, 0, 1, 0);
+#ifdef ARM9
+		glBegin(GL_QUADS);
+		glVertex3f(0, HALF_GRID, 0);
+		glVertex3f(HALF_GRID, 0, 0);
+		glVertex3f(0, -HALF_GRID, 0);
+		glVertex3f(-HALF_GRID, 0, 0);
+		glEnd();
+#else
+		glutSolidTorus(0.05f, 0.4f, 8, 8);
+#endif
+		POP_MATRIX;
+	}
 }
 
 void draw_character()
 {
+	gfx_translatef(0, 0.25, 0);
 #ifdef ARM9
 	glBegin(GL_QUADS);
 		glVertex3f(0, HALF_GRID, 0);
@@ -236,6 +213,58 @@ void gfx_identity()
 
 void gfx_color3f(float r, float g, float b)
 {
-	glColor3f(r, g, b);
+#ifndef	ARM9
+	if(!drawing_outline)
+#endif
+		glColor3f(r, g, b);
 }
+
+//From http://www.codeproject.com/KB/openGL/Outline_Mode.aspx
+#ifndef ARM9
+void gfx_outline_start()
+{
+	drawing_outline = 1;
+	// Push the GL attribute bits so that we don't wreck any settings
+	
+	glPushAttrib( GL_ALL_ATTRIB_BITS );
+	// Enable polygon offsets, and offset filled polygons forward by 2.5
+	
+	glEnable( GL_POLYGON_OFFSET_FILL );
+	glPolygonOffset( -2.5f, -2.5f );
+	// Set the render mode to be line rendering with a thick line width
+	
+	glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+	glLineWidth( 3.0f );
+	// Set the colour to be white
+	
+	glColor3f( 0.0f, 0.0f, 0.0f );
+}
+void gfx_outline_mid()
+{
+	drawing_outline = 0;
+	// Set the polygon mode to be filled triangles 
+	
+	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+	// Set the colour to the background
+	
+	glColor3f( 1.0f, 1.0f, 1.0f );
+}
+void gfx_outline_end()
+{
+	// Pop the state changes off the attribute stack
+	
+	// to set things back how they were
+	
+	glPopAttrib();
+}
+#else
+void gfx_outline_start()
+{
+	glPolyFmt(POLY_ALPHA(31) | POLY_CULL_NONE | POLY_ID(1));
+}
+void gfx_outline_end()
+{
+	glPolyFmt(POLY_ALPHA(31) | POLY_CULL_NONE | POLY_ID(0));
+}
+#endif
 

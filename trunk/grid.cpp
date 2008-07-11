@@ -39,14 +39,6 @@ grid::grid()
 	init_to_null();
 	init(NULL, NULL, NULL);
 }
-
-grid::grid(int is_generate_lines)
-{
-	init_to_null();
-	//ECHO_PRINT("1\n");
-	init(NULL, NULL, NULL, 2, is_generate_lines);
-}
-
 grid::grid(grid_info_t* my_info)
 {
 	init_to_null();
@@ -65,24 +57,24 @@ grid::grid(grid_info_t* my_info, grid* my_prev, grid* my_next, int num_neighbor)
 {
 	init_to_null();
 	//ECHO_PRINT("4\n");
-	init(my_info, my_prev, my_next, num_neighbor, 1);
+	init(my_info, my_prev, my_next, num_neighbor);
 }
 
 void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next)
 {
 	//ECHO_PRINT("5\n");
-	init(my_info, my_prev, my_next, 2, 1);
+	init(my_info, my_prev, my_next, 2);
 }
 
 void grid::init_to_null()
 {
-	lines = NULL;
 	ginfo = NULL;
 	neighbors = NULL;
 	triggers = NULL;
+	points = NULL;
 }
 
-void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, int my_num_neighbors, int is_generate_lines)
+void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, int my_num_neighbors)
 {
 	//ECHO_PRINT("6: %i\n", is_generate_lines);
 	am_goal = 0;
@@ -101,22 +93,9 @@ void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, int my_num_n
 	CHKPTR(neighbors);
 	neighbors[0] = my_prev;
 	neighbors[1] = my_next;
-	if(lines)
-		delete[] lines;
-	if(is_generate_lines)
-		lines = ginfo != NULL ? generate_lines(*ginfo) : NULL;
-}
-
-static void dump_lines(line3f* ptr)
-{
-	dump_line3f(ptr[0]);
-	ECHO_PRINT("\n");
-	dump_line3f(ptr[1]);
-	ECHO_PRINT("\n");
-	dump_line3f(ptr[2]);
-	ECHO_PRINT("\n");
-	dump_line3f(ptr[3]);
-	ECHO_PRINT("\n");
+	if(points)
+		delete[] points;
+	points = ginfo != NULL ? generate_points(*ginfo) : NULL;
 }
 
 grid::~grid()
@@ -124,8 +103,8 @@ grid::~grid()
 	//*
 	if(neighbors)
 		delete[] neighbors;
-	if(lines)
-		delete[] lines;
+	if(points)
+		delete[] points;
 	if(triggers)
 		delete triggers;
 	// */
@@ -160,59 +139,24 @@ void grid::draw(vector3f angle)	//TODO CHANGE FOR NORMALS
 {
 	draw_goal(angle);
 	
-	line3f* my_lines = get_lines(angle);
-	draw_rect(my_lines[0].p1, my_lines[1].p1, my_lines[2].p1, my_lines[3].p1);
-	grid* my_next = get_real_next();
-	line3f* next_lines = my_next != NULL ? my_next->get_lines(angle) : NULL;
-	grid* my_prev = get_real_prev();
-	line3f* prev_lines = my_prev != NULL ? my_prev->get_lines(angle) : NULL;
-	int each = 0;
-	while(each < 4)
-	{
-		if( ( next_lines == NULL || !has_line(next_lines, my_lines[each]) )
-			&& ( prev_lines == NULL || !has_line(prev_lines, my_lines[each]) ) )
-		draw_line(my_lines[each]);
-		each++;
-	}
+	draw_rect(*(points[0]), *(points[1]), *(points[2]), *(points[3]));
+	
 }
 
-line3f* grid::generate_lines(grid_info_t my_info)
+vector3f** grid::generate_points(grid_info_t my_info)
 {
-	line3f* ret = new line3f[4];
+	vector3f** ret = new vector3f*[4];
 	CHKPTR(ret);
-
-#ifdef STRICT_MEM
-	vector3f* p1 = new vector3f(my_info.pos.x - HALF_GRID, my_info.pos.y, my_info.pos.z - HALF_GRID);
-	CHKPTR(p1);
-	vector3f* p2 = new vector3f(my_info.pos.x - HALF_GRID, my_info.pos.y, my_info.pos.z + HALF_GRID);
-	CHKPTR(p2);
-	vector3f* p3 = new vector3f(my_info.pos.x + HALF_GRID, my_info.pos.y, my_info.pos.z + HALF_GRID);
-	CHKPTR(p3);
-	vector3f* p4 = new vector3f(my_info.pos.x + HALF_GRID, my_info.pos.y, my_info.pos.z - HALF_GRID);
-	CHKPTR(p4);
 	
-	ret[0].p1 = *p1;	ret[0].p2 = *p2;
-	ret[1].p1 = *p2;	ret[1].p2 = *p3;
-	ret[2].p1 = *p3;	ret[2].p2 = *p4;
-	ret[3].p1 = *p4;	ret[3].p2 = *p1;
-#else
-	vector3f p1(my_info.pos.x - HALF_GRID, my_info.pos.y, my_info.pos.z - HALF_GRID);
-	vector3f p2(my_info.pos.x - HALF_GRID, my_info.pos.y, my_info.pos.z + HALF_GRID);
-	vector3f p3(my_info.pos.x + HALF_GRID, my_info.pos.y, my_info.pos.z + HALF_GRID);
-	vector3f p4(my_info.pos.x + HALF_GRID, my_info.pos.y, my_info.pos.z - HALF_GRID);
-	
-	ret[0].p1 = p1;	ret[0].p2 = p2;
-	ret[1].p1 = p2;	ret[1].p2 = p3;
-	ret[2].p1 = p3;	ret[2].p2 = p4;
-	ret[3].p1 = p4;	ret[3].p2 = p1;
-#endif
-	
+	ret[0] = new vector3f(my_info.pos.x - HALF_GRID, my_info.pos.y, my_info.pos.z - HALF_GRID);
+	CHKPTR(ret[0]);
+	ret[1] = new vector3f(my_info.pos.x - HALF_GRID, my_info.pos.y, my_info.pos.z + HALF_GRID);
+	CHKPTR(ret[1]);
+	ret[2] = new vector3f(my_info.pos.x + HALF_GRID, my_info.pos.y, my_info.pos.z + HALF_GRID);
+	CHKPTR(ret[2]);
+	ret[3] = new vector3f(my_info.pos.x + HALF_GRID, my_info.pos.y, my_info.pos.z - HALF_GRID);
+	CHKPTR(ret[3]);
 	return(ret);
-}
-
-line3f* grid::get_lines(vector3f angle)
-{
-	return(lines);
 }
 
 grid_info_t* grid::get_info(vector3f angle)

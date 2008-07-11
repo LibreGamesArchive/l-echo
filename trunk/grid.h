@@ -49,7 +49,6 @@ typedef std::set<grid*> GRID_PTR_SET;
 class grid
 {
 	protected:
-		line3f* lines;
 		grid_info_t* ginfo;
 		grid** neighbors;
 		int n_neighbors;
@@ -59,16 +58,18 @@ class grid
 		int draw_me;
 		
 		TRIGGER_SET* triggers;
+		
+		vector3f** points;
 	public:
 		grid();
-		grid(int is_generate_lines);
+		//grid(int is_generate_lines);
 		grid(grid_info_t* my_info, grid* my_prev, grid* my_next);
 		grid(grid_info_t* my_info, grid* my_prev, grid* my_next, int num_neighbor);
 		grid(grid_info_t* my_info);
 		virtual void init_to_null();
 		void init(grid_info_t* my_info, grid* my_prev, grid* my_next);
-		//void init(grid_info_t* my_info, grid* my_prev, grid* my_next, int is_generate_lines);
-		void init(grid_info_t* my_info, grid* my_prev, grid* my_next, int num_neighbor, int is_generate_lines);
+		void init(grid_info_t* my_info, grid* my_prev, grid* my_next, int num_neighbor);
+		//void init(grid_info_t* my_info, grid* my_prev, grid* my_next, int num_neighbor, int is_generate_lines);
 
 		virtual ~grid();
 		virtual grid_info_t* get_info(vector3f angle);
@@ -78,20 +79,19 @@ class grid
 		virtual grid** get_neighbors(vector3f angle);
 		int num_neighbors(vector3f angle);
 		virtual int equals(grid* g, vector3f angle);
-
+		
 		virtual grid* get_real_next();
 		virtual grid* get_real_prev();
 		virtual grid_info_t* get_real_info();
 		virtual void set_real_next(grid* g);
 		virtual void set_real_prev(grid* g);
-
+		
 		virtual void add_trigger(trigger* trig);
 		virtual void toggle_goal(vector3f angle);
 		virtual int is_goal(vector3f angle);
 		virtual void set_as_goal();
-
-		virtual line3f* generate_lines(grid_info_t my_info);
-		virtual line3f* get_lines(vector3f angle);
+		
+		virtual vector3f** generate_points(grid_info_t my_info);
 		
 		virtual int should_draw();
 		virtual void set_draw(int draw);

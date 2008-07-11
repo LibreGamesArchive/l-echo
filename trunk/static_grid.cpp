@@ -62,9 +62,6 @@ void static_grid::init(grid_info_t* my_info, grid* my_prev
 #endif
 	real_vec = my_info->pos.neg_rotate_yx(camera);
 	root = my_root;
-#ifdef PATH_GRID
-	orig = my_path_orig;
-#endif
 	force_refresh(camera);
 }
 void static_grid::refresh(vector3f camera)
@@ -84,47 +81,20 @@ void static_grid::init_to_null()
 {
 	grid::init_to_null();
 	real_vec = NULL;
-#ifdef PATH_GRID
-	orig = NULL;
-	trans_pos = NULL;
-	old_length = 0;
-	is_path_mode = 0;
-#endif
 }
 
 void static_grid::force_refresh(vector3f camera)
 {
-#ifdef PATH_GRID
-	if(is_path_mode)
+	ginfo->pos = *(real_vec->rotate_xy(camera));
+	grid* cam_grid = where_is_cam_grid();
+	if(cam_grid)
 	{
-		grid* my_next = get_real_next();
-		if(my_next)
-		{
-			grid_info_t* next_info = my_next->get_info(camera);
-			if(next_info)
-			{
-				vector3f vec = (next_info->pos - *orig);
-				ginfo->pos = 
-					*(trans_pos->rotate_xy(*vec.angle_xy())) + *orig;
-				//ginfo->pos = ginfo->pos * (vec.length() / old_length);
-			}
-		}
+		grid_info_t* real_info = ((static_grid*)cam_grid)->get_ginfo();
+		grid_info_t* cam_info = ((isect_grid*)cam_grid)->get_cam_grid()->get_info(camera);
+		vector3f cam_vec = real_info->pos - cam_info->pos;
+		ginfo->pos = ginfo->pos + cam_vec;
 	}
-	else
-#endif
-	{
-		ginfo->pos = *(real_vec->rotate_xy(camera));
-		grid* cam_grid = where_is_cam_grid();
-		if(cam_grid)
-		{
-			grid_info_t* real_info = ((static_grid*)cam_grid)->get_ginfo();
-			grid_info_t* cam_info = ((isect_grid*)cam_grid)->get_cam_grid()->get_info(camera);
-			vector3f cam_vec = real_info->pos - cam_info->pos;
-			ginfo->pos = ginfo->pos + cam_vec;
-		}
-		lines = generate_lines(*ginfo);
-		prev_angle.set(camera);
-	}
+	prev_angle.set(camera);
 }
 
 grid_info_t* static_grid::get_info(vector3f angle)
@@ -142,33 +112,8 @@ void static_grid::draw(vector3f angle)
 grid* static_grid::get_next(vector3f angle, grid* current)
 {
 	refresh(angle);
-#ifdef PATH_GRID
-	set_as_path_grid(angle);
-#endif
 	return(get_real_next());
 }
-
-#ifdef PATH_GRID
-
-void static_grid::set_as_path_grid(vector3f angle)
-{
-	grid* my_next = get_real_next();
-	if(my_next)
-	{
-		grid_info_t* next_info = my_next->get_real_info();
-		if(next_info)
-		{
-			vector3f vec = (next_info->pos - *orig);
-			trans_pos = (ginfo->pos - *orig)
-				.neg_rotate_yx(*vec.angle_xy());
-			old_length = vec.length();
-			is_path_mode = 1;
-		}
-	}
-	force_refresh(angle);
-}
-
-#endif
 
 grid* static_grid::where_is_cam_grid()
 {

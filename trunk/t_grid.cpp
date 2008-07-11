@@ -34,7 +34,7 @@ t_grid::t_grid(grid_info_t* my_info, grid* my_prev, grid* my_next, grid* my_next
 }
 void t_grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, grid* my_next2)
 {
-	grid::init(my_info, my_prev, my_next, 3, 1);
+	grid::init(my_info, my_prev, my_next, 3);
 	neighbors[2] = my_next2;
 }
 t_grid::~t_grid()
@@ -69,11 +69,4 @@ void t_grid::dump()
 	//std::cout << "," << neighbors[0] << "," << neighbors[1];
 	//std::cout << "," << neighbors[2] << "]";
 }
-void t_grid::draw(vector3f angle)
-{
-	draw_goal(angle);
 
-	line3f* my_lines = get_lines(angle);
-	draw_rect(my_lines[0].p1, my_lines[1].p1, my_lines[2].p1, my_lines[3].p1);
-	draw_n_lines(get_lines(angle), angle, neighbors, n_neighbors);
-}

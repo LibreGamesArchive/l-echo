@@ -32,7 +32,6 @@ class t_grid : public grid
 		virtual ~t_grid();
 		virtual grid* get_next(vector3f angle, grid* current);
 		virtual void dump();
-		virtual void draw(vector3f angle);
 
 		virtual grid* get_real_next2();
 		virtual void set_real_next2(grid* g);

@@ -31,12 +31,6 @@ class static_grid : public grid
 		vector3f* real_vec;
 		vector3f prev_angle;
 		static_grid* root;
-#ifdef PATH_GRID
-		int is_path_mode;
-		vector3f* orig;
-		vector3f* trans_pos;
-		float old_length;
-#endif
 	public:
 		static_grid();
 		static_grid(grid_info_t* my_info, grid* my_prev, grid* my_next
@@ -56,10 +50,6 @@ class static_grid : public grid
 		virtual void init_to_null();
 		
 		virtual grid* where_is_cam_grid();
-		
-#ifdef PATH_GRID
-		virtual void set_as_path_grid(vector3f angle);
-#endif
 };
 #endif
 

@@ -68,18 +68,6 @@ class vector3f
 };
 #endif
 
-#ifndef __ECHO_LINE_3F__
-#define __ECHO_LINE_3F__
-typedef struct
-{
-	vector3f p1;
-	vector3f p2;
-}
-line3f;
-
-int has_line(line3f* ptr, line3f line);
-#endif
-
 #ifndef __ECHO_ANGLE_RANGE__
 #define __ECHO_ANGLE_RANGE__
 class angle_range
@@ -98,6 +86,4 @@ class angle_range
 float echo_sin(int deg);
 float echo_cos(int deg);
 void init_math();
-void dump_line3f(line3f ln);
-int operator ==(line3f ln1, line3f ln2);
 

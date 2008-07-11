@@ -32,7 +32,7 @@ class stair : public grid
 		void init(grid_info_t* my_info, grid* my_prev, grid* my_next, float my_angle);
 		
 		virtual void init_to_null();
-		virtual line3f* generate_lines(grid_info_t my_info);
+		//virtual line3f* generate_lines(grid_info_t my_info);
 		virtual void draw(vector3f angle);
 };
 #endif

@@ -50,74 +50,9 @@ void stair::init_to_null()
 	angle = 0;
 }
 
-line3f* stair::generate_lines(grid_info_t my_info)
-{
-	line3f* ret = new line3f[2];
-	CHKPTR(ret);
-	
-	ECHO_PRINT("stair angle: %f\n", angle);
-	
-#ifdef STRICT_MEM
-	vector3f* p1 = new vector3f(0.5, 0.5, 0.5);
-	CHKPTR(p1);
-	p1->self_rotate_about_y(angle);
-	p1->add(my_info.pos);
-	vector3f* p2 = new vector3f(-0.5, 0.5, 0.5);
-	CHKPTR(p2);
-	p2->self_rotate_about_y(angle);
-	p2->add(my_info.pos);
-	
-	vector3f* p3 = new vector3f(0.5f, -0.5f, -0.5f);
-	CHKPTR(p3);
-	p3->self_rotate_about_y(angle);
-	p3->add(my_info.pos);
-	vector3f* p4 = new vector3f(-0.5f, -0.5f, -0.5f);
-	CHKPTR(p4);
-	p4->self_rotate_about_y(angle);
-	p4->add(my_info.pos);
-	
-	ret[0].p1 = *p1;	ret[0].p2 = *p2;
-	ret[1].p1 = *p3;	ret[1].p2 = *p4;
-#else
-	vector3f p1(0.5, 0.5, 0.5);
-	p1.self_rotate_about_y(angle);
-	p1.add(my_info.pos);
-	vector3f p2(-0.5, 0.5, 0.5);
-	p2.self_rotate_about_y(angle);
-	p2.add(my_info.pos);
-	
-	vector3f p3(0.5, -0.5, -0.5);
-	p3.self_rotate_about_y(angle);
-	p3.add(my_info.pos);
-	vector3f p4(-0.5, -0.5, -0.5);
-	p4.self_rotate_about_y(angle);
-	p4.add(my_info.pos);
-	
-	ret[0].p1 = p1;	ret[0].p2 = p2;
-	ret[1].p1 = p3;	ret[1].p2 = p4;
-#endif
-	
-	return(ret);
-}
-
 void stair::draw(vector3f angle)
 {
 	draw_goal(angle);
-	
-	line3f* my_lines = get_lines(angle);
-	//draw_rect(my_lines[0].p1, my_lines[1].p1, my_lines[2].p1, my_lines[3].p1);
-	grid* my_next = get_real_next();
-	line3f* next_lines = my_next != NULL ? my_next->get_lines(angle) : NULL;
-	grid* my_prev = get_real_prev();
-	line3f* prev_lines = my_prev != NULL ? my_prev->get_lines(angle) : NULL;
-	int eachi = 0;
-	while(eachi < 2)
-	{
-		if( ( next_lines == NULL || !has_line(next_lines, my_lines[eachi]) )
-			&& ( prev_lines == NULL || !has_line(prev_lines, my_lines[eachi]) ) )
-		draw_line(my_lines[eachi]);
-		eachi++;
-	}
 	
 	gfx_push_matrix();
 	gfx_translatef(ginfo->pos.x, ginfo->pos.y, ginfo->pos.z);
@@ -125,18 +60,8 @@ void stair::draw(vector3f angle)
 	float each = -2 * 0.166f;
 	while(each <= 0.5f)
 	{
-		if(each < 0.5f)
-			draw_line(0.5f, each, each, -0.5f, each, each);			//length
-		draw_line(0.5f, each - 0.166f, each, -0.5f, each - 0.166f, each);
-		
 		draw_rect(0.5f, each, each, 0.5f, each - 0.166f, each
 			, -0.5f, each - 0.166f, each, -0.5f, each, each);
-		
-		draw_line(0.5f, each, each, 0.5f, each - 0.166f, each);		//side-down
-		draw_line(-0.5f, each, each, -0.5f, each - 0.166f, each);
-		
-		draw_line(0.5f, each - 0.166f, each - 0.166f, 0.5f, each - 0.166f, each);	//side-across
-		draw_line(-0.5f, each - 0.166f, each - 0.166f, -0.5f, each - 0.166f, each);
 		
 		draw_rect(0.5f, each - 0.166f, each - 0.166f, 0.5f, each - 0.166f, each
 			, -0.5f, each - 0.166f, each, -0.5f, each - 0.166f, each - 0.166f);
