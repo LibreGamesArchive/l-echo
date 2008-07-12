@@ -144,7 +144,12 @@ public:
 typedef std::vector<functor*> FUNCTOR_VEC;
 typedef std::map<std::string, FUNCTOR_VEC*> DEPENDENCY_MAP;
 
-static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot);
+#ifdef ARM9
+	static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot
+			, LEVEL_MAP* nonffgrids, LEVEL_MAP* ffgrids);
+#else
+	static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot);
+#endif
 
 stage* load_stage(const char* file_name)
 {
@@ -156,6 +161,12 @@ stage* load_stage(const char* file_name)
 		LD_CHKPTR(map);
 		stage* ret = new stage();
 		LD_CHKPTR(ret);
+#ifdef ARM9
+		LEVEL_MAP* nonffgrids = new LEVEL_MAP();
+		LD_CHKPTR(nonffgrids);
+		LEVEL_MAP* ffgrids = new LEVEL_MAP();
+		LD_CHKPTR(ffgrids);
+#endif
 		TiXmlElement* root = doc->RootElement();
 		if(!root)
 			lderr("cannot find root element!");
@@ -163,7 +174,11 @@ stage* load_stage(const char* file_name)
 		while((child = root->IterateChildren(child)) != NULL)
 		{
 			if(child->Type() == TiXmlNode::ELEMENT)
+#ifdef ARM9
+				parse_grid(child->ToElement(), ret, map, NULL, nonffgrids, ffgrids);
+#else
 				parse_grid(child->ToElement(), ret, map, NULL);
+#endif
 			else if(child->Type() != TiXmlNode::COMMENT)
 				lderr("unknown node type!");
 		}
@@ -186,6 +201,47 @@ stage* load_stage(const char* file_name)
 		
 		if(!map->empty())
 			ldwarn("dependencies not satisfied...");
+		delete map;
+#ifdef ARM9
+		unsigned int polyID = 0;
+		LEVEL_MAP::iterator it = nonffgrids->begin(), end = nonffgrids->end();
+		GRID_PTR_SET::iterator git, gend;
+		while(it != end)
+		{
+			git = it->second->begin();
+			gend = it->second->end();
+			while(git != gend)
+			{
+				(*git)->set_polyID(polyID);
+				git++;
+			}
+			ECHO_PRINT("polyID: %i (height: %f)\n", polyID, it->first);
+			polyID++;
+			if(polyID >= 63)
+				polyID = 0;	//er...no better way.
+			it++;
+		}
+		it = ffgrids->begin();
+		end = ffgrids->end();
+		while(it != end)	//NOTE: NOT COMPLETE!  Only ffgrids with the same or opposing normals can have the same polyID!
+		{
+			git = it->second->begin();
+			gend = it->second->end();
+			while(git != gend)
+			{
+				(*git)->set_polyID(polyID);
+				git++;
+			}
+			ECHO_PRINT("polyID: %i (height: %f)\n", polyID, it->first);
+			polyID++;
+			if(polyID >= 63)
+				polyID = 0;	//er...no better way.
+			it++;
+		}
+		
+		delete nonffgrids;
+		delete ffgrids;
+#endif
 		//ret->dump_levels();
 		return(ret);
 	}
@@ -288,8 +344,12 @@ static void get_angle(TiXmlElement* txe, vector3f* vec)
 	get_float(txe, "x", &vec->x);
 	get_float(txe, "y", &vec->y);
 }
-
+#ifdef ARM9
+static void add_esc(TiXmlElement* child, stage* st, DEPENDENCY_MAP* map, escgrid* escroot, escgrid* grid
+			, LEVEL_MAP* nonffgrids, LEVEL_MAP* ffgrids)
+#else
 static void add_esc(TiXmlElement* child, stage* st, DEPENDENCY_MAP* map, escgrid* escroot, escgrid* grid)
+#endif
 {
 	const char* type = child->Value();
 	if(!strcmp(type, "angle"))
@@ -298,7 +358,11 @@ static void add_esc(TiXmlElement* child, stage* st, DEPENDENCY_MAP* map, escgrid
 		LD_CHKPTR(each_angle);
 		get_angle(child, each_angle);
 		grid->add(each_angle
+#ifdef ARM9
+			, parse_grid(child->FirstChild()->ToElement(), st, map, escroot ? escroot : grid, nonffgrids, ffgrids));
+#else
 			, parse_grid(child->FirstChild()->ToElement(), st, map, escroot ? escroot : grid));
+#endif
 	}
 	else if(!strcmp(type, "range"))
 	{
@@ -311,13 +375,22 @@ static void add_esc(TiXmlElement* child, stage* st, DEPENDENCY_MAP* map, escgrid
 		get_float(child, "x_max", &v2->x);
 		get_float(child, "y_max", &v2->y);
 		grid->add(new angle_range(v1, v2)
+#ifdef ARM9
+			, parse_grid(child->FirstChild()->ToElement(), st, map, escroot ? escroot : grid, nonffgrids, ffgrids));
+#else
 			, parse_grid(child->FirstChild()->ToElement(), st, map, escroot ? escroot : grid));
+#endif
 	}
 	else
 		lderr("child of escgrid, hole or launcher is not an angle or range!");
 }
 
+#ifdef ARM9
+static void add_escs(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot, escgrid* grid
+			, LEVEL_MAP* nonffgrids, LEVEL_MAP* ffgrids)
+#else
 static void add_escs(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot, escgrid* grid)
+#endif
 {
 	if(txe->FirstChild())
 	{
@@ -325,7 +398,11 @@ static void add_escs(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgrid*
 		while(child)
 		{
 			if(child->Type() == TiXmlNode::ELEMENT && strcmp(child->Value(), "triggers"))
+#ifdef ARM9
+				add_esc(child->ToElement(), st, map, escroot, grid, nonffgrids, ffgrids);
+#else
 				add_esc(child->ToElement(), st, map, escroot, grid);
+#endif
 			else if(child->Type() != TiXmlNode::COMMENT)
 				lderr("unknown node in escgrid!");
 			child = child->NextSibling();
@@ -465,7 +542,12 @@ static void add_triggers(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, grid
 		lderr("triggers element has no triggers!");
 }
 
+#ifdef ARM9
+static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot
+			, LEVEL_MAP* nonffgrids, LEVEL_MAP* ffgrids)
+#else
 static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot)
+#endif
 {
 	LD_PRINT("\n");
 	char* name = get_attribute(txe, "id", "unnamed grid!");
@@ -505,21 +587,33 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 		LD_PRINT("%s is a escgrid!\n", name);
 		new_grid = new escgrid(info, prev, next);
 		LD_CHKPTR(new_grid);
+#ifdef ARM9
+		add_escs(txe, st, map, escroot, (escgrid*)new_grid, nonffgrids, ffgrids);
+#else
 		add_escs(txe, st, map, escroot, (escgrid*)new_grid);
+#endif
 	}
 	else if(!strcmp(type, "hole"))
 	{
 		LD_PRINT("%s is an hole!\n", name);
 		new_grid = new hole(info, prev, next);
 		LD_CHKPTR(new_grid);
+#ifdef ARM9
+		add_escs(txe, st, map, escroot, (escgrid*)new_grid, nonffgrids, ffgrids);
+#else
 		add_escs(txe, st, map, escroot, (escgrid*)new_grid);
+#endif
 	}
 	else if(!strcmp(type, "launcher"))
 	{
 		LD_PRINT("%s is a launcher!\n", name);
 		new_grid = new launcher(info, prev, next);
 		LD_CHKPTR(new_grid);
+#ifdef ARM9
+		add_escs(txe, st, map, escroot, (escgrid*)new_grid, nonffgrids, ffgrids);
+#else
 		add_escs(txe, st, map, escroot, (escgrid*)new_grid);
+#endif
 	}
 	else if(!strcmp(type, "freeform_grid"))
 	{
@@ -553,6 +647,12 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 	}
 	else
 		lderr("grid type not known!: ", type);
+#ifdef ARM9
+	if(!strcmp(type, "freeform_grid"))
+		map_add_pos(ffgrids, info->pos, new_grid);
+	else
+		map_add_pos(nonffgrids, info->pos, new_grid);
+#endif
 	//previous check
 	if(!prev && strcmp(prev_id, "NONE"))
 	{

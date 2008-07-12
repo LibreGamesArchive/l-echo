@@ -57,6 +57,9 @@ class escgrid : public grid
 		virtual void init_to_null();
 		
 		grid* get_esc(vector3f angle);
+#ifdef ARM9
+		virtual unsigned int get_polyID(vector3f angle);
+#endif
 	protected:
 		virtual grid** get_neighbors(vector3f angle);
 		virtual int num_neighbors(vector3f angle);

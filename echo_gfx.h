@@ -39,11 +39,11 @@ void gfx_rotatef(float angle, float x, float y, float z);
 void gfx_translatef(float x, float y, float z);
 void gfx_color3f(float r, float g, float b);
 
-void gfx_outline_start();
-
 #ifndef ARM9
+void gfx_outline_start();
 void gfx_outline_mid();
-#endif
-
 void gfx_outline_end();
+#else
+void gfx_set_polyID(unsigned int polyID);
+#endif
 

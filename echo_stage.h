@@ -67,3 +67,7 @@ class stage
 	float get_farthest();
 };
 #endif
+
+GRID_PTR_SET* map_get_level(LEVEL_MAP* levels, vector3f pos);
+void map_add_pos(LEVEL_MAP* levels, vector3f pos, grid* g);
+

@@ -47,6 +47,7 @@
 	static int drawing_outline = 0;
 #endif
 
+
 void draw_line(float x1, float y1, float z1, float x2, float y2, float z2)
 {
 	gfx_color3f(0, 0, 0);
@@ -221,9 +222,12 @@ void gfx_color3f(float r, float g, float b)
 
 //From http://www.codeproject.com/KB/openGL/Outline_Mode.aspx
 #ifndef ARM9
+#define OUTLINE_POLYOFFSET
 void gfx_outline_start()
 {
 	drawing_outline = 1;
+#ifdef OUTLINE_POLYOFFSET
+	//Method 1
 	// Push the GL attribute bits so that we don't wreck any settings
 	
 	glPushAttrib( GL_ALL_ATTRIB_BITS );
@@ -234,20 +238,59 @@ void gfx_outline_start()
 	// Set the render mode to be line rendering with a thick line width
 	
 	glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-	glLineWidth( 3.0f );
+	glLineWidth( 4.0f );
 	// Set the colour to be white
 	
 	glColor3f( 0.0f, 0.0f, 0.0f );
+#else
+	//Method 2
+	// Push the GL attribute bits so that we don't wreck any settings
+	
+	glPushAttrib( GL_ALL_ATTRIB_BITS );
+	// Set the clear value for the stencil buffer, then clear it
+	
+	glClearStencil(0);
+	glClear( GL_STENCIL_BUFFER_BIT );
+	glEnable( GL_STENCIL_TEST );
+	// Set the stencil buffer to write a 1 in every time
+	
+	// a pixel is written to the screen
+	
+	glStencilFunc( GL_ALWAYS, 1, 0xFFFF );
+	glStencilOp( GL_KEEP, GL_KEEP, GL_REPLACE );
+	// Render the object in black
+	
+	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+	glColor3f( 1.0f, 1.0f, 1.0f );
+#endif
 }
 void gfx_outline_mid()
 {
 	drawing_outline = 0;
+#ifdef OUTLINE_POLYOFFSET
+	//Method 1
 	// Set the polygon mode to be filled triangles 
 	
 	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 	// Set the colour to the background
 	
 	glColor3f( 1.0f, 1.0f, 1.0f );
+#else
+	//Method 2
+	// Set the stencil buffer to only allow writing
+	
+	// to the screen when the value of the
+	
+	// stencil buffer is not 1
+	
+	glStencilFunc( GL_NOTEQUAL, 1, 0xFFFF );
+	glStencilOp( GL_KEEP, GL_KEEP, GL_REPLACE );
+	// Draw the object with thick lines
+	
+	glLineWidth( 3.0f );
+	glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+	glColor3f( 0.0f, 0.0f, 0.0f );
+#endif
 }
 void gfx_outline_end()
 {
@@ -258,13 +301,9 @@ void gfx_outline_end()
 	glPopAttrib();
 }
 #else
-void gfx_outline_start()
+void gfx_set_polyID(unsigned int polyID)
 {
-	glPolyFmt(POLY_ALPHA(31) | POLY_CULL_NONE | POLY_ID(1));
-}
-void gfx_outline_end()
-{
-	glPolyFmt(POLY_ALPHA(31) | POLY_CULL_NONE | POLY_ID(0));
+	glPolyFmt(POLY_ALPHA(31) | POLY_CULL_NONE | POLY_ID(polyID));
 }
 #endif
 

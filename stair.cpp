@@ -58,11 +58,21 @@ void stair::draw(vector3f angle)
 	gfx_translatef(ginfo->pos.x, ginfo->pos.y, ginfo->pos.z);
 	gfx_rotatef(this->angle, 0, 1, 0);
 	float each = -2 * 0.166f;
+#ifdef ARM9
+	unsigned int id = get_polyID(angle);
+	if(id == 0)
+		id = 1;
+#endif
 	while(each <= 0.5f)
 	{
+#ifdef ARM9
+		gfx_set_polyID(id);
+#endif
 		draw_rect(0.5f, each, each, 0.5f, each - 0.166f, each
 			, -0.5f, each - 0.166f, each, -0.5f, each, each);
-		
+#ifdef ARM9
+		gfx_set_polyID(id - 1);
+#endif
 		draw_rect(0.5f, each - 0.166f, each - 0.166f, 0.5f, each - 0.166f, each
 			, -0.5f, each - 0.166f, each, -0.5f, each - 0.166f, each - 0.166f);
 		

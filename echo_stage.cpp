@@ -53,7 +53,7 @@ void stage::add(std::string id, grid* ptr)
     grids->insert(STAGE_MAP::value_type(id, ptr));
 }
 
-GRID_PTR_SET* stage::get_level(vector3f pos)
+GRID_PTR_SET* map_get_level(LEVEL_MAP* levels, vector3f pos)
 {
 	LEVEL_MAP::iterator it = levels->find(pos.y);
 	if(it == levels->end())
@@ -61,9 +61,9 @@ GRID_PTR_SET* stage::get_level(vector3f pos)
 	return(it->second);
 }
 
-void stage::add_pos(vector3f pos, grid* g)
+void map_add_pos(LEVEL_MAP* levels, vector3f pos, grid* g)
 {
-	GRID_PTR_SET* set = get_level(pos);
+	GRID_PTR_SET* set = map_get_level(levels, pos);
 	if(set)
 	{
 		set->insert(g);
@@ -75,6 +75,16 @@ void stage::add_pos(vector3f pos, grid* g)
 		set->insert(g);
 		levels->insert(LEVEL_MAP::value_type(pos.y, set));
 	}
+}
+
+GRID_PTR_SET* stage::get_level(vector3f pos)
+{
+	return(map_get_level(levels, pos));
+}
+
+void stage::add_pos(vector3f pos, grid* g)
+{
+	map_add_pos(levels, pos, g);
 }
 
 void stage::dump_levels()
@@ -100,24 +110,34 @@ void stage::draw(vector3f angle)
 {
 	STAGE_MAP::iterator it = grids->begin();
 	STAGE_MAP::iterator end = grids->end();
+#ifndef ARM9
 	gfx_outline_start();
 	while(it != end)
 	{
 	    if(it->second->should_draw())
 		    it->second->draw(angle);
-	++it;
+	    ++it;
 	}
-#ifndef ARM9
 	gfx_outline_mid();
 	it = grids->begin();
 	while(it != end)
 	{
 	    if(it->second->should_draw())
 		    it->second->draw(angle);
-	++it;
+	    ++it;
+	}
+	gfx_outline_end();
+#else
+	while(it != end)
+	{
+	    if(it->second->should_draw())
+	    {
+		    gfx_set_polyID(it->second->get_polyID(angle));
+		    it->second->draw(angle);
+	    }
+	    ++it;
 	}
 #endif
-	gfx_outline_end();
 }
 
 void stage::set_start(grid* g)
