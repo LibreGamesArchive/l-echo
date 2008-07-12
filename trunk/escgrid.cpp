@@ -204,6 +204,14 @@ int escgrid::num_neighbors(vector3f angle)
 	return(esc ? esc->num_neighbors(angle) : grid::num_neighbors(angle));
 }
 
+#ifdef ARM9
+unsigned int escgrid::get_polyID(vector3f angle)
+{
+	grid* esc = get_esc(angle);
+	return(esc ? esc->get_polyID(angle) : grid::get_polyID(angle));
+}
+#endif
+
 void escgrid::set_as_goal()
 {
 	int each = 0;

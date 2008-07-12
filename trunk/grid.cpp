@@ -72,6 +72,9 @@ void grid::init_to_null()
 	neighbors = NULL;
 	triggers = NULL;
 	points = NULL;
+#ifdef ARM9
+	polyID = 0;
+#endif
 }
 
 void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, int my_num_neighbors)
@@ -140,7 +143,6 @@ void grid::draw(vector3f angle)	//TODO CHANGE FOR NORMALS
 	draw_goal(angle);
 	
 	draw_rect(*(points[0]), *(points[1]), *(points[2]), *(points[3]));
-	
 }
 
 vector3f** grid::generate_points(grid_info_t my_info)
@@ -255,4 +257,15 @@ int grid::is_pt_on(vector3f angle, vector3f pt)
 	return(ABS(pos.y - pt.y) < EPSILON && ABS(pos.x - pt.x) < HALF_GRID
 				&& ABS(pos.z - pt.z) < HALF_GRID);
 }
+
+#ifdef ARM9
+unsigned int grid::get_polyID(vector3f angle)
+{
+	return(polyID);
+}
+void grid::set_polyID(unsigned int my_polyID)
+{
+	polyID = my_polyID;
+}
+#endif
 

@@ -60,6 +60,10 @@ class grid
 		TRIGGER_SET* triggers;
 		
 		vector3f** points;
+		
+#ifdef ARM9
+		unsigned int polyID;
+#endif
 	public:
 		grid();
 		//grid(int is_generate_lines);
@@ -100,6 +104,11 @@ class grid
 		virtual int is_pt_on(vector3f angle, vector3f pt);
 
 		void draw_goal(vector3f angle);
+
+#ifdef ARM9
+		virtual unsigned int get_polyID(vector3f angle);
+		void set_polyID(unsigned int my_polyID);
+#endif
 };
 #endif
 
