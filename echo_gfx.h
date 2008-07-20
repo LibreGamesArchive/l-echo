@@ -31,6 +31,7 @@ void draw_hole(vector3f pos);
 void draw_launcher(vector3f pos);
 void draw_goal_gfx(vector3f pos, float goal_angle);
 void draw_character();
+void draw_sphere(double r);
 
 void gfx_identity();
 void gfx_push_matrix();

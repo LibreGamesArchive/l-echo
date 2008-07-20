@@ -50,6 +50,12 @@ void stair::init_to_null()
 	angle = 0;
 }
 
+#ifdef ARM9
+	#define SET_ID(id)	gfx_set_polyID(id)
+#else
+	#define SET_ID(id)
+#endif
+
 void stair::draw(vector3f angle)
 {
 	draw_goal(angle);
@@ -57,6 +63,45 @@ void stair::draw(vector3f angle)
 	gfx_push_matrix();
 	gfx_translatef(ginfo->pos.x, ginfo->pos.y, ginfo->pos.z);
 	gfx_rotatef(this->angle, 0, 1, 0);
+	
+	SET_ID(16);
+	draw_rect(0.5f, -0.333f, -0.333f, 0.5f, -0.5f, -0.333f
+		, -0.5f, -0.5f, -0.333f, -0.5f, -0.333f, -0.333f);
+	SET_ID(17);
+	draw_rect(0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.333f
+		, -0.5f, -0.5f, -0.333f, -0.5f, -0.5f, -0.5f);
+	SET_ID(18);
+	draw_rect(0.5f, -0.166f, -0.166f, 0.5f, -0.333f, -0.166f
+		, -0.5f, -0.333f, -0.166f, -0.5f, -0.166f, -0.166f);
+	SET_ID(16);
+	draw_rect(0.5f, -0.333f, -0.333f, 0.5f, -0.333f, -0.166f
+		, -0.5f, -0.333f, -0.166f, -0.5f, -0.333f, -0.333f);
+	SET_ID(17);
+	draw_rect(0.5f, 0, 0, 0.5f, -0.166f, 0
+		, -0.5f, -0.166f, 0, -0.5f, 0, 0);
+	SET_ID(18);
+	draw_rect(0.5f, -0.166f, -0.166f, 0.5f, -0.166f, 0
+		, -0.5f, -0.166f, 0, -0.5f, -0.166f, -0.166f);
+	SET_ID(16);
+	draw_rect(0.5f, 0.166f, 0.166f, 0.5f, 0, 0.166f
+		, -0.5f, 0, 0.166f, -0.5f, 0.166f, 0.166f);
+	SET_ID(17);
+	draw_rect(0.5f, 0, 0, 0.5f, 0, 0.166f
+		, -0.5f, 0, 0.166f, -0.5f, 0, 0);
+	SET_ID(18);
+	draw_rect(0.5f, 0.333f, 0.333f, 0.5f, 0.166f, 0.333f
+		, -0.5f, 0.166f, 0.333f, -0.5f, 0.333f, 0.333f);
+	SET_ID(16);
+	draw_rect(0.5f, 0.166f, 0.166f, 0.5f, 0.166f, 0.333f
+		, -0.5f, 0.166f, 0.333f, -0.5f, 0.166f, 0.166f);
+	SET_ID(17);
+	draw_rect(0.5f, 0.5f, 0.5f, 0.5f, 0.333f, 0.5f
+		, -0.5f, 0.333f, 0.5f, -0.5f, 0.5f, 0.5f);
+	SET_ID(18);
+	draw_rect(0.5f, 0.333f, 0.333f, 0.5f, 0.333f, 0.5f
+		, -0.5f, 0.333f, 0.5f, -0.5f, 0.333f, 0.333f);
+	
+	/*
 	float each = -2 * 0.166f;
 #ifdef ARM9
 	unsigned int id = get_polyID(angle);
@@ -78,6 +123,7 @@ void stair::draw(vector3f angle)
 		
 		each += 0.166f;
 	}
+	// */
 	gfx_pop_matrix();
 }
 

@@ -203,7 +203,8 @@ stage* load_stage(const char* file_name)
 			ldwarn("dependencies not satisfied...");
 		delete map;
 #ifdef ARM9
-		unsigned int polyID = 0;
+#define GRID_POLYID_START	19
+		unsigned int polyID = GRID_POLYID_START;
 		LEVEL_MAP::iterator it = nonffgrids->begin(), end = nonffgrids->end();
 		GRID_PTR_SET::iterator git, gend;
 		while(it != end)
@@ -217,8 +218,8 @@ stage* load_stage(const char* file_name)
 			}
 			ECHO_PRINT("polyID: %i (height: %f)\n", polyID, it->first);
 			polyID++;
-			if(polyID >= 63)
-				polyID = 0;	//er...no better way.
+			if(polyID >= 64)
+				polyID = GRID_POLYID_START;	//er...no better way.
 			it++;
 		}
 		it = ffgrids->begin();
@@ -234,8 +235,8 @@ stage* load_stage(const char* file_name)
 			}
 			ECHO_PRINT("polyID: %i (height: %f)\n", polyID, it->first);
 			polyID++;
-			if(polyID >= 63)
-				polyID = 0;	//er...no better way.
+			if(polyID >= 64)
+				polyID = GRID_POLYID_START;	//er...no better way.
 			it++;
 		}
 		
@@ -650,7 +651,7 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 #ifdef ARM9
 	if(!strcmp(type, "freeform_grid"))
 		map_add_pos(ffgrids, info->pos, new_grid);
-	else
+	else if(strcmp(type, "stair"))
 		map_add_pos(nonffgrids, info->pos, new_grid);
 #endif
 	//previous check

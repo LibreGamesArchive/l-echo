@@ -383,18 +383,18 @@ static void init(int argc, char **argv, int w, int h)
 	
 	refresh_sub_mode();
 	
-	SUB_BG0_CR = (0 << 14) | BG_COLOR_256 | BG_MAP_BASE(0) | BG_TILE_BASE(2) | BG_PRIORITY(2);
-	memcpy((u16*)BG_TILE_RAM_SUB(2), topscreenTiles, topscreenTilesLen);
-	memcpy((u16*)BG_MAP_RAM_SUB(0), topscreenMap, topscreenMapLen);
+	SUB_BG0_CR = (0 << 14) | BG_COLOR_256 | BG_MAP_BASE(5) | BG_TILE_BASE(6) | BG_PRIORITY(2);
+	memcpy((u16*)BG_TILE_RAM_SUB(6), topscreenTiles, topscreenTilesLen);
+	memcpy((u16*)BG_MAP_RAM_SUB(5), topscreenMap, topscreenMapLen);
 	
-	SUB_BG1_CR = (0 << 14) | BG_COLOR_256 | BG_MAP_BASE(2) | BG_TILE_BASE(4) | BG_PRIORITY(0);
+	SUB_BG1_CR = (0 << 14) | BG_COLOR_256 | BG_MAP_BASE(1) | BG_TILE_BASE(4) | BG_PRIORITY(0);
 	u16* text1_tile = (u16*)BG_TILE_RAM_SUB(4);
-        string_map = (u16*)BG_MAP_RAM_SUB(2);
+        string_map = (u16*)BG_MAP_RAM_SUB(1);
 	memcpy(text1_tile, freeserif16Tiles, freeserif16TilesLen);
 	
-	SUB_BG3_CR = (0 << 14) | BG_COLOR_256 | BG_MAP_BASE(4) | BG_TILE_BASE(6) | BG_PRIORITY(3);
-	u16* text_tile = (u16*)CHAR_BASE_BLOCK_SUB(6);
-        u16* text_map = (u16*)SCREEN_BASE_BLOCK_SUB(4);
+	SUB_BG3_CR = (0 << 14) | BG_COLOR_256 | BG_MAP_BASE(3) | BG_TILE_BASE(2) | BG_PRIORITY(3);
+	u16* text_tile = (u16*)CHAR_BASE_BLOCK_SUB(2);
+        u16* text_map = (u16*)SCREEN_BASE_BLOCK_SUB(3);
 	consoleInit((u16*)fontTiles, text_tile, 95, 32, text_map, CONSOLE_USE_COLOR255, 8);
 	memcpy(text_tile, fontTiles, fontTilesLen);
 	
@@ -550,9 +550,9 @@ static void set_proj(int w, int h)
 	static void update_loader()
 	{
 		serif16_clear();
-		serif16_clear_row(18);	serif16_clear_row(19);
-		serif16_clear_row(20);	serif16_clear_row(21);
-		serif16_clear_row(22);	serif16_clear_row(23);
+		//serif16_clear_row(18);	serif16_clear_row(19);
+		//serif16_clear_row(20);	serif16_clear_row(21);
+		//serif16_clear_row(22);	serif16_clear_row(23);
 		serif16_draw_string(0, 0, files->current_dir, 16);
 		
 		int each_file = 0;
@@ -906,8 +906,7 @@ static void get_key()
 			}
 			else
 			{
-				const char* file = files->file_names[file_index];
-				if(!strcmp(file, ".."))
+				if(!strcmp(files->file_names[file_index], ".."))
 				{
 					if(strcmp(files->current_dir, "/"))
 					{
@@ -930,9 +929,9 @@ static void get_key()
 				}
 				else
 				{
-					const char* current_dir = files->current_dir;
+					const char* new_dir = echo_merge(files->current_dir, files->file_names[file_index]);
 					delete files;
-					files = get_files(echo_merge(current_dir, file));
+					files = get_files(new_dir);
 				}
 				ECHO_PRINT("<new dir>%s</new dir>\n", files->current_dir);
 				file_index = 0;
