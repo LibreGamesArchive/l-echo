@@ -479,21 +479,21 @@ static void set_proj(int w, int h)
 #ifdef ARM9
 	static void serif16_draw_string(int x, int y, const char* str)
 	{
-		while(*str != '\0')
+		int i = 0;
+		while(str[i] != '\0')
 		{
-			WRITE16(string_map, x, y, *str);
+			WRITE16(string_map, x, y, str[i]);
 			x += 2;
-			str++;
+			i++;
 		}
 	}
 	static void serif16_draw_string(int x, int y, const char* str, int num)
 	{
 		int i = 0;
-		while(*str != '\0' && i < num)
+		while(str[i] != '\0' && i < num)
 		{
-			WRITE16(string_map, x, y, *str);
+			WRITE16(string_map, x, y, str[i]);
 			x += 2;
-			str++;
 			i++;
 		}
 	}
@@ -930,8 +930,17 @@ static void get_key()
 				else
 				{
 					const char* new_dir = echo_merge(files->current_dir, files->file_names[file_index]);
+					/*
+					ECHO_PRINT("new_dir: %s\n", new_dir);
+					echo_files* new_files = get_files(new_dir);
+					//ECHO_PRINT("new_files: %p,<new dir>%s</new dir>\n", new_files, new_files->current_dir);
+					dump_files(new_files);
+					delete new_files;
+					// */
+					//*
 					delete files;
 					files = get_files(new_dir);
+					// */
 				}
 				ECHO_PRINT("<new dir>%s</new dir>\n", files->current_dir);
 				file_index = 0;
