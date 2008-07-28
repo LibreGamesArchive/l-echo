@@ -27,11 +27,19 @@ void draw_rect(float x1, float y1, float z1
 		, float x2, float y2, float z2
 		, float x3, float y3, float z3
 		, float x4, float y4, float z4);
+#ifdef ARM9
+#include <nds.h>
+void draw_rectv16(v16 x1, v16 y1, v16 z1
+		, v16 x2, v16 y2, v16 z2
+		, v16 x3, v16 y3, v16 z3
+		, v16 x4, v16 y4, v16 z4);
+#endif
 void draw_hole(vector3f pos);
 void draw_launcher(vector3f pos);
 void draw_goal_gfx(vector3f pos, float goal_angle);
 void draw_character();
-void draw_sphere(double r);
+void draw_stairs();
+void draw_sphere_point1();
 
 void gfx_identity();
 void gfx_push_matrix();

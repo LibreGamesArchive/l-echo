@@ -21,6 +21,6 @@
 
 void echo_sleep(int millis)
 {
-	usleep(millis);
+	usleep(millis * 1000);
 }
 
