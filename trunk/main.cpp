@@ -102,11 +102,13 @@
 
 	#define CHAR2TILE(c)		((c) - 32)
 
+/*
 	#define WRITE16(map, x, y, c) 	(map)[POS2IDX((x)	, (y))] 	= CHAR2TILE((c)) * 4; \
 					(map)[POS2IDX((x) + 1	, (y))] 	= CHAR2TILE((c)) * 4 + 1; \
 					(map)[POS2IDX((x)	, (y) + 1)] 	= CHAR2TILE((c)) * 4 + 2; \
 					(map)[POS2IDX((x) + 1	, (y) + 1)] 	= CHAR2TILE((c)) * 4 + 3;
-	
+// */
+
 	#define NDS_INFO_MODE		-2
 	#define NDS_LOAD_MODE		-1
 	#define NDS_START_MODE		0
@@ -114,8 +116,6 @@
 	
 	#define NDS_MODE_MIN		-2
 	#define NDS_MODE_MAX		1
-	
-	
 	
 	#define LOAD_BG			DISPLAY_BG1_ACTIVE
 	#define INFO_BG			DISPLAY_BG1_ACTIVE
@@ -186,59 +186,31 @@ static void display();
 int main(int argc, char **argv)
 {
 #ifdef ARM9
-	init(argc, argv, 255, 191);
-	
-	fatInitDefault();
 	init_math();
+	fatInitDefault();
 	files = get_files("/");
-	//dump_files(files);
+	init(argc, argv, 255, 191);
+	ECHO_PRINT("is stage null?: %i\n", echo_ns::current_stage == NULL);
+	dump_files(files);
 	load(NULL);
-	resize(255, 191);
+	//resize(255, 191);
 	ECHO_PRINT("is stage null?: %i\n", echo_ns::current_stage == NULL);
 	if(echo_ns::current_stage)
 		ECHO_PRINT("is stage start null?: %i\n", echo_ns::current_stage->get_start() == NULL);
-	while (1)
+	while(1)
         {
                 get_key();
-
-                display();
-
-                glFlush(0);
-
+		
+		if(!menu_mode)
+		{
+			display();
+			
+			glFlush(0);
+		}
                 swiWaitForVBlank();
         }
 #else
 	init_math();
-	
-	/*
-	vector3f* orig = new vector3f(0, 0, 0);
-	CHKPTR(orig);
-	vector3f* old_goal = new vector3f(2, 0, 2);
-	CHKPTR(old_goal);
-	vector3f* pos = new vector3f(1, 1.414, 1);
-	CHKPTR(pos);
-	
-	vector3f* angle = (*old_goal - *orig).angle_xy();
-	ECHO_PRINT("angle: ");
-	angle->dump();
-	ECHO_PRINT("\n");
-	vector3f* trans_pos = (*pos - *orig).neg_rotate_yx(*angle);
-	ECHO_PRINT("trans_pos: ");
-	trans_pos->dump();
-	ECHO_PRINT("\n");
-	
-	vector3f* new_goal = new vector3f(2, 2.828, 2);
-	CHKPTR(new_goal);
-	vector3f* new_angle = (*new_goal - *orig).angle_xy();
-	ECHO_PRINT("new_angle: ");
-	new_angle->dump();
-	ECHO_PRINT("\n");
-	vector3f new_pos = *(trans_pos->rotate_xy(*new_angle)) + *orig;
-	new_pos = new_pos * (new_goal->length() / old_goal->length());
-	ECHO_PRINT("new_pos: ");
-	new_pos.dump();
-	ECHO_PRINT("\n");
-	// */
 #ifdef WIN32
 	TCHAR buffer[MAX_PATH] = "";
 	GetCurrentDirectory(MAX_PATH, buffer);
@@ -295,20 +267,26 @@ static void load(const char* fname)
 	name_display = NAME_DISPLAY_MAX;
 	message = MSG_READY;
 	
-	if(fname != NULL)
+	stage* s = (fname != NULL ? load_stage(echo_merge(files->current_dir, fname)) : NULL);
+	
+	if(s != NULL)
 	{
-		echo_ns::init(load_stage(echo_merge(files->current_dir, fname)));
+		ECHO_PRINT("stage is not null\n");
+		echo_ns::init(s);
 #ifdef ARM9
-		videoSetMode(MODE_0_3D);
+		//if(menu_mode)
+			videoSetMode(MODE_0_3D);
 #endif
 		menu_mode = 0;
 		depth = echo_ns::current_stage->get_farthest() + 1;
 	}
 	else
 	{
+		ECHO_PRINT("stage is null\n");
 		echo_ns::init(NULL);
 #ifdef ARM9
-		videoSetMode(MODE_0_3D | DISPLAY_BG1_ACTIVE);
+		//if(!menu_mode)
+			videoSetMode(MODE_0_3D | DISPLAY_BG1_ACTIVE);
 #endif
 		menu_mode = 1;
 		depth = 5;
@@ -329,8 +307,8 @@ static void load(const char* fname)
 		{
 			case NDS_LOAD_MODE:		videoSetModeSub(basic_modes | LOAD_BG);	update_loader();	break;
 			case NDS_INFO_MODE:		videoSetModeSub(basic_modes | INFO_BG);	toggle_info();		break;
-			case NDS_START_MODE:		videoSetModeSub(basic_modes | START_BG);					break;
-			case NDS_DEBUG_MODE:	videoSetModeSub(basic_modes | DEBUG_BG);				break;
+			case NDS_START_MODE:		videoSetModeSub(basic_modes | START_BG);			break;
+			case NDS_DEBUG_MODE:		videoSetModeSub(basic_modes | DEBUG_BG);			break;
 			default:
 			break;
 		}
@@ -358,6 +336,7 @@ static void init(int argc, char **argv, int w, int h)
 	//Main Screen
 	
 	videoSetMode(MODE_0_3D | DISPLAY_BG1_ACTIVE);
+	menu_mode = 1;
 	
 	glInit();
         glEnable(GL_ANTIALIAS);
@@ -390,7 +369,8 @@ static void init(int argc, char **argv, int w, int h)
 	SUB_BG1_CR = (0 << 14) | BG_COLOR_256 | BG_MAP_BASE(1) | BG_TILE_BASE(4) | BG_PRIORITY(0);
 	u16* text1_tile = (u16*)BG_TILE_RAM_SUB(4);
         string_map = (u16*)BG_MAP_RAM_SUB(1);
-	memcpy(text1_tile, freeserif16Tiles, freeserif16TilesLen);
+	//memcpy(text1_tile, freeserif16Tiles, freeserif16TilesLen);
+	memcpy(text1_tile, fontTiles, fontTilesLen);
 	
 	SUB_BG3_CR = (0 << 14) | BG_COLOR_256 | BG_MAP_BASE(3) | BG_TILE_BASE(2) | BG_PRIORITY(3);
 	u16* text_tile = (u16*)CHAR_BASE_BLOCK_SUB(2);
@@ -400,7 +380,8 @@ static void init(int argc, char **argv, int w, int h)
 	
 	vramSetBankH(VRAM_H_LCD);
 	memcpy(VRAM_H_EXT_PALETTE[3], fontPal, fontPalLen);
-	memcpy(VRAM_H_EXT_PALETTE[1], freeserif16Pal, freeserif16PalLen);
+	memcpy(VRAM_H_EXT_PALETTE[1], fontPal, fontPalLen);
+	//memcpy(VRAM_H_EXT_PALETTE[1], freeserif16Pal, freeserif16PalLen);
 	memcpy(VRAM_H_EXT_PALETTE[0], topscreenPal, topscreenPalLen);
 	vramSetBankH(VRAM_H_SUB_BG_EXT_PALETTE);
 	
@@ -409,6 +390,10 @@ static void init(int argc, char **argv, int w, int h)
 	lcdSwap();
 	
 	ECHO_PRINT("\x1b[2;2Hconsole init\n");
+	
+	//resize(w, h);
+	my_width = w;
+	my_height = h;
 #else
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGBA);
@@ -465,11 +450,13 @@ static void set_proj(int w, int h)
                 real_height = depth;
         }
         glOrtho(-real_width, real_width, -real_height, real_height, -depth, depth);
-	
+
+/*
 #ifdef ARM9
 	//ds specific, several attributes can be set here
         glPolyFmt(POLY_ALPHA(31) | POLY_CULL_NONE);
 #endif
+// */
 	
 	glMatrixMode(GL_MODELVIEW);
 }
@@ -482,8 +469,9 @@ static void set_proj(int w, int h)
 		int i = 0;
 		while(str[i] != '\0')
 		{
-			WRITE16(string_map, x, y, str[i]);
-			x += 2;
+			string_map[POS2IDX(x, y)] = CHAR2TILE(str[i]);
+			//WRITE16(string_map, x, y, str[i]);
+			x++;
 			i++;
 		}
 	}
@@ -492,18 +480,34 @@ static void set_proj(int w, int h)
 		int i = 0;
 		while(str[i] != '\0' && i < num)
 		{
-			WRITE16(string_map, x, y, str[i]);
-			x += 2;
+			string_map[POS2IDX(x, y)] = CHAR2TILE(str[i]);
+			x++;
 			i++;
 		}
 	}
 	static void serif16_clear()
 	{
-		memset(string_map, 0, 1024 * sizeof(u16));
+		/*
+		int temp = 0;
+		while(temp < 1024)
+		{
+			string_map[temp] = 0;
+			temp++;
+		}
+		// */
+		memset((void*)string_map, '\0', 1024 * sizeof(u16));
 	}
 	static void serif16_clear_row(int y)
 	{
-		memset(string_map + y * 32, 0, 32 * sizeof(u16));
+		/*
+		int temp = 0;
+		while(temp < 32)
+		{
+			string_map[y * 32 + temp] = 0;
+			temp++;
+		}
+		// */
+		memset((void*)(string_map + (y * 32)), '\0', 32 * sizeof(u16));
 	}
 #else
 	//copied from http://lighthouse3d.com/opengl/glut/index.php?bmpfontortho
@@ -556,11 +560,11 @@ static void set_proj(int w, int h)
 		serif16_draw_string(0, 0, files->current_dir, 16);
 		
 		int each_file = 0;
-		while(each_file < 10)
+		while(each_file < 22)
 		{
 			if(file_start + each_file == file_index)
-				serif16_draw_string(0, 4 + each_file * 2, "->");
-			serif16_draw_string(4, 4 + each_file * 2, files->file_names[file_start + each_file], 14);
+				serif16_draw_string(0, 2 + each_file, "->");
+			serif16_draw_string(2, 2 + each_file, files->file_names[file_start + each_file], 30);
 			each_file++;
 		}
 	}
@@ -571,7 +575,7 @@ static void set_proj(int w, int h)
 		if(echo_ns::current_stage)
 		{
 			serif16_draw_string(0, 0, "stage: ");
-			serif16_draw_string(14, 0, echo_ns::current_stage->get_name().c_str(), 9);
+			serif16_draw_string(7, 0, echo_ns::current_stage->get_name().c_str(), 25);
 			update_num_goals();
 			update_char_state();
 		}
@@ -593,7 +597,7 @@ static void set_proj(int w, int h)
 				CHKPTR(counter);
 				sprintf(counter, "%i", goals_left);
 				serif16_draw_string(0, 10, COUNTER_HEAD);
-				serif16_draw_string(0, 12, counter, 16);
+				serif16_draw_string(0, 12, counter, 32);
 				delete counter;
 			}
 			else if(echo_ns::num_goals())
@@ -739,15 +743,6 @@ static void display()
 			start_frame++;
 	}
 	
-	if(sub_mode == NDS_INFO_MODE)
-	{
-		update_num_goals();
-		update_char_state();
-	}
-	else if(sub_mode == NDS_LOAD_MODE)
-	{
-		update_loader();
-	}
 #endif
 	
 	glLoadIdentity();
@@ -770,9 +765,7 @@ static void display()
 		draw_string(-3, -3.5, "Rotate World.");
 		draw_string(-6, -4, "Press Esc To Quit.");
 	}
-#endif
 	
-#ifndef ARM9
 	draw_loader();
 	
 	glutSwapBuffers();
@@ -903,6 +896,15 @@ static void get_key()
 			{
 				//ECHO_PRINT("trying to load:%s\n", echo_merge(files->current_dir, files->file_names[file_index]));
 				load(files->file_names[file_index]);
+				//ECHO_PRINT("load:%s\n", files->file_names[file_index]);
+				/*
+				ECHO_PRINT("load:%s\n", echo_merge(files->current_dir, files->file_names[file_index]));
+				stage* s = load_stage(echo_merge(files->current_dir, files->file_names[file_index]));
+				if(s == NULL)
+					ECHO_PRINT("stage is null\n");
+				else
+					ECHO_PRINT("stage is not null\n");
+				// */
 			}
 			else
 			{
@@ -943,6 +945,7 @@ static void get_key()
 					// */
 				}
 				ECHO_PRINT("<new dir>%s</new dir>\n", files->current_dir);
+				dump_files(files);
 				file_index = 0;
 				file_start = 0;
 			}
@@ -980,6 +983,15 @@ static void get_key()
 			message = MSG_PAUSE;
 			echo_ns::toggle_pause();
 		}
+	}
+	if(sub_mode == NDS_INFO_MODE)
+	{
+		update_num_goals();
+		update_char_state();
+	}
+	else if(sub_mode == NDS_LOAD_MODE)
+	{
+		update_loader();
 	}
 	//The DS doesn't have a FPU, so it isn't very precise
 	echo_ns::angle.x = (int)echo_ns::angle.x;

@@ -59,7 +59,6 @@ namespace echo_ns
 		}
 		else
 			main_char = NULL;
-		
 	}
 	void start()
 	{
