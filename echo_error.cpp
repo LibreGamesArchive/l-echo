@@ -25,7 +25,7 @@
 void lderr(const char* msg)
 {
 	ECHO_PRINT("Load Error: %s\n", msg);
-	std::exit(1);
+	//std::exit(1);
 }
 void ldmemerr()
 {
@@ -35,7 +35,7 @@ void ldmemerr()
 void lderr(const char* msg1, const char* msg2)
 {
 	ECHO_PRINT("Load Error: %s%s\n", msg1, msg2);
-	std::exit(1);
+	//std::exit(1);
 }
 
 void ldwarn(const char* msg)

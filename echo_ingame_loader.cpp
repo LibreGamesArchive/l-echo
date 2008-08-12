@@ -238,11 +238,12 @@ echo_files* get_files(const char* dirname)
 		delete[] filename;
 		dirclose(dir);
 		
-		ECHO_PRINT("num_dir: %i\n", ret->num_dir);
+		//ECHO_PRINT("num_dir: %i\n", ret->num_dir);
 		//cmp_dir = ret->current_dir;
 		qsort(ret->file_names, ret->num_dir, sizeof(char*), cmp);
 		qsort(ret->file_names + ret->num_dir
 			, ret->num_files - ret->num_dir, sizeof(char*), cmp);
+		//dump_files(ret);
 		return(ret);
 	}
 	return(NULL);
