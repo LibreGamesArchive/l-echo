@@ -600,7 +600,7 @@ void draw_sphere_point1()
 
 void gfx_rotatef(float angle, float x, float y, float z)
 {
-#ifdef ARM9
+#ifdef ECHO_NDS
 	glRotatef(-angle, x, y, z);
 #else
 	glRotatef(angle, x, y, z);
