@@ -32,7 +32,10 @@
 #include <hole.h>
 #include <isect_grid.h>
 
+//how high aboce the start grid does the character start?
 #define STARTY		30
+
+//various character speeds
 #define SPEED_STEP 	0.08f
 #define SPEED_FALL 	0.50f
 #define SPEED_LAUNCH	0.30f

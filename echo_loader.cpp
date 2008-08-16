@@ -312,7 +312,7 @@ stage* load_stage(const char* file_name)
 	}
 	else
 	{
-		lderr("cannot open file!: ", file_name);
+		lderr("cannot open file! (might not be correct xml file): ", file_name);
 		delete doc;
 		return(NULL);
 	}
@@ -833,7 +833,7 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 			delete info;
 			return(NULL);
 		}
-		ECHO_PRINT("angle: %f\n", angle);
+		LD_PRINT("angle: %f\n", angle);
 		new_grid = new stair(info, prev, next, angle);
 		LD_CHKPTR(new_grid);
 	}

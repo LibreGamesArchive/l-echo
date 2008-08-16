@@ -31,9 +31,6 @@
 	#define ECHO_COSF(deg) (ECHO_COSI((int)(deg)))
 	#define ECHO_SINI(deg) (ECHO_COSI(90 - (deg)))
 	#define ECHO_SINF(deg) (ECHO_SINI((int)(deg)))
-	
-	void init_math(){}
-	
 #else
 	static float cos_table[360];
 	

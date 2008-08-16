@@ -17,6 +17,8 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <echo_platform.h>
+
 #define PI			    3.1415926f
 #define TWOPI			6.2831853f
 #define EPSILON 		5e-2f
@@ -85,5 +87,7 @@ class angle_range
 
 float echo_sin(int deg);
 float echo_cos(int deg);
-void init_math();
+#ifndef ECHO_NDS
+	void init_math();
+#endif
 
