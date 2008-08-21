@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 		double r = strtod(argv[1], NULL);
 		//*
 		printf("void draw_sphere()\n{\n");
-		printf("#ifndef ARM9\n");
+		printf("#ifndef ECHO_NDS\n");
 			printf("\tglutSolidSphere(%.3ff, %i, %i);\n", r, LATS, LATS);
 		printf("#else\n");
 		float theta = 0;

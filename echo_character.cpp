@@ -65,18 +65,21 @@ void echo_char::change_speed()
 {
 	if(grid1 && grid2)
 	{
+		//first grid is an hole, and second is an isect_grid or just falling nowhere
 		if(typeid(*grid1) == typeid(hole) && (typeid(*grid2) == typeid(isect_grid)
 			|| grid2 == echo_ns::hole_grid))
 		{
 			ECHO_PRINT("falling into hole...\n");
 			speed = SPEED_FALL;
 		}
+		//first grid is a launcher, and second is an static_grid or just falling nowhere
 		else if(typeid(*grid1) == typeid(launcher) && (typeid(*grid2) == typeid(static_grid)
 			|| grid2 == echo_ns::hole_grid))
 		{
 			ECHO_PRINT("being launched!\n");
 			speed = SPEED_LAUNCH;	
 		}
+		//if this character isn't in midair
 		else if(typeid(*grid1) == typeid(isect_grid)
 			&& (typeid(*grid2) != typeid(isect_grid) 
 				&& typeid(*grid2) != typeid(static_grid)))
@@ -88,18 +91,13 @@ void echo_char::change_speed()
 }
 void echo_char::init(grid * g1)
 {
-	start = g1;
-	grid1 = g1;
-	if(g1)
-		grid2 = grid1->get_next(echo_ns::angle, grid1);
-	else
-		grid2 = NULL;
+	start = grid1 = g1;
+	grid2 = g1 ? grid1->get_next(echo_ns::angle, grid1) : NULL;
 	
 	paused = 0;
-	
-	
 	grid1per = 1;
 	grid2per = 0;
+	//haven't started falling out of the sky
 	startper = 1;
 	speed = SPEED_STEP;
 	dist = 1;
@@ -113,6 +111,7 @@ void echo_char::toggle_pause()
 
 void echo_char::kill()
 {
+	//start falling
 	startper = -0.05;
 }
 
@@ -128,24 +127,27 @@ void echo_char::next_grid()
 		grid1->toggle_goal(echo_ns::angle);
 		num_goals++;
 	}
+	//falling to nowhere
 	if(grid1 == echo_ns::hole_grid)
 		kill();
 	else if(grid2)
 	{
-		grid *temp = grid2;
+		//replace grid1 with grid2, grid2 with the next grid
+		grid* temp = grid2;
 		grid2 = grid2->get_next(echo_ns::angle, grid1);
-		if (grid2 == echo_ns::hole_grid)
-			kill();
+		// if the  next grid is nowhere, die.
+		if(grid2 == echo_ns::hole_grid)	kill();
 		grid1 = temp;
 		change_speed();
 	}
 	else
 		grid2 = NULL;
+	//reset
 	grid1per = 1;
 	grid2per = 0;
 }
 
-void echo_char::step()	//CHANGE FOR NORMALS
+void echo_char::step()
 {
 	gfx_color3f(0.5f, 0.5f, 0.5f);
 	if(startper > 0)
