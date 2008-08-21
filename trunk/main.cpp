@@ -898,6 +898,8 @@ static void display()
 	{
 		//make libnds update its cache
 		scanKeys();
+		//get keys
+		const u16 key = keysDown();
 		
 		//because we'd be just wasting time on atan2
 		if(!menu_mode)
@@ -918,8 +920,6 @@ static void display()
 			}
 		}
 		
-		//get keys
-		const u16 key = keysDown();
 		//if loading, don't care if menu_mode or not (because otherwise we would be able to load)
 		if(sub_mode == NDS_LOAD_MODE)
 		{

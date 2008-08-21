@@ -8,7 +8,7 @@ int main()
 {
 	float each = -2 * 0.166f;
 	printf("void draw_stairs()\n{\n");
-	printf("#ifndef ARM9\n");
+	printf("#ifndef ECHO_NDS\n");
 	printf("\tglBegin(GL_QUAD_STRIP);\n");
 	while(each <= 0.5f)
 	{
