@@ -7,6 +7,11 @@ int print_id(int id);
 int main()
 {
 	float each = -2 * 0.166f;
+	printf("#ifdef ARM9\n");
+	printf("\t#define SET_ID(id)	gfx_set_polyID(id)\n");
+	printf("#else\n");
+	printf("\t#define SET_ID(id)\n");
+	printf("#endif\n\n");
 	printf("void draw_stairs()\n{\n");
 	printf("#ifndef ECHO_NDS\n");
 	printf("\tglBegin(GL_QUAD_STRIP);\n");

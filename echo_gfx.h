@@ -35,6 +35,7 @@ void draw_rectv16(v16 x1, v16 y1, v16 z1
 		, v16 x4, v16 y4, v16 z4);
 #endif
 void draw_head();
+void draw_body();
 void draw_hole(vector3f pos);
 void draw_launcher(vector3f pos);
 void draw_goal_gfx(vector3f pos, float goal_angle);
