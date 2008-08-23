@@ -17,6 +17,8 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <echo_platform.h>
+
 #ifdef ECHO_NDS
 	#include <nds.h>
 #elif ECHO_OSX	//OS X
@@ -29,7 +31,6 @@
 	#include <GL/glut.h>
 #endif
 
-#include <echo_platform.h>
 #include <echo_debug.h>
 #include <echo_error.h>
 #include <grid.h>
@@ -187,11 +188,88 @@ void draw_goal_gfx(vector3f pos, float goal_angle)
 
 void draw_character()
 {
-	gfx_translatef(0, 2, 0);
-	//draw_sphere_point1();
-	draw_body();
-	gfx_translatef(0, 1.1f, 0);
-	draw_head();
+	gfx_push_matrix();
+	gfx_translatef(0, 1.875f, 0);
+		draw_body();
+		/*
+		gfx_push_matrix();
+			gfx_translatef(0, 0, 0.2f);
+			draw_sphere_pointzero75();
+		gfx_pop_matrix();
+		// */
+		gfx_push_matrix();
+			gfx_translatef(0, 0.3f, 0);
+			draw_sphere_pointzero75();
+			gfx_translatef(0, 0.3f, 0);
+			draw_head();
+		gfx_pop_matrix();
+		gfx_push_matrix();	//left hand
+			gfx_translatef(0.2f, 0.2f, 0);
+			draw_sphere_pointzero75();
+			gfx_rotatef(12, 0, 0, 1);
+			gfx_translatef(0, -0.05f, 0);
+			draw_limb();
+			gfx_translatef(0, -0.45f, 0);
+			draw_sphere_pointzero75();
+			gfx_rotatef(-12, 0, 0, 1);
+			gfx_translatef(0, -0.05f, 0);
+			draw_limb();
+			gfx_translatef(0, -0.45f, 0);
+			draw_sphere_pointzero75();
+			gfx_translatef(-0.03f, -0.06f, 0);
+			draw_left_hand();
+		gfx_pop_matrix();
+		gfx_push_matrix();	//right hand
+			gfx_translatef(-0.2f, 0.2f, 0);
+			draw_sphere_pointzero75();
+			gfx_rotatef(-12, 0, 0, 1);
+			gfx_translatef(0, -0.05f, 0);
+			draw_limb();
+			gfx_translatef(0, -0.45f, 0);
+			draw_sphere_pointzero75();
+			gfx_rotatef(12, 0, 0, 1);
+			gfx_translatef(0, -0.05f, 0);
+			draw_limb();
+			gfx_translatef(0, -0.45f, 0);
+			draw_sphere_pointzero75();
+			gfx_translatef(0.03f, -0.06f, 0);
+			draw_right_hand();
+		gfx_pop_matrix();
+		gfx_push_matrix();	//left leg
+			gfx_translatef(0.1f, -0.7f, 0);
+			draw_sphere_pointzero75();
+			gfx_translatef(0, -0.05f, 0);
+			draw_limb();
+			gfx_translatef(0, -0.45f, 0);
+			draw_sphere_pointzero75();
+			gfx_translatef(0, -0.05f, 0);
+			draw_limb();
+			gfx_translatef(0, -0.45f, 0);
+			draw_sphere_pointzero75();
+			gfx_translatef(0.01f, -0.15f, -0.075f);
+			draw_foot();
+		gfx_pop_matrix();
+		gfx_push_matrix();	//right leg
+			gfx_translatef(-0.1f, -0.7f, 0);
+			draw_sphere_pointzero75();
+			gfx_translatef(0, -0.05f, 0);
+			draw_limb();
+			gfx_translatef(0, -0.45f, 0);
+			draw_sphere_pointzero75();
+			gfx_translatef(0, -0.05f, 0);
+			draw_limb();
+			gfx_translatef(0, -0.45f, 0);
+			draw_sphere_pointzero75();
+			gfx_translatef(-0.01f, -0.15f, -0.075f);
+			draw_foot();
+		gfx_pop_matrix();
+		gfx_push_matrix();
+			gfx_translatef(0, -0.32f, 0);
+			draw_sphere_point1();
+			gfx_translatef(0, -0.32f, 0);
+			draw_lower_body();
+		gfx_pop_matrix();
+	gfx_pop_matrix();
 }
 
 void gfx_rotatef(float angle, float x, float y, float z)

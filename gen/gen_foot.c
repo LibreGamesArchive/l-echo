@@ -5,11 +5,11 @@
 #define PI		3.141592f
 #define LATS		8
 #define ANGLE_INCR	PI / LATS
-#define X_RADIUS	0.2f
-#define Y_RADIUS	0.4f
-#define Z_RADIUS	0.15f
-#define TOP		PI * 0.2f
-#define BOTTOM		PI * 0.8f
+#define X_RADIUS	0.075f
+#define Y_RADIUS	0.15f
+#define Z_RADIUS	0.2f
+#define TOP		0
+#define BOTTOM		PI / 2
 
 #define floattov16(n)        ((short int)((n) * (1 << 12)))
 
@@ -18,10 +18,10 @@ void print_sphere_pt_nds(float theta, float phi);
 
 int main()
 {
-	printf("void draw_body()\n{\n");
+	printf("void draw_foot()\n{\n");
 	printf("#ifndef ECHO_NDS\n");
 	float theta = 0;
-	while(theta <= PI * 2)
+	while(theta < PI)
 	{
 		float phi = TOP, u = 0;
 		printf("\tglBegin(GL_QUAD_STRIP);\n");
@@ -35,8 +35,8 @@ int main()
 		theta += ANGLE_INCR;
 	}
 	printf("#else\n");
-	theta = 0;
-	while(theta <= PI * 2)
+	theta = PI / 2;
+	while(theta < PI * 3 / 2)
 	{
 		float phi = TOP, u = 0;
 		printf("\tglBegin(GL_QUAD_STRIP);\n");

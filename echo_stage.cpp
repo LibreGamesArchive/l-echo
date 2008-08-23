@@ -21,6 +21,7 @@
 #include <typeinfo>
 #include <string>
 
+#include <echo_platform.h>
 #include <echo_debug.h>
 #include <echo_error.h>
 #include <grid.h>
@@ -110,7 +111,7 @@ void stage::draw(vector3f angle)
 {
 	STAGE_MAP::iterator it = grids->begin();
 	STAGE_MAP::iterator end = grids->end();
-#ifndef ARM9
+#ifndef ECHO_NDS
 	gfx_outline_start();
 	while(it != end)
 	{
@@ -118,6 +119,7 @@ void stage::draw(vector3f angle)
 		    it->second->draw(angle);
 	    ++it;
 	}
+	//draw_character();
 	gfx_outline_mid();
 	it = grids->begin();
 	while(it != end)
@@ -126,6 +128,7 @@ void stage::draw(vector3f angle)
 		    it->second->draw(angle);
 	    ++it;
 	}
+	//draw_character();
 	gfx_outline_end();
 #else
 	while(it != end)

@@ -21,6 +21,7 @@ echo -e '// echo_model_'$1'.cpp
 */
 
 #include <echo_platform.h>
+#include <echo_gfx.h>
 
 #ifdef ECHO_NDS
 	#include <nds.h>
