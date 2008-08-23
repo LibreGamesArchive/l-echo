@@ -5,11 +5,11 @@
 #define PI		3.141592f
 #define LATS		8
 #define ANGLE_INCR	PI / LATS
-#define RADIUS		0.3f
-#define HEIGHT		0.9f
-#define FRUST_HEIGHT	0.5f
-#define RAD_DIV_HEIGHT	0.333f
-#define CONE_INCR	0.05f
+#define RADIUS		0.15f
+#define HEIGHT		0.45f
+#define FRUST_HEIGHT	0.25f
+#define RAD_DIV_HEIGHT	RADIUS / HEIGHT
+#define CONE_INCR	0.01f
 
 #define floattov16(n)        ((short int)((n) * (1 << 12)))
 
@@ -106,6 +106,6 @@ void print_cone_pt_nds(float theta, float u)
 	printf("\t\tglVertex3v16(%i, %i, %i);\n"
 			, floattov16(RAD_DIV_HEIGHT * cos(theta) * (HEIGHT - u))
 			, floattov16(-u)
-			, floattov16(-RAD_DIV_HEIGHT * sin(theta) * (HEIGHT - u)));
+			, floattov16(RAD_DIV_HEIGHT * sin(theta) * (HEIGHT - u)));
 }
 

@@ -6,10 +6,10 @@
 #define LATS		8
 #define ANGLE_INCR	PI / LATS
 #define X_RADIUS	0.2f
-#define Y_RADIUS	0.4f
+#define Y_RADIUS	0.3f
 #define Z_RADIUS	0.15f
-#define TOP		PI * 0.2f
-#define BOTTOM		PI * 0.8f
+#define TOP		PI / 6
+#define BOTTOM		PI * 0.55f
 
 #define floattov16(n)        ((short int)((n) * (1 << 12)))
 
@@ -18,7 +18,7 @@ void print_sphere_pt_nds(float theta, float phi);
 
 int main()
 {
-	printf("void draw_body()\n{\n");
+	printf("void draw_lower_body()\n{\n");
 	printf("#ifndef ECHO_NDS\n");
 	float theta = 0;
 	while(theta <= PI * 2)

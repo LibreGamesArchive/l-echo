@@ -36,12 +36,18 @@ void draw_rectv16(v16 x1, v16 y1, v16 z1
 #endif
 void draw_head();
 void draw_body();
+void draw_lower_body();
+void draw_limb();
 void draw_hole(vector3f pos);
 void draw_launcher(vector3f pos);
 void draw_goal_gfx(vector3f pos, float goal_angle);
 void draw_character();
 void draw_stairs();
+void draw_left_hand();
+void draw_right_hand();
+void draw_foot();
 void draw_sphere_point1();
+void draw_sphere_pointzero75();
 
 void gfx_identity();
 void gfx_push_matrix();
