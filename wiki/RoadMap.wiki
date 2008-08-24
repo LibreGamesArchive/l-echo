@@ -7,8 +7,9 @@
 = Future Releases =
 
  *  0.3 - character model - likely to be hard coded
- *  0.3.1 - fix launch parabola - speed of the character and a more smooth transition between the character's arc to a platform and to...nowhere.
- *  0.3.2 - change the character's speed so the character walks at the same pace no matter, the distance of the grids; also, add running.
+ *  0.3.1 - (post-mortem) forgot to change the goals to be one of those shadow mannequins, started packing in reverse-engineered stages (oh, and I added the second solution to A1)
+ *  0.3.2 - fix launch parabola - speed of the character and a more smooth transition between the character's arc to a platform and to...nowhere.
+ *  0.3.3 - change the character's speed so the character walks at the same pace no matter, the distance of the grids; also, add running.
 
 
  *  0.4 - walking animation
