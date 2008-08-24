@@ -12,8 +12,8 @@ OBJFILES  := $(CPPFILES:.cpp=.OBJ) #$(WINFILES:.cpp=.OBJ)
 DOPFILES  := $(CPPFILES:.cpp=.DOP)
 DOIFILES  := $(CPPFILES:.cpp=.DOI)
 
-VERSION   := 0.2.8
-REVISION  := 55
+VERSION   := 0.3.1
+REVISION  := 61
 
 PKGCOMMON := -echo-$(VERSION)_r$(REVISION)
 PKGPREFIX := ../l$(PKGCOMMON)-
@@ -57,8 +57,8 @@ dbg: all
 	gdb ./l-echo
 
 package: all w32
-	zip -r $(PKGPREFIX)lin32.zip l-echo *.xml L_ECHO_README
-	zip -r $(PKGPREFIX)w32.zip l-echo.exe *.xml L_ECHO_README
+	zip -r $(PKGPREFIX)lin32.zip l-echo *.xml *.xml.real L_ECHO_README
+	zip -r $(PKGPREFIX)w32.zip l-echo.exe *.xml *.xml.real L_ECHO_README
 
 package-mac: macintel macppc
 	powerpc-apple-darwin8-lipo -create l-echo.macppc l-echo.macintel -output l-echo.mac
@@ -66,7 +66,7 @@ package-mac: macintel macppc
 	mkfs.hfsplus -v '$(DESC)' $(PKGPREFIX)osx.dmg
 	sudo mkdir -p /mnt/dmg
 	sudo mount -t hfsplus -o loop $(PKGPREFIX)osx.dmg /mnt/dmg
-	sudo cp -t /mnt/dmg l-echo.mac *.xml L_ECHO_README
+	sudo cp -t /mnt/dmg l-echo.mac *.xml *.xml.real L_ECHO_README
 	sudo umount /mnt/dmg
 	
 setup-nds:

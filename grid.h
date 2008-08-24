@@ -54,7 +54,7 @@ class grid
 		int n_neighbors;
 
 		int am_goal;
-		float goal_angle;
+		//int goal_angle;
 		int draw_me;
 		
 		TRIGGER_SET* triggers;

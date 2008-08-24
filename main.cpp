@@ -540,6 +540,10 @@ static void resize(int w, int h)
 	//can't have div by 0
 	if(h == 0)	h = 1;
 	
+	//clear accumulation buffer
+	glClearAccum(0, 0, 0, 1);
+	glClear(GL_ACCUM_BUFFER_BIT);
+	
 	//change our viewport (window)
 	glViewport(0, 0, w, h);
 	
@@ -867,6 +871,8 @@ static void display()
 	gfx_rotatef(-echo_ns::angle.x, 1, 0, 0);
 	gfx_rotatef(-echo_ns::angle.y, 0, 1, 0);
 	
+	//echo_ns::angle.dump();
+	
 	//draw the world
 	if(!menu_mode)
 		echo_ns::draw();
@@ -874,6 +880,7 @@ static void display()
 	//draw the menu
 	else
 	{
+		glColor3f(0, 0, 0);
 		draw_message_string(-2, 3, "L-Echo");
 		draw_string(-3, 0, "Please load a stage.");
 		draw_string(-6, -2, "Press L To Toggle Loader.");
@@ -882,8 +889,10 @@ static void display()
 		draw_string(-3, -3.5, "Rotate World.");
 		draw_string(-6, -4, "Press Esc To Quit.");
 	}
+	
 	//draw the loader
 	draw_loader();
+	
 	//display
 	glutSwapBuffers();
 	//for 30fps (need real fps mechanism here)
