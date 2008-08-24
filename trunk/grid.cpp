@@ -81,7 +81,7 @@ void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, int my_num_n
 {
 	//ECHO_PRINT("6: %i\n", is_generate_lines);
 	am_goal = 0;
-	goal_angle = 0;
+	//goal_angle = 0;
 	draw_me = 1;
 	if(triggers)
 		delete triggers;
@@ -242,18 +242,18 @@ void grid::draw_goal(vector3f angle)
 {
 	if(is_goal(angle))
 	{
-		draw_goal_gfx(get_info(angle)->pos, goal_angle);
+		draw_goal_gfx(get_info(angle)->pos);
+		/*
 		goal_angle += 5;
 		if(goal_angle == 360)
 			goal_angle = 0;
+		// */
 	}
 }
 
 int grid::is_pt_on(vector3f angle, vector3f pt)
 {
 	vector3f pos = get_info(angle)->pos;
-	//(pos - pt).dump();
-	//std::cout << std::endl;
 	return(ABS(pos.y - pt.y) < EPSILON && ABS(pos.x - pt.x) < HALF_GRID
 				&& ABS(pos.z - pt.z) < HALF_GRID);
 }

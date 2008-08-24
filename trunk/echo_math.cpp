@@ -17,13 +17,14 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <echo_platform.h>
 #include <echo_debug.h>
 #include <echo_error.h>
 #include <echo_math.h>
 //#include <iostream>
 #include <cmath>
 
-#ifdef ARM9
+#ifdef RECHO_NDS
 	#include <nds.h>
 	#include <nds/arm9/trig_lut.h>
 	
@@ -49,6 +50,9 @@
 	#define ECHO_SINI(deg) (ECHO_COSI(90 - (deg)))
 	#define ECHO_SINF(deg) (ECHO_SINI((int)(deg)))
 #endif
+
+float echo_sin(int deg){ return(ECHO_SINI(deg)); }
+float echo_cos(int deg){ return(ECHO_COSI(deg)); }
 
 vector3f::vector3f()
 {

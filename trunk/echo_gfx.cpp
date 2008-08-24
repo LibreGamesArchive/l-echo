@@ -31,6 +31,7 @@
 	#include <GL/glut.h>
 #endif
 
+#include <echo_math.h>
 #include <echo_debug.h>
 #include <echo_error.h>
 #include <grid.h>
@@ -162,114 +163,104 @@ void draw_rectv16(v16 x1, v16 y1, v16 z1
 }
 #endif
 
-void draw_goal_gfx(vector3f pos, float goal_angle)
+void draw_goal_gfx(vector3f pos)
 {
-#ifndef ARM9
+#ifndef ECHO_NDS
 	if(!drawing_outline)
 #endif
 	{
-		gfx_color3f(0.25f, 0.25f, 0.25f);
 		glPushMatrix();
-		glTranslatef(pos.x, pos.y + 0.5f, pos.z);
-		glRotatef(goal_angle, 0, 1, 0);
-#ifdef ARM9
-		glBegin(GL_QUADS);
-		glVertex3f(0, HALF_GRID, 0);
-		glVertex3f(HALF_GRID, 0, 0);
-		glVertex3f(0, -HALF_GRID, 0);
-		glVertex3f(-HALF_GRID, 0, 0);
-		glEnd();
-#else
-		glutSolidTorus(0.05f, 0.4f, 8, 8);
-#endif
+		glColor3f(0, 0, 0);
+		glTranslatef(pos.x, pos.y, pos.z);
+		draw_character();
 		POP_MATRIX;
 	}
 }
 
 void draw_character()
 {
-	gfx_push_matrix();
-	gfx_translatef(0, 1.875f, 0);
+	glPushMatrix();
+	glTranslatef(0, 1.875f, 0);
 		draw_body();
 		/*
-		gfx_push_matrix();
-			gfx_translatef(0, 0, 0.2f);
+		glPushMatrix();
+			glTranslatef(0, 0, 0.2f);
 			draw_sphere_pointzero75();
-		gfx_pop_matrix();
+		POP_MATRIX;
 		// */
-		gfx_push_matrix();
-			gfx_translatef(0, 0.3f, 0);
+		glPushMatrix();
+			glTranslatef(0, 0.3f, 0);
 			draw_sphere_pointzero75();
-			gfx_translatef(0, 0.3f, 0);
+			glTranslatef(0, 0.3f, 0);
 			draw_head();
-		gfx_pop_matrix();
-		gfx_push_matrix();	//left hand
-			gfx_translatef(0.2f, 0.2f, 0);
+		POP_MATRIX;
+		glPushMatrix();	//left hand
+			glTranslatef(0.2f, 0.2f, 0);
 			draw_sphere_pointzero75();
 			gfx_rotatef(12, 0, 0, 1);
-			gfx_translatef(0, -0.05f, 0);
+			glTranslatef(0, -0.05f, 0);
 			draw_limb();
-			gfx_translatef(0, -0.45f, 0);
+			glTranslatef(0, -0.45f, 0);
 			draw_sphere_pointzero75();
 			gfx_rotatef(-12, 0, 0, 1);
-			gfx_translatef(0, -0.05f, 0);
+			glTranslatef(0, -0.05f, 0);
 			draw_limb();
-			gfx_translatef(0, -0.45f, 0);
+			glTranslatef(0, -0.45f, 0);
 			draw_sphere_pointzero75();
-			gfx_translatef(-0.03f, -0.06f, 0);
+			glTranslatef(-0.03f, -0.06f, 0);
 			draw_left_hand();
-		gfx_pop_matrix();
-		gfx_push_matrix();	//right hand
-			gfx_translatef(-0.2f, 0.2f, 0);
+		POP_MATRIX;
+		glPushMatrix();	//right hand
+			glTranslatef(-0.2f, 0.2f, 0);
 			draw_sphere_pointzero75();
 			gfx_rotatef(-12, 0, 0, 1);
-			gfx_translatef(0, -0.05f, 0);
+			glTranslatef(0, -0.05f, 0);
 			draw_limb();
-			gfx_translatef(0, -0.45f, 0);
+			glTranslatef(0, -0.45f, 0);
 			draw_sphere_pointzero75();
 			gfx_rotatef(12, 0, 0, 1);
-			gfx_translatef(0, -0.05f, 0);
+			glTranslatef(0, -0.05f, 0);
 			draw_limb();
-			gfx_translatef(0, -0.45f, 0);
+			glTranslatef(0, -0.45f, 0);
 			draw_sphere_pointzero75();
-			gfx_translatef(0.03f, -0.06f, 0);
+			glTranslatef(0.03f, -0.06f, 0);
 			draw_right_hand();
-		gfx_pop_matrix();
-		gfx_push_matrix();	//left leg
-			gfx_translatef(0.1f, -0.7f, 0);
+		POP_MATRIX;
+		glPushMatrix();	//left leg
+			glTranslatef(0.1f, -0.7f, 0);
 			draw_sphere_pointzero75();
-			gfx_translatef(0, -0.05f, 0);
+			glTranslatef(0, -0.05f, 0);
 			draw_limb();
-			gfx_translatef(0, -0.45f, 0);
+			glTranslatef(0, -0.45f, 0);
 			draw_sphere_pointzero75();
-			gfx_translatef(0, -0.05f, 0);
+			glTranslatef(0, -0.05f, 0);
 			draw_limb();
-			gfx_translatef(0, -0.45f, 0);
+			glTranslatef(0, -0.45f, 0);
 			draw_sphere_pointzero75();
-			gfx_translatef(0.01f, -0.15f, -0.075f);
+			glTranslatef(0.01f, -0.15f, -0.075f);
 			draw_foot();
-		gfx_pop_matrix();
-		gfx_push_matrix();	//right leg
-			gfx_translatef(-0.1f, -0.7f, 0);
+		POP_MATRIX;
+		glPushMatrix();	//right leg
+			glTranslatef(-0.1f, -0.7f, 0);
 			draw_sphere_pointzero75();
-			gfx_translatef(0, -0.05f, 0);
+			glTranslatef(0, -0.05f, 0);
 			draw_limb();
-			gfx_translatef(0, -0.45f, 0);
+			glTranslatef(0, -0.45f, 0);
 			draw_sphere_pointzero75();
-			gfx_translatef(0, -0.05f, 0);
+			glTranslatef(0, -0.05f, 0);
 			draw_limb();
-			gfx_translatef(0, -0.45f, 0);
+			glTranslatef(0, -0.45f, 0);
 			draw_sphere_pointzero75();
-			gfx_translatef(-0.01f, -0.15f, -0.075f);
+			glTranslatef(-0.01f, -0.15f, -0.075f);
 			draw_foot();
-		gfx_pop_matrix();
-		gfx_push_matrix();
-			gfx_translatef(0, -0.32f, 0);
+		POP_MATRIX;
+		glPushMatrix();
+			glTranslatef(0, -0.32f, 0);
 			draw_sphere_point1();
-			gfx_translatef(0, -0.32f, 0);
+			glTranslatef(0, -0.32f, 0);
 			draw_lower_body();
-		gfx_pop_matrix();
-	gfx_pop_matrix();
+		POP_MATRIX;
+	POP_MATRIX;
 }
 
 void gfx_rotatef(float angle, float x, float y, float z)
@@ -342,7 +333,6 @@ void gfx_outline_start()
 	glClear( GL_STENCIL_BUFFER_BIT );
 	glEnable( GL_STENCIL_TEST );
 	// Set the stencil buffer to write a 1 in every time
-	
 	// a pixel is written to the screen
 	
 	glStencilFunc( GL_ALWAYS, 1, 0xFFFF );
@@ -367,9 +357,7 @@ void gfx_outline_mid()
 #else
 	//Method 2
 	// Set the stencil buffer to only allow writing
-	
 	// to the screen when the value of the
-	
 	// stencil buffer is not 1
 	
 	glStencilFunc( GL_NOTEQUAL, 1, 0xFFFF );
@@ -384,7 +372,6 @@ void gfx_outline_mid()
 void gfx_outline_end()
 {
 	// Pop the state changes off the attribute stack
-	
 	// to set things back how they were
 	
 	glPopAttrib();

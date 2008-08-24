@@ -21,6 +21,7 @@
 #include <iostream>
 #include <set>
 
+#include <echo_platform.h>
 #include <echo_error.h>
 #include <echo_character.h>
 #include <echo_math.h>
@@ -89,9 +90,17 @@ namespace echo_ns
 					grid_info_t* info = g->get_info(echo_ns::angle);
 					if(info)
 					{
-						gfx_color3f(null_char_opacity, null_char_opacity, null_char_opacity);
 						gfx_translatef(info->pos.x, info->pos.y, info->pos.z);
+#ifndef ECHO_NDS
+						gfx_outline_start();
 						draw_character();
+						gfx_outline_mid();
+#endif
+						gfx_color3f(null_char_opacity, null_char_opacity, null_char_opacity);
+						draw_character();
+#ifndef ECHO_NDS
+						gfx_outline_end();
+#endif
 						if(opacity_incr)
 						{
 							null_char_opacity += 0.05f;

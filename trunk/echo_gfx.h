@@ -40,7 +40,7 @@ void draw_lower_body();
 void draw_limb();
 void draw_hole(vector3f pos);
 void draw_launcher(vector3f pos);
-void draw_goal_gfx(vector3f pos, float goal_angle);
+void draw_goal_gfx(vector3f pos);
 void draw_character();
 void draw_stairs();
 void draw_left_hand();
