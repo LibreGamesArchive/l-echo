@@ -50,8 +50,13 @@ namespace echo_ns
 	int num_goals();
 	int num_goals_reached();
 	int goals_left();
+	float get_speed();
 	
-	//void add_map(CAM_GRID_MAP* map);
+	//change speed to running if we can
+	void start_run();
+	//change speed to walking if we can
+	void start_step();
+	
 	void add_static_grid(static_grid* sg);
 	void remove_static_grid(static_grid* sg);
 };

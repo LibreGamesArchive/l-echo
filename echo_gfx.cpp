@@ -179,16 +179,16 @@ void draw_goal_gfx(vector3f pos)
 
 void draw_character()
 {
+#ifdef LAB
 	glPushMatrix();
 	glTranslatef(0, 1.875f, 0);
 		draw_body();
-		/*
-		glPushMatrix();
-			glTranslatef(0, 0, 0.2f);
-			draw_sphere_pointzero75();
-		POP_MATRIX;
-		// */
-		glPushMatrix();
+	POP_MATRIX;
+#else
+	glPushMatrix();
+	glTranslatef(0, 1.875f, 0);
+		draw_body();
+		glPushMatrix();	//neck, head
 			glTranslatef(0, 0.3f, 0);
 			draw_sphere_pointzero75();
 			glTranslatef(0, 0.3f, 0);
@@ -254,13 +254,14 @@ void draw_character()
 			glTranslatef(-0.01f, -0.15f, -0.075f);
 			draw_foot();
 		POP_MATRIX;
-		glPushMatrix();
+		glPushMatrix();	//waist, lower body
 			glTranslatef(0, -0.32f, 0);
 			draw_sphere_point1();
 			glTranslatef(0, -0.32f, 0);
 			draw_lower_body();
 		POP_MATRIX;
 	POP_MATRIX;
+#endif
 }
 
 void gfx_rotatef(float angle, float x, float y, float z)

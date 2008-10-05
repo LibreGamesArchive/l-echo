@@ -36,6 +36,12 @@ class echo_char
 		int paused;
 		//the number of goals reached
 		int num_goals;
+#ifdef HAS_ACCEL
+		//is accelerating down
+		int is_accel;
+#endif
+		//is running
+		int is_running;
 		/*
 			grid1per is the weight of the first grid
 			grid2per is the weight of the second grid
@@ -47,7 +53,7 @@ class echo_char
 			
 			weight +=/-= (speed / dist) each step;
 		*/
-		float grid1per, grid2per, startper, speed, dist;
+		float grid1per, grid2per, startper, speed, dist, act_speed;
 	
 	public:
 		//default constructor
@@ -68,12 +74,18 @@ class echo_char
 		//check the type of the grids, and change the speed of the character accordingly
 		void change_speed();
 		
+		//change speed to running if we can
+		void start_run();
+		//change speed to walking if we can
+		void start_step();
+		
 		//pause or unpause
 		void toggle_pause();
 		//is this character paused?
 		int is_paused();
 		//number of goals/echoes reached
 		int num_goals_reached();
+		float get_speed();
 		
 		void draw(vector3f vec);
 		void draw(float x, float y, float z);

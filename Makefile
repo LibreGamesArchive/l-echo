@@ -1,19 +1,18 @@
 CXXFLAGS = -I./ -DSTRICT_MEM -DDEBUG -DTIXML_USE_STL -g3 -Wall
+#ifeq( $() )
+#endif
 TINYXML_USE_STL := YES
 
 CPPFILES  := $(wildcard *.cpp) $(wildcard tinyxml/*.cpp) $(wildcard ext/*.cpp)
 
-#LINFILES  := $(wildcard lin/*.cpp)
-OFILES    := $(CPPFILES:.cpp=.o) #$(LINFILES:.cpp=.o)
+OFILES    := $(CPPFILES:.cpp=.o)
+OBJFILES  := $(CPPFILES:.cpp=.OBJ)
+#DOPFILES  := $(CPPFILES:.cpp=.DOP)
+#DOIFILES  := $(CPPFILES:.cpp=.DOI)
+DOFILES   := $(CPPFILES:.cpp=.DO)
 
-#WINFILES  := $(wildcard win/*.cpp)
-OBJFILES  := $(CPPFILES:.cpp=.OBJ) #$(WINFILES:.cpp=.OBJ)
-
-DOPFILES  := $(CPPFILES:.cpp=.DOP)
-DOIFILES  := $(CPPFILES:.cpp=.DOI)
-
-VERSION   := 0.3.1
-REVISION  := 61
+VERSION   := 0.3.3
+REVISION  := 62
 
 PKGCOMMON := -echo-$(VERSION)_r$(REVISION)
 PKGPREFIX := ../l$(PKGCOMMON)-
@@ -25,29 +24,39 @@ UPLOAD := python googlecode_upload.py -p 'l-echo' -s
 all: $(OFILES)
 	gcc tinyxml/*.o *.o -DTIXML_USE_STL -lGL -lGLU -lglut -lpthread -g3 -Wall -o l-echo
 
+#lab: CXXFLAGS += -DLAB
+lab: $(OFILES)
+	gcc tinyxml/*.o *.o -DTIXML_USE_STL /usr/lib/libGLU.so.1 /usr/lib/libGL.so.1.2 libglut.so.3 -lpthread -g3 -Wall -o l-echo
+
 %.OBJ: %.cpp
 	i586-mingw32msvc-g++ $(CXXFLAGS) -c -o $@ $<
 
 w32: $(OBJFILES)
 	i586-mingw32msvc-g++ *.OBJ tinyxml/*.OBJ glut32.lib -lGL -lGLU -g3 -Wall -o l-echo.exe
 
-%.DOP: %.cpp #DOP stands for "Darwin Object (PowerPC)"
-	powerpc-apple-darwin8-g++ $(CXXFLAGS) -c -o $@ $<
+%.DO: %.cpp
+	powerpc-apple-darwin8-g++ -arch i386 -arch ppc  $(CXXFLAGS) -c -o $@ $<
 
-%.DOI: %.cpp #DOP stands for "Darwin Object (Intel)"
-	i686-apple-darwin8-g++ $(CXXFLAGS) -c -o $@ $<
+mac: $(DOFILES)
+	powerpc-apple-darwin8-g++ -arch i386 -arch ppc  *.DO tinyxml/*.DO -framework OpenGL -framework GLUT -g3 -Wall -o l-echo-mac
 
-macppc: $(DOPFILES)
-	powerpc-apple-darwin8-g++ *.DOP tinyxml/*.DOP -framework OpenGL -framework GLUT -g3 -Wall -o l-echo.macppc
+#%.DOP: %.cpp #DOP stands for "Darwin Object (PowerPC)"
+#	powerpc-apple-darwin8-g++ $(CXXFLAGS) -c -o $@ $<
 
-macintel: $(DOIFILES)
-	i686-apple-darwin8-g++ *.DOI tinyxml/*.DOI -framework OpenGL -framework GLUT -g3 -Wall -o l-echo.macintel
+#%.DOI: %.cpp #DOP stands for "Darwin Object (Intel)"
+#	i686-apple-darwin8-g++ $(CXXFLAGS) -c -o $@ $<
+
+#macppc: $(DOPFILES)
+#	powerpc-apple-darwin8-g++ *.DOP tinyxml/*.DOP -framework OpenGL -framework GLUT -g3 -Wall -o l-echo-macppc
+
+#macintel: $(DOIFILES)
+#	i686-apple-darwin8-g++ *.DOI tinyxml/*.DOI -framework OpenGL -framework GLUT -g3 -Wall -o l-echo-macintel
 
 clean:
-	rm *.o *.OBJ l-echo.exe l-echo l-echo.mac* *.DOP *.DOI *~ || echo
+	rm *.o *.OBJ l-echo.exe l-echo l-echo.mac* *.DO *~ || echo
 
 clean-all: clean
-	rm tinyxml/*.o tinyxml/*.OBJ tinyxml/*.DOP tinyxml/*.DOI || echo
+	rm tinyxml/*.o tinyxml/*.OBJ tinyxml/*.DO || echo
 	rm -rf n-echo || echo
 
 run: all
@@ -60,13 +69,14 @@ package: all w32
 	zip -r $(PKGPREFIX)lin32.zip l-echo *.xml *.xml.real L_ECHO_README
 	zip -r $(PKGPREFIX)w32.zip l-echo.exe *.xml *.xml.real L_ECHO_README
 
-package-mac: macintel macppc
-	powerpc-apple-darwin8-lipo -create l-echo.macppc l-echo.macintel -output l-echo.mac
+package-mac: mac
+#macintel macppc
+#	powerpc-apple-darwin8-lipo -create l-echo-macppc l-echo-macintel -output l-echo-mac
 	dd if=/dev/zero of=$(PKGPREFIX)osx.dmg bs=1M count=5
 	mkfs.hfsplus -v '$(DESC)' $(PKGPREFIX)osx.dmg
 	sudo mkdir -p /mnt/dmg
 	sudo mount -t hfsplus -o loop $(PKGPREFIX)osx.dmg /mnt/dmg
-	sudo cp -t /mnt/dmg l-echo.mac *.xml *.xml.real L_ECHO_README
+	sudo cp -t /mnt/dmg l-echo-mac *.xml *.xml.real L_ECHO_README
 	sudo umount /mnt/dmg
 	
 setup-nds:
@@ -89,5 +99,5 @@ upload-nds: nds
 	$(UPLOAD) 'N-Echo .nds, .ds.gba + xml stages - $(VERSION) (revision $(REVISION))' $(NPKG)
 
 count:
-	wc -l *.cpp *.h lin/*.cpp win/*.cpp
+	wc -l *.cpp *.h
 
