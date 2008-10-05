@@ -53,7 +53,7 @@ mac: $(DOFILES)
 #	i686-apple-darwin8-g++ *.DOI tinyxml/*.DOI -framework OpenGL -framework GLUT -g3 -Wall -o l-echo-macintel
 
 clean:
-	rm *.o *.OBJ l-echo.exe l-echo l-echo.mac* *.DO *~ || echo
+	rm *.o *.OBJ l-echo.exe l-echo l-echo-mac *.DO *~ || echo
 
 clean-all: clean
 	rm tinyxml/*.o tinyxml/*.OBJ tinyxml/*.DO || echo
