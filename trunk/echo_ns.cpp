@@ -151,6 +151,20 @@ namespace echo_ns
 	{
 		return(current_stage->get_num_goals() - num_goals_reached());
 	}
+	float get_speed()
+	{
+		return(main_char->get_speed());
+	}
+	//change speed to running if we can
+	void start_run()
+	{
+		main_char->start_run();
+	}
+	//change speed to walking if we can
+	void start_step()
+	{
+		main_char->start_step();
+	}
 	
 	void add_static_grid(static_grid* sg)
 	{

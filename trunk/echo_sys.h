@@ -19,6 +19,8 @@
 
 //void echo_sleep(int millis);
 
+#define FPS	60
+
 #ifndef ARM9
 	#ifdef WIN32
 		#include <windows.h>
