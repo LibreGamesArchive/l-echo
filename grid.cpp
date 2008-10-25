@@ -21,6 +21,7 @@
 #include <iostream>
 
 #include <echo_debug.h>
+#include <echo_platform.h>
 #include <echo_error.h>
 #include <echo_gfx.h>
 #include <trigger.h>
@@ -258,7 +259,11 @@ int grid::is_pt_on(vector3f angle, vector3f pt)
 				&& ABS(pos.z - pt.z) < HALF_GRID);
 }
 
-#ifdef ARM9
+float grid::vert_shift(float percent_in)
+{
+	return(0.1f * echo_cos(60 - 60 * percent_in) - 0.15f);
+}
+#ifdef ECHO_NDS
 unsigned int grid::get_polyID(vector3f angle)
 {
 	return(polyID);

@@ -1,4 +1,4 @@
-// echo_error.h
+// echo_char_joints.cpp
 
 /*
     This file is part of L-Echo.
@@ -17,24 +17,16 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <cstdlib>
-#include <iostream>
+#include <echo_char_joints.h>
+#include <echo_debug.h>
+#include <echo_error.h>
 
-#define	WIN		0
-#define FAIL	-1
-
-void lderr(const char* msg);
-void ldmemerr();
-void lderr(const char* msg1, const char* msg2);
-void ldwarn(const char* msg);
-
-//GENeral MEMory ERRor
-void genmemerr();
-
-#ifdef STRICT_MEM
-	#define CHKPTR(ptr) 	if(!(ptr)) genmemerr();
-	#define LD_CHKPTR(ptr)	if(!(ptr)) ldmemerr();
-#else
-	#define CHKPTR(ptr)
-	#define LD_CHKPTR(ptr)
-#endif
+int reset_joints(echo_char_joints* joints)
+{
+	if(!joints)
+		return(FAIL);
+	for(int each = 0; each < NUM_VALUES; each++)
+		joints->value[each] = 0;
+	//joints->waist_turn = 60;
+	return(WIN);
+}

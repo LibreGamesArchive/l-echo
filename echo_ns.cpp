@@ -93,11 +93,11 @@ namespace echo_ns
 						gfx_translatef(info->pos.x, info->pos.y, info->pos.z);
 #ifndef ECHO_NDS
 						gfx_outline_start();
-						draw_character();
+						draw_character(NULL);
 						gfx_outline_mid();
 #endif
 						gfx_color3f(null_char_opacity, null_char_opacity, null_char_opacity);
-						draw_character();
+						draw_character(NULL);
 #ifndef ECHO_NDS
 						gfx_outline_end();
 #endif

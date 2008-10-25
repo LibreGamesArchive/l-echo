@@ -21,6 +21,7 @@
 #include <filter.h>
 #include <trigger.h>
 #include <echo_math.h>
+#include <echo_platform.h>
 
 #define GRID_SIZE	1
 #define HALF_GRID	0.5f
@@ -61,7 +62,7 @@ class grid
 		
 		vector3f** points;
 		
-#ifdef ARM9
+#ifdef ECHO_NDS
 		unsigned int polyID;
 #endif
 	public:
@@ -102,10 +103,12 @@ class grid
 		virtual void draw(vector3f angle);
 
 		virtual int is_pt_on(vector3f angle, vector3f pt);
+		
+		virtual float vert_shift(float percent_in);
 
 		void draw_goal(vector3f angle);
 
-#ifdef ARM9
+#ifdef ECHO_NDS
 		virtual unsigned int get_polyID(vector3f angle);
 		void set_polyID(unsigned int my_polyID);
 #endif

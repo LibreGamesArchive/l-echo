@@ -26,6 +26,7 @@
 	#else
 		#include <cstdio>
 		
+		//#warning "lol"
 		#define ECHO_PRINT printf
 	#endif
 
