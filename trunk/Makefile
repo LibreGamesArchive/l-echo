@@ -3,6 +3,9 @@ CXXFLAGS = -I./ -DSTRICT_MEM -DDEBUG -DTIXML_USE_STL -g3 -Wall
 #endif
 TINYXML_USE_STL := YES
 
+DEVELOPER_SDK_DIR := /opt/mac/SDKs
+
+CFLAGS := -isysroot /opt/mac/SDKs/MacOSX10.5.sdk
 CPPFILES  := $(wildcard *.cpp) $(wildcard tinyxml/*.cpp) $(wildcard ext/*.cpp)
 
 OFILES    := $(CPPFILES:.cpp=.o)
@@ -34,8 +37,9 @@ lab: $(OFILES)
 w32: $(OBJFILES)
 	i586-mingw32msvc-g++ *.OBJ tinyxml/*.OBJ glut32.lib -lGL -lGLU -g3 -Wall -o l-echo.exe
 
+%.DO: CXXFLAGS += -isysroot /opt/mac/SDKs/MacOSX10.5.sdk -I/opt/mac/SDKs/MacOSX10.5.sdk/usr/include  
 %.DO: %.cpp
-	powerpc-apple-darwin8-g++ -arch i386 -arch ppc  $(CXXFLAGS) -c -o $@ $<
+	powerpc-apple-darwin8-g++ -arch i386 -arch ppc $(CXXFLAGS) -c -o $@ $<
 
 mac: $(DOFILES)
 	powerpc-apple-darwin8-g++ -arch i386 -arch ppc  *.DO tinyxml/*.DO -framework OpenGL -framework GLUT -g3 -Wall -o l-echo-mac

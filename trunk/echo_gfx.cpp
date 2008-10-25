@@ -33,6 +33,7 @@
 
 #include <echo_math.h>
 #include <echo_debug.h>
+#include <echo_char_joints.h>
 #include <echo_error.h>
 #include <grid.h>
 #include <echo_gfx.h>
@@ -172,13 +173,24 @@ void draw_goal_gfx(vector3f pos)
 		glPushMatrix();
 		glColor3f(0, 0, 0);
 		glTranslatef(pos.x, pos.y, pos.z);
-		draw_character();
+		draw_character(NULL);
 		POP_MATRIX;
 	}
 }
 
-void draw_character()
+void draw_character(echo_char_joints* joints)
 {
+	if(joints == NULL)
+	{
+		static echo_char_joints* null_joints = NULL;
+		if(null_joints == NULL)
+		{
+			null_joints = new(echo_char_joints);
+			CHKPTR(null_joints);
+			reset_joints(null_joints);
+		}
+		joints = null_joints;
+	}
 #ifdef LAB
 	glPushMatrix();
 	glTranslatef(0, 1.875f, 0);
@@ -191,74 +203,99 @@ void draw_character()
 		glPushMatrix();	//neck, head
 			glTranslatef(0, 0.3f, 0);
 			draw_sphere_pointzero75();
+			gfx_rotatef(joints->head_x, 1, 0, 0);
+			gfx_rotatef(joints->head_y, 0, 1, 0);
+			gfx_rotatef(joints->head_z, 0, 0, 1);
 			glTranslatef(0, 0.3f, 0);
 			draw_head();
 		POP_MATRIX;
 		glPushMatrix();	//left hand
 			glTranslatef(0.2f, 0.2f, 0);
 			draw_sphere_pointzero75();
-			gfx_rotatef(12, 0, 0, 1);
+			gfx_rotatef(joints->lshoulder_x, 1, 0, 0);
+			gfx_rotatef(joints->lshoulder_y, 0, 1, 0);
+			gfx_rotatef(12 + joints->lshoulder_z, 0, 0, 1);
 			glTranslatef(0, -0.05f, 0);
 			draw_limb();
 			glTranslatef(0, -0.45f, 0);
 			draw_sphere_pointzero75();
+			gfx_rotatef(joints->larm_x, 1, 0, 0);
+			gfx_rotatef(joints->larm_y, 0, 1, 0);
 			gfx_rotatef(-12, 0, 0, 1);
 			glTranslatef(0, -0.05f, 0);
 			draw_limb();
 			glTranslatef(0, -0.45f, 0);
 			draw_sphere_pointzero75();
+			gfx_rotatef(joints->lhand_x, 1, 0, 0);
 			glTranslatef(-0.03f, -0.06f, 0);
 			draw_left_hand();
 		POP_MATRIX;
 		glPushMatrix();	//right hand
 			glTranslatef(-0.2f, 0.2f, 0);
 			draw_sphere_pointzero75();
-			gfx_rotatef(-12, 0, 0, 1);
+			gfx_rotatef(joints->rshoulder_x, 1, 0, 0);
+			gfx_rotatef(joints->rshoulder_y, 0, 1, 0);
+			gfx_rotatef(-12 + joints->rshoulder_z, 0, 0, 1);
 			glTranslatef(0, -0.05f, 0);
 			draw_limb();
 			glTranslatef(0, -0.45f, 0);
 			draw_sphere_pointzero75();
+			gfx_rotatef(joints->rarm_x, 1, 0, 0);
+			gfx_rotatef(joints->rarm_y, 0, 1, 0);
 			gfx_rotatef(12, 0, 0, 1);
 			glTranslatef(0, -0.05f, 0);
 			draw_limb();
 			glTranslatef(0, -0.45f, 0);
 			draw_sphere_pointzero75();
+			gfx_rotatef(joints->rhand_x, 1, 0, 0);
 			glTranslatef(0.03f, -0.06f, 0);
 			draw_right_hand();
-		POP_MATRIX;
-		glPushMatrix();	//left leg
-			glTranslatef(0.1f, -0.7f, 0);
-			draw_sphere_pointzero75();
-			glTranslatef(0, -0.05f, 0);
-			draw_limb();
-			glTranslatef(0, -0.45f, 0);
-			draw_sphere_pointzero75();
-			glTranslatef(0, -0.05f, 0);
-			draw_limb();
-			glTranslatef(0, -0.45f, 0);
-			draw_sphere_pointzero75();
-			glTranslatef(0.01f, -0.15f, -0.075f);
-			draw_foot();
-		POP_MATRIX;
-		glPushMatrix();	//right leg
-			glTranslatef(-0.1f, -0.7f, 0);
-			draw_sphere_pointzero75();
-			glTranslatef(0, -0.05f, 0);
-			draw_limb();
-			glTranslatef(0, -0.45f, 0);
-			draw_sphere_pointzero75();
-			glTranslatef(0, -0.05f, 0);
-			draw_limb();
-			glTranslatef(0, -0.45f, 0);
-			draw_sphere_pointzero75();
-			glTranslatef(-0.01f, -0.15f, -0.075f);
-			draw_foot();
 		POP_MATRIX;
 		glPushMatrix();	//waist, lower body
 			glTranslatef(0, -0.32f, 0);
 			draw_sphere_point1();
+			gfx_rotatef(joints->waist_y, 0, 1, 0);
+			gfx_rotatef(joints->waist_z, 0, 0, 1);
 			glTranslatef(0, -0.32f, 0);
 			draw_lower_body();
+			glPushMatrix();	//left leg
+				glTranslatef(0.1f, -0.06f, 0);
+				draw_sphere_pointzero75();
+				gfx_rotatef(joints->lthigh_x, 1, 0, 0);
+				gfx_rotatef(joints->lthigh_y, 0, 1, 0);
+				gfx_rotatef(joints->lthigh_z, 0, 0, 1);
+				glTranslatef(0, -0.05f, 0);
+				draw_limb();
+				glTranslatef(0, -0.45f, 0);
+				draw_sphere_pointzero75();
+				gfx_rotatef(joints->lleg_x, 1, 0, 0);
+				glTranslatef(0, -0.05f, 0);
+				draw_limb();
+				glTranslatef(0, -0.45f, 0);
+				draw_sphere_pointzero75();
+				gfx_rotatef(joints->lfoot_x, 1, 0, 0);
+				glTranslatef(0.01f, -0.15f, -0.075f);
+				draw_foot();
+			POP_MATRIX;
+			glPushMatrix();	//right leg
+				glTranslatef(-0.1f, -0.06f, 0);
+				draw_sphere_pointzero75();
+				gfx_rotatef(joints->rthigh_x, 1, 0, 0);
+				gfx_rotatef(joints->rthigh_y, 0, 1, 0);
+				gfx_rotatef(joints->rthigh_z, 0, 0, 1);
+				glTranslatef(0, -0.05f, 0);
+				draw_limb();
+				glTranslatef(0, -0.45f, 0);
+				draw_sphere_pointzero75();
+				gfx_rotatef(joints->rleg_x, 1, 0, 0);
+				glTranslatef(0, -0.05f, 0);
+				draw_limb();
+				glTranslatef(0, -0.45f, 0);
+				draw_sphere_pointzero75();
+				gfx_rotatef(joints->rfoot_x, 1, 0, 0);
+				glTranslatef(-0.01f, -0.15f, -0.075f);
+				draw_foot();
+			POP_MATRIX;
 		POP_MATRIX;
 	POP_MATRIX;
 #endif

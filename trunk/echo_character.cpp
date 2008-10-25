@@ -21,6 +21,7 @@
 #include <iostream>
 #include <typeinfo>
 #include <cmath>
+#include <cfloat>
 
 #include <echo_platform.h>
 #include <echo_sys.h>
@@ -29,6 +30,7 @@
 #include <echo_math.h>
 #include <echo_ns.h>
 #include <echo_character.h>
+#include <echo_char_joints.h>
 
 #include <launcher.h>
 #include <grid.h>
@@ -55,7 +57,7 @@
 	#define SPEED_FALL_FROM_SKY	0.15f
 #else
 	//various character speeds
-	#define SPEED_STEP 		0.08f
+	#define SPEED_STEP 		0.12f
 	#define SPEED_RUN		0.25f
 	#define SPEED_FALL 		0.50f
 	#define SPEED_LAUNCH		0.30f
@@ -145,6 +147,9 @@ void echo_char::init(grid * g1)
 	start = grid1 = g1;
 	grid2 = g1 ? grid1->get_next(echo_ns::angle, grid1) : NULL;
 	
+	dist_traveled = 0;
+	dist_traveled_cyclic = 0;
+	
 	paused = 0;
 	grid1per = 1;
 	grid2per = 0;
@@ -157,6 +162,7 @@ void echo_char::init(grid * g1)
 #ifdef HAS_ACCEL
 	is_accel = NO_FALL;
 #endif
+	reset_joints(&joints);
 	change_speed();
 }
 
@@ -247,9 +253,25 @@ void echo_char::step()
 						vector3f pos2 = i2->pos;
 						if(!paused)
 						{
+							dist_traveled += speed;
+							dist_traveled_cyclic += speed * 180;
+							if(dist_traveled_cyclic > 720)
+							{
+								dist_traveled -= 4;	
+								dist_traveled_cyclic -= 720;	
+							}
 							dist = pos1.dist(pos2);
-							grid1per -= speed / dist;	//step thru it
-							grid2per += speed / dist;
+							if((dist_traveled > 0.5f && dist_traveled <= 1)
+								|| (dist_traveled > 2.5f && dist_traveled <= 3))
+							{
+								grid1per -= (1 + 0.75f * echo_cos(360 * dist_traveled)) * speed / dist;	//step thru it
+								grid2per += (1 + 0.75f * echo_cos(360 * dist_traveled)) * speed / dist;
+							}
+							else
+							{
+								grid1per -= speed / dist;	//step thru it
+								grid2per += speed / dist;
+							}
 #ifdef HAS_ACCEL
 							if(is_accel == FALL_FROM_HOLE)
 								speed += ACCEL;
@@ -269,10 +291,6 @@ void echo_char::step()
 									if(i2)
 									{
 										vector3f pos2 = i2->pos;
-										draw(pos1.x * grid1per + pos2.x * grid2per,
-											pos1.y * grid1per + pos2.y * grid2per,
-											pos1.z * grid1per + pos2.z * grid2per);
-										return;
 									}
 								}
 							}
@@ -309,6 +327,43 @@ void echo_char::draw(float x, float y, float z)
 	//*
 	gfx_push_matrix();
 	gfx_translatef(x, y, z);
+	float main_per = 0;
+	grid* main_grid = NULL;
+	if(grid1 && grid1per >= 0.5f)
+	{
+		main_per = grid1per;
+		main_grid = grid1;
+	}
+	else if(grid2 && grid2per >= 0.5f)
+	{
+		main_per = grid2per;
+		main_grid = grid2;
+	}
+	if(main_grid)
+	{
+		gfx_translatef(0, grid2->vert_shift(main_per), 0);
+		joints.rshoulder_swing = -20 * echo_cos(dist_traveled_cyclic / 2);
+		joints.lshoulder_swing = 20 * echo_cos(dist_traveled_cyclic / 2);
+		joints.rarm_bend = -10 * echo_cos(dist_traveled_cyclic / 2) - 20;
+		joints.larm_bend = 10 * echo_cos(dist_traveled_cyclic / 2) - 20;
+		joints.rthigh_lift = -45 * echo_cos(dist_traveled_cyclic / 2);
+		joints.lthigh_lift = 45 * echo_cos(dist_traveled_cyclic / 2);
+		
+		#define LEG_BEND_MAX	30
+		
+		if(dist_traveled > 1 && dist_traveled <= 1.5f)
+			joints.rleg_bend = LEG_BEND_MAX * echo_cos(dist_traveled * 180 + 180);
+		else if(dist_traveled > 3.0f || dist_traveled <= 1)
+			joints.rleg_bend = LEG_BEND_MAX * echo_sin(dist_traveled * 45);
+		else
+			joints.rleg_bend = 0; 
+		if(dist_traveled > 3 && dist_traveled <= 3.5f)
+			joints.lleg_bend = LEG_BEND_MAX * echo_cos(dist_traveled * 180 + 180);
+		else if(dist_traveled > 1.0f && dist_traveled <= 3)
+			joints.lleg_bend = LEG_BEND_MAX * echo_sin(dist_traveled * 45 - 90);
+		else
+			joints.lleg_bend = 0;
+	}
 	if(grid1 && grid2)
 	{
 		grid_info_t* i1 = grid1->get_info(echo_ns::angle);
@@ -322,13 +377,14 @@ void echo_char::draw(float x, float y, float z)
 #ifndef ECHO_NDS
 	//gfx_colorf
 	gfx_outline_start();
-	draw_character();
+	draw_character(&joints);
 	gfx_outline_mid();
-	draw_character();
+	draw_character(&joints);
 	gfx_outline_end();
+	//ECHO_PRINT("joints->rthigh_lift: %f\n", joints.rthigh_lift);
 #else
 	gfx_set_polyID(1);
-	draw_character();
+	draw_character(&joints);
 #endif
 	gfx_pop_matrix();
 	// */

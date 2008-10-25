@@ -31,6 +31,8 @@
 #include <echo_sys.h>
 #include <echo_stage.h>
 #include <echo_ingame_loader.h>
+#include <echo_prefs.h>
+#include <echo_char_joints.h>
 
 #include <hole.h>
 #include <grid.h>
@@ -188,6 +190,10 @@ static vector3f real_angle(0, 0, 0);
 //the current directory
 static echo_files* files = NULL;
 
+#ifdef ECHO_NDS
+	static int left, right, up, down;
+#endif
+
 //--METHODS
 
 #ifdef ECHO_NDS
@@ -257,17 +263,42 @@ int main(int argc, char **argv)
 #ifdef ECHO_NDS
 	//initialize the file system
 	fatInitDefault();
+	
+	TiXmlDocument* doc = NULL;
+	if(open_pref(&doc) == WIN)
+	{
+		HAND* hand = NULL;
+		if(get_hand(doc, hand) == WIN)
+		{
+			if(*hand == RIGHT_HAND)
+			{
+				left = KEY_LEFT;
+				right = KEY_RIGHT;
+				up = KEY_UP;
+				down = KEY_DOWN;
+			}
+			else
+			{
+				left = KEY_Y;
+				right = KEY_A;
+				up = KEY_X;
+				down = KEY_B;
+			}
+		}
+		close_pref(doc);
+	}
+	
 	//get the files
-	files = get_files("/");
+	files = get_files("/app/nds");
 	//initialize the screens
 	init(argc, argv, 255, 191);
 	//load the menu
 	load(NULL);
 	//infinite loop
 	while(1)
-        {
+	{
 		//get the key presses and touch screen, and refresh topscreen if in info or loader mode
-                get_key();
+        get_key();
 		//otherwise the 3D will paint anyways, so don't paint over.
 		if(!menu_mode)
 		{
@@ -277,12 +308,27 @@ int main(int argc, char **argv)
 			glFlush(0);
 		}
 		//otherwise we won't sync
-                swiWaitForVBlank();
-        }
+        swiWaitForVBlank();
+	}
 #elif ECHO_PC
+	echo_char_joints* joints = new(echo_char_joints);
+	joints->rwrist = 10;
+	ECHO_PRINT("joints.rwrist: %f\n", joints->rwrist);
+	ECHO_PRINT("joints.rhand_x: %f\n", joints->rhand_x);
+	ECHO_PRINT("joints.lhand_x: %f\n", joints->lhand_x);
+	joints->lwrist = 20;
+	ECHO_PRINT("joints.rwrist: %f\n", joints->rwrist);
+	ECHO_PRINT("joints.rhand_x: %f\n", joints->rhand_x);
+	ECHO_PRINT("joints.lhand_x: %f\n", joints->lhand_x);
+	reset_joints(joints);
+	ECHO_PRINT("joints.rwrist: %f\n", joints->rwrist);
+	ECHO_PRINT("joints.rhand_x: %f\n", joints->rhand_x);
+	ECHO_PRINT("joints.lhand_x: %f\n", joints->lhand_x);
+	delete joints;
+	
 	//fill lookup tables
 	init_math();
-	#ifdef WIN32	//goddammit windows, adhere to POSIX!
+	#ifdef ECHO_WIN //goddammmit windows, adhere to POSIX!
 		TCHAR buffer[MAX_PATH] = "";
 		GetCurrentDirectory(MAX_PATH, buffer);
 		files = get_files(buffer);
@@ -878,12 +924,14 @@ static void display()
 	{
 		glColor3f(0, 0, 0);
 		draw_message_string(-2, 3, "L-Echo");
-		draw_string(-3, 0, "Please load a stage.");
-		draw_string(-6, -2, "Press L To Toggle Loader.");
-		draw_string(-6, -2.5, "Press P To Start/Pause/Resume.");
-		draw_string(-6, -3, "Press Arrow Keys or use Mouse to ");
-		draw_string(-3, -3.5, "Rotate World.");
-		draw_string(-6, -4, "Press Esc To Quit.");
+		draw_string(-3, -0.5, "Please load a stage.");
+		draw_string(-6, -1.5, "Press L To Toggle Loader.");
+		draw_string(-6, -2, "Press P To Start/Pause/Resume.");
+		draw_string(-6, -2.5, "Press W To Walk.");
+		draw_string(-6, -3, "Press R to Run.");
+		draw_string(-6, -3.5, "Press Arrow Keys or use Mouse to ");
+		draw_string(-3, -4, "Rotate World.");
+		draw_string(-6, -4.5, "Press Esc To Quit.");
 	}
 	
 	//draw the loader
@@ -986,11 +1034,12 @@ static void display()
 		}
 		else if(!menu_mode)
 		{
-			if((key & KEY_L) 	|| (key & KEY_R))	start_or_pause();
-			if((key & KEY_RIGHT)	|| (key & KEY_A))	right();
-			if((key & KEY_LEFT)	|| (key & KEY_Y))	left();
-			if((key & KEY_DOWN)	|| (key & KEY_B))	down();
-			if((key & KEY_UP)	|| (key & KEY_X))	up();
+			if((key & KEY_L) || (key & KEY_R))
+							start_or_pause();
+			if(key & right)	right();
+			if(key & left)	left();
+			if(key & down)	down();
+			if(key & up)	up();
 		}
 		if(key & KEY_START)
 		{

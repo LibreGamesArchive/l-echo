@@ -1,0 +1,14 @@
+<?xml version="1.0" standalone="no" ?>
+<stage name="walkway" start="g1" goals="0">
+    <grid id="g1" x="-5" y="0" z="0" prev="g2" next="g2" />
+    <grid id="g2" x="-4" y="0" z="0" prev="g1" next="g3" />
+    <grid id="g3" x="-3" y="0" z="0" prev="g2" next="g4" />
+    <grid id="g4" x="-2" y="0" z="0" prev="g3" next="g5" />
+    <grid id="g5" x="-1" y="0" z="0" prev="g4" next="g6" />
+    <grid id="g6" x="0" y="0" z="0" prev="g5" next="g7" />
+    <grid id="g7" x="1" y="0" z="0" prev="g6" next="g8" />
+    <grid id="g8" x="2" y="0" z="0" prev="g7" next="g9" />
+    <grid id="g9" x="3" y="0" z="0" prev="g8" next="g10" />
+    <grid id="g10" x="4" y="0" z="0" prev="g9" next="g11" />
+    <grid id="g11" x="5" y="0" z="0" prev="g10" next="g10" />
+</stage>

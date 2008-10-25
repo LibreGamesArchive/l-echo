@@ -1,4 +1,4 @@
-// echo_error.h
+// echo_prefs.h
 
 /*
     This file is part of L-Echo.
@@ -17,24 +17,14 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <cstdlib>
-#include <iostream>
+#include <echo_platform.h>
 
-#define	WIN		0
-#define FAIL	-1
+#ifdef ECHO_NDS
+	enum { LEFT_HAND, RIGHT_HAND } HAND;
 
-void lderr(const char* msg);
-void ldmemerr();
-void lderr(const char* msg1, const char* msg2);
-void ldwarn(const char* msg);
-
-//GENeral MEMory ERRor
-void genmemerr();
-
-#ifdef STRICT_MEM
-	#define CHKPTR(ptr) 	if(!(ptr)) genmemerr();
-	#define LD_CHKPTR(ptr)	if(!(ptr)) ldmemerr();
-#else
-	#define CHKPTR(ptr)
-	#define LD_CHKPTR(ptr)
+	int open_prefs(TiXmlDocument** document);
+	int get_hand(TiXmlDocument* document, enum HAND* handedness);
+	int set_hand(TiXmlDocument* document, enum HAND handedness);
+	int close_prefs(TiXmlDocument* document);
 #endif
+

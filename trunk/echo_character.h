@@ -20,6 +20,7 @@
 #include <echo_math.h>
 #include <grid.h>
 #include <echo_stage.h>
+#include <echo_char_joints.h>
 
 #ifndef __ECHO_CHARACTER__
 #define __ECHO_CHARACTER__
@@ -52,8 +53,12 @@ class echo_char
 			dist is the distance between the two grids.
 			
 			weight +=/-= (speed / dist) each step;
+			
+			dist_traveled is used to remember the amount of distance traveled so that I can do animations accordingly
 		*/
-		float grid1per, grid2per, startper, speed, dist, act_speed;
+		float grid1per, grid2per, startper, speed, dist, act_speed, dist_traveled, dist_traveled_cyclic;
+		//the rotations of the joints
+		echo_char_joints joints;
 	
 	public:
 		//default constructor

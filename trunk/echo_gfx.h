@@ -18,6 +18,7 @@
 */
 
 #include <grid.h>
+#include <echo_char_joints.h>
 #include <echo_math.h>
 
 void draw_line(float x1, float y1, float z1, float x2, float y2, float z2);
@@ -41,7 +42,7 @@ void draw_limb();
 void draw_hole(vector3f pos);
 void draw_launcher(vector3f pos);
 void draw_goal_gfx(vector3f pos);
-void draw_character();
+void draw_character(echo_char_joints* joints);
 void draw_stairs();
 void draw_left_hand();
 void draw_right_hand();

@@ -32,6 +32,7 @@
 #include <echo_debug.h>
 #include <echo_error.h>
 #include <echo_stage.h>
+#include <echo_platform.h>
 
 #include <launcher.h>
 #include <freeform_grid.h>
@@ -41,7 +42,7 @@
 #include <grid.h>
 #include <stair.h>
 
-#ifdef ARM9
+#ifdef ECHO_NDS
 	#include <tinyxml.h>
 #else
 	#include <tinyxml/tinyxml.h>
@@ -144,7 +145,7 @@ public:
 typedef std::vector<functor*> FUNCTOR_VEC;
 typedef std::map<std::string, FUNCTOR_VEC*> DEPENDENCY_MAP;
 
-#ifdef ARM9
+#ifdef ECHO_NDS
 	static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot
 			, LEVEL_MAP* nonffgrids, LEVEL_MAP* ffgrids);
 #else
@@ -161,7 +162,7 @@ stage* load_stage(const char* file_name)
 		LD_CHKPTR(map);
 		stage* ret = new stage();
 		LD_CHKPTR(ret);
-#ifdef ARM9
+#ifdef ECHO_NDS
 		LEVEL_MAP* nonffgrids = new LEVEL_MAP();
 		LD_CHKPTR(nonffgrids);
 		LEVEL_MAP* ffgrids = new LEVEL_MAP();
@@ -174,7 +175,7 @@ stage* load_stage(const char* file_name)
 			delete doc;
 			delete map;
 			delete ret;
-#ifdef ARM9
+#ifdef ECHO_NDS
 			delete nonffgrids;
 			delete ffgrids;
 #endif
@@ -185,7 +186,7 @@ stage* load_stage(const char* file_name)
 		{
 			if(child->Type() == TiXmlNode::ELEMENT)
 			{
-#ifdef ARM9
+#ifdef ECHO_NDS
 				if(!parse_grid(child->ToElement(), ret, map, NULL, nonffgrids, ffgrids))
 #else
 				if(!parse_grid(child->ToElement(), ret, map, NULL))
@@ -198,7 +199,7 @@ stage* load_stage(const char* file_name)
 				delete doc;
 				delete map;
 				delete ret;
-#ifdef ARM9
+#ifdef ECHO_NDS
 			delete nonffgrids;
 			delete ffgrids;
 #endif
@@ -212,7 +213,7 @@ stage* load_stage(const char* file_name)
 			delete doc;
 			delete map;
 			delete ret;
-#ifdef ARM9
+#ifdef ECHO_NDS
 			delete nonffgrids;
 			delete ffgrids;
 #endif
@@ -227,7 +228,7 @@ stage* load_stage(const char* file_name)
 			delete doc;
 			delete map;
 			delete ret;
-#ifdef ARM9
+#ifdef ECHO_NDS
 			delete nonffgrids;
 			delete ffgrids;
 #endif
@@ -241,7 +242,7 @@ stage* load_stage(const char* file_name)
 			delete doc;
 			delete map;
 			delete ret;
-#ifdef ARM9
+#ifdef ECHO_NDS
 			delete nonffgrids;
 			delete ffgrids;
 #endif
@@ -255,7 +256,7 @@ stage* load_stage(const char* file_name)
 			delete doc;
 			delete map;
 			delete ret;
-#ifdef ARM9
+#ifdef ECHO_NDS
 			delete nonffgrids;
 			delete ffgrids;
 #endif
@@ -266,7 +267,7 @@ stage* load_stage(const char* file_name)
 		if(!map->empty())
 			ldwarn("dependencies not satisfied...");
 		delete map;
-#ifdef ARM9
+#ifdef ECHO_NDS
 #define GRID_POLYID_START	19
 		unsigned int polyID = GRID_POLYID_START;
 		LEVEL_MAP::iterator it = nonffgrids->begin(), end = nonffgrids->end();
@@ -421,7 +422,7 @@ static int get_angle(TiXmlElement* txe, vector3f* vec)
 	return(get_float(txe, "x", &vec->x) && get_float(txe, "y", &vec->y));
 }
 
-#ifdef ARM9
+#ifdef ECHO_NDS
 static int add_esc(TiXmlElement* child, stage* st, DEPENDENCY_MAP* map, escgrid* escroot, escgrid* egrid
 			, LEVEL_MAP* nonffgrids, LEVEL_MAP* ffgrids)
 #else
@@ -435,7 +436,7 @@ static int add_esc(TiXmlElement* child, stage* st, DEPENDENCY_MAP* map, escgrid*
 		LD_CHKPTR(each_angle);
 		if(!get_angle(child, each_angle))
 			return(0);
-#ifdef ARM9
+#ifdef ECHO_NDS
 		grid* g = parse_grid(child->FirstChild()->ToElement(), st, map, escroot ? escroot : egrid, nonffgrids, ffgrids);
 #else
 		grid* g = parse_grid(child->FirstChild()->ToElement(), st, map, escroot ? escroot : egrid);
@@ -453,7 +454,7 @@ static int add_esc(TiXmlElement* child, stage* st, DEPENDENCY_MAP* map, escgrid*
 		LD_CHKPTR(v2);
 		if(!get_float(child, "x_max", &v2->x) || !get_float(child, "y_max", &v2->y))
 			return(0);
-#ifdef ARM9
+#ifdef ECHO_NDS
 		grid* g = parse_grid(child->FirstChild()->ToElement(), st, map, escroot ? escroot : egrid, nonffgrids, ffgrids);
 #else
 		grid* g = parse_grid(child->FirstChild()->ToElement(), st, map, escroot ? escroot : egrid);
@@ -469,7 +470,7 @@ static int add_esc(TiXmlElement* child, stage* st, DEPENDENCY_MAP* map, escgrid*
 	return(1);
 }
 
-#ifdef ARM9
+#ifdef ECHO_NDS
 static int add_escs(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot, escgrid* grid
 			, LEVEL_MAP* nonffgrids, LEVEL_MAP* ffgrids)
 #else
@@ -482,7 +483,7 @@ static int add_escs(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgrid* 
 		while(child)
 		{
 			if(child->Type() == TiXmlNode::ELEMENT && strcmp(child->Value(), "triggers"))
-#ifdef ARM9
+#ifdef ECHO_NDS
 				add_esc(child->ToElement(), st, map, escroot, grid, nonffgrids, ffgrids);
 #else
 				add_esc(child->ToElement(), st, map, escroot, grid);
@@ -672,7 +673,7 @@ static int add_triggers(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, grid*
 	return(1);
 }
 
-#ifdef ARM9
+#ifdef ECHO_NDS
 static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot
 			, LEVEL_MAP* nonffgrids, LEVEL_MAP* ffgrids)
 #else
@@ -741,7 +742,7 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 		LD_PRINT("%s is a escgrid!\n", name);
 		new_grid = new escgrid(info, prev, next);
 		LD_CHKPTR(new_grid);
-#ifdef ARM9
+#ifdef ECHO_NDS
 		if(!add_escs(txe, st, map, escroot, (escgrid*)new_grid, nonffgrids, ffgrids))
 #else
 		if(!add_escs(txe, st, map, escroot, (escgrid*)new_grid))
@@ -757,7 +758,7 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 		LD_PRINT("%s is an hole!\n", name);
 		new_grid = new hole(info, prev, next);
 		LD_CHKPTR(new_grid);
-#ifdef ARM9
+#ifdef ECHO_NDS
 		if(!add_escs(txe, st, map, escroot, (escgrid*)new_grid, nonffgrids, ffgrids))
 #else
 		if(!add_escs(txe, st, map, escroot, (escgrid*)new_grid))
@@ -773,7 +774,7 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 		LD_PRINT("%s is a launcher!\n", name);
 		new_grid = new launcher(info, prev, next);
 		LD_CHKPTR(new_grid);
-#ifdef ARM9
+#ifdef ECHO_NDS
 		if(!add_escs(txe, st, map, escroot, (escgrid*)new_grid, nonffgrids, ffgrids))
 #else
 		if(!add_escs(txe, st, map, escroot, (escgrid*)new_grid))
@@ -843,7 +844,7 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 		delete info;
 		return(NULL);
 	}
-#ifdef ARM9
+#ifdef ECHO_NDS
 	if(!strcmp(type, "freeform_grid"))
 		map_add_pos(ffgrids, info->pos, new_grid);
 	else if(strcmp(type, "stair"))

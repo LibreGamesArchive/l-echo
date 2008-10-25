@@ -1,0 +1,16 @@
+<?xml version="1.0" standalone="no" ?>
+<stage name="hole demo" start="top3" goals="0">
+	<grid id="top1" x="-1" y="20" z="0" prev="top2" next="top2" />
+	<grid id="top2" x="0" y="20" z="0" prev="top1" next="top3" />
+	<hole id="top3" x="1" y="20" z="0" prev="top2" next="top2" />
+	
+	<grid id="bottom1" x="-1" y="-20" z="0" prev="NONE" next="NONE" />
+	<grid id="bottom2" x="0" y="-20" z="-1" prev="NONE" next="NONE" />
+	<grid id="bottom4" x="0" y="-20" z="1" prev="NONE" next="NONE" />
+	
+	<grid id="bottom11" x="-1" y="-40" z="0" prev="NONE" next="NONE" />
+	<grid id="bottom12" x="0" y="-40" z="-1" prev="NONE" next="NONE" />
+	<grid id="bottom13" x="1" y="-40" z="0" prev="NONE" next="NONE" />
+	<grid id="bottom14" x="0" y="-40" z="1" prev="NONE" next="NONE" />
+</stage>
+
