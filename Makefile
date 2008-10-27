@@ -91,7 +91,7 @@ setup-nds:
 
 nds:
 	make -C n-echo
-	zip -r $(NPKG) n-echo/n-echo.nds n-echo/n-echo.ds.gba n-echo/A*.xml.real n-echo/N_ECHO_README
+	zip -r $(NPKG) n-echo/n-echo.nds n-echo/n-echo.ds.gba n-echo/apps n-echo/N_ECHO_README
 	
 upload: package package-mac nds
 	$(UPLOAD) 'Linux (32) binary + xml stages - $(VERSION) (revision $(REVISION))' $(PKGPREFIX)lin32.zip 

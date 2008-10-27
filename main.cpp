@@ -45,6 +45,8 @@
 #define _STDCALL_SUPPORTED
 
 #ifdef ECHO_NDS
+	#include <tinyxml.h>
+	
 	#include <nds.h>
 	#include <nds/arm9/video.h>
 	#include <fat.h>
@@ -86,6 +88,7 @@
 	#define START_BG		DISPLAY_BG0_ACTIVE
 	#define DEBUG_BG		DISPLAY_BG3_ACTIVE
 #else
+	#include <tinyxml/tinyxml.h>
 	#ifdef ECHO_PC
 		#ifdef ECHO_OSX	//OS X
 			#include <OpenGL/gl.h>
@@ -148,6 +151,8 @@
 	static const uint32 basic_modes = MODE_0_2D | DISPLAY_BG_EXT_PALETTE;
 	//the temp address of the counter (holds number of goals)
 	static char counter[32];
+	//what are the directional buttons?  defaults to right-scheme
+	static int left_key = KEY_LEFT, right_key = KEY_RIGHT, up_key = KEY_UP, down_key = KEY_DOWN, b_key = KEY_B;
 #else
 	#ifdef ECHO_PC
 		//ID of the window
@@ -190,10 +195,6 @@ static vector3f real_angle(0, 0, 0);
 //the current directory
 static echo_files* files = NULL;
 
-#ifdef ECHO_NDS
-	static int left, right, up, down;
-#endif
-
 //--METHODS
 
 #ifdef ECHO_NDS
@@ -221,6 +222,9 @@ static echo_files* files = NULL;
 	static void update_num_goals();
 	//update console2 with status
 	static void update_char_state();
+	
+	//tries to refresh the handedness
+	static void refresh_hand(TiXmlDocument* doc);
 #elif ECHO_PC
 	//mouse event, calls pressed or handles releases.
 	static void mouse(int button, int state, int x, int y);
@@ -263,35 +267,22 @@ int main(int argc, char **argv)
 #ifdef ECHO_NDS
 	//initialize the file system
 	fatInitDefault();
-	
-	TiXmlDocument* doc = NULL;
-	if(open_pref(&doc) == WIN)
-	{
-		HAND* hand = NULL;
-		if(get_hand(doc, hand) == WIN)
-		{
-			if(*hand == RIGHT_HAND)
-			{
-				left = KEY_LEFT;
-				right = KEY_RIGHT;
-				up = KEY_UP;
-				down = KEY_DOWN;
-			}
-			else
-			{
-				left = KEY_Y;
-				right = KEY_A;
-				up = KEY_X;
-				down = KEY_B;
-			}
-		}
-		close_pref(doc);
-	}
-	
 	//get the files
-	files = get_files("/app/nds");
+	files = get_files("/apps/n-echo");
 	//initialize the screens
 	init(argc, argv, 255, 191);
+	
+	ECHO_PRINT("trying to load prefs...\n");
+	TiXmlDocument* doc = NULL;
+	if(open_prefs(&doc) == WIN)
+	{
+		ECHO_PRINT("loaded prefs...\n");
+		refresh_hand(doc);
+		close_prefs(doc);
+	}
+	else
+		ECHO_PRINT("couldn't load prefs!\n");
+	
 	//load the menu
 	load(NULL);
 	//infinite loop
@@ -385,6 +376,36 @@ int main(int argc, char **argv)
 	//never gonna reach here
 	return(1);
 }
+
+#ifdef ECHO_NDS
+void refresh_hand(TiXmlDocument* doc)
+{
+	HAND* hand = NULL;
+	if(get_hand(doc, hand) == WIN)
+	{
+		if(*hand == RIGHT_HAND)
+		{
+			ECHO_PRINT("right handed\n");
+			left_key = KEY_LEFT;
+			right_key = KEY_RIGHT;
+			up_key = KEY_UP;
+			down_key = KEY_DOWN;
+			b_key = KEY_B;
+		}
+		else
+		{
+			ECHO_PRINT("left handed\n");
+			left_key = KEY_Y;
+			right_key = KEY_A;
+			up_key = KEY_X;
+			down_key = KEY_B;
+			b_key = KEY_DOWN;
+		}
+	}
+	else
+		ECHO_PRINT("couldn't get handedness!");
+}
+#endif
 
 static void load(const char* fname)
 {
@@ -1024,9 +1045,9 @@ static void display()
 					file_start = 0;
 				}
 			}
-			if(((key & KEY_DOWN)	|| (key & KEY_B)) && file_index < files->num_files - 1)
+			if((key & down_key) && file_index < files->num_files - 1)
 				file_index++;
-			if(((key & KEY_UP)	|| (key & KEY_X)) && file_index > 0)
+			if((key & up_key) && file_index > 0)
 				file_index--;
 			file_start = file_index - 21;
 			if(file_start < 0)
@@ -1036,10 +1057,10 @@ static void display()
 		{
 			if((key & KEY_L) || (key & KEY_R))
 							start_or_pause();
-			if(key & right)	right();
-			if(key & left)	left();
-			if(key & down)	down();
-			if(key & up)	up();
+			if(key & right_key)	right();
+			if(key & left_key)	left();
+			if(key & down_key)	down();
+			if(key & up_key)	up();
 		}
 		if(key & KEY_START)
 		{
@@ -1141,6 +1162,8 @@ static void display()
 			echo_ns::start_run();
 		else if(key == 'w' || key == 'W')
 			echo_ns::start_step();
+		else if(key == 't' || key == 'T')
+			echo_ns::toggle_run();
 		else if(key == 's' || key == 'S')
 			ECHO_PRINT("speed: %f\n", echo_ns::get_speed());
 		else if(key == 'a' || key == 'A')

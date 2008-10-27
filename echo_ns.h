@@ -56,6 +56,7 @@ namespace echo_ns
 	void start_run();
 	//change speed to walking if we can
 	void start_step();
+	void toggle_run();
 	
 	void add_static_grid(static_grid* sg);
 	void remove_static_grid(static_grid* sg);
