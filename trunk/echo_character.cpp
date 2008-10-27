@@ -57,7 +57,7 @@
 	#define SPEED_FALL_FROM_SKY	0.15f
 #else
 	//various character speeds
-	#define SPEED_STEP 		0.12f
+	#define SPEED_STEP 		0.07f
 	#define SPEED_RUN		0.25f
 	#define SPEED_FALL 		0.50f
 	#define SPEED_LAUNCH		0.30f
@@ -140,6 +140,14 @@ void echo_char::start_step()
 		is_running = 0;
 		speed = SPEED_STEP;
 	}
+}
+
+void echo_char::toggle_run()
+{
+	if(speed == SPEED_RUN)
+		start_step();
+	else
+		start_run();
 }
 
 void echo_char::init(grid * g1)
@@ -253,19 +261,23 @@ void echo_char::step()
 						vector3f pos2 = i2->pos;
 						if(!paused)
 						{
-							dist_traveled += speed;
+							dist_traveled += speed * 2;	//inflate it a little
 							dist_traveled_cyclic += speed * 180;
-							if(dist_traveled_cyclic > 720)
+							if(dist_traveled_cyclic > 360)
 							{
 								dist_traveled -= 4;	
-								dist_traveled_cyclic -= 720;	
+								dist_traveled_cyclic -= 360;	
 							}
 							dist = pos1.dist(pos2);
-							if((dist_traveled > 0.5f && dist_traveled <= 1)
-								|| (dist_traveled > 2.5f && dist_traveled <= 3))
+							if(dist_traveled > 0.5f && dist_traveled <= 1)
 							{
-								grid1per -= (1 + 0.75f * echo_cos(360 * dist_traveled)) * speed / dist;	//step thru it
-								grid2per += (1 + 0.75f * echo_cos(360 * dist_traveled)) * speed / dist;
+								grid1per -= (1 + 1 * echo_cos(90 * dist_traveled - 22.5f)) * speed / dist;	//step thru it
+								grid2per += (1 + 1 * echo_cos(90 * dist_traveled - 22.5f)) * speed / dist;
+							}
+							else if(dist_traveled > 2.5f && dist_traveled <= 3)
+							{
+								grid1per -= (1 + 1 * echo_cos(90 * dist_traveled + 67.5f)) * speed / dist;	//step thru it
+								grid2per += (1 + 1 * echo_cos(90 * dist_traveled + 67.5f)) * speed / dist;
 							}
 							else
 							{
@@ -342,15 +354,16 @@ void echo_char::draw(float x, float y, float z)
 	if(main_grid)
 	{
 		gfx_translatef(0, grid2->vert_shift(main_per), 0);
-		joints.rshoulder_swing = -20 * echo_cos(dist_traveled_cyclic / 2);
-		joints.lshoulder_swing = 20 * echo_cos(dist_traveled_cyclic / 2);
-		joints.rarm_bend = -10 * echo_cos(dist_traveled_cyclic / 2) - 20;
-		joints.larm_bend = 10 * echo_cos(dist_traveled_cyclic / 2) - 20;
-		joints.rthigh_lift = -45 * echo_cos(dist_traveled_cyclic / 2);
-		joints.lthigh_lift = 45 * echo_cos(dist_traveled_cyclic / 2);
+		joints.rshoulder_swing = -20 * echo_cos(dist_traveled_cyclic);
+		joints.lshoulder_swing = 20 * echo_cos(dist_traveled_cyclic);
+		joints.rarm_bend = -10 * echo_cos(dist_traveled_cyclic) - 20;
+		joints.larm_bend = 10 * echo_cos(dist_traveled_cyclic) - 20;
+		joints.rthigh_lift = -45 * echo_cos(dist_traveled_cyclic);
+		joints.lthigh_lift = 45 * echo_cos(dist_traveled_cyclic);
 		
 		#define LEG_BEND_MAX	30
 		
+		//*
 		if(dist_traveled > 1 && dist_traveled <= 1.5f)
 			joints.rleg_bend = LEG_BEND_MAX * echo_cos(dist_traveled * 180 + 180);
 		else if(dist_traveled > 3.0f || dist_traveled <= 1)
@@ -363,6 +376,7 @@ void echo_char::draw(float x, float y, float z)
 			joints.lleg_bend = LEG_BEND_MAX * echo_sin(dist_traveled * 45 - 90);
 		else
 			joints.lleg_bend = 0;
+		// */
 	}
 	if(grid1 && grid2)
 	{

@@ -21,6 +21,11 @@
 #include <echo_error.h>
 #include <echo_debug.h>
 #include <echo_platform.h>
+#ifdef ECHO_NDS
+	#include <tinyxml.h>
+#else
+	#include <tinyxml/tinyxml.h>
+#endif
 
 #ifdef ECHO_NDS
 	#ifndef __ECHO_NDS_PREFS__
@@ -36,11 +41,11 @@
 		*document = new TiXmlDocument(PREFS_FILE);
 		return((*document)->LoadFile() ? WIN : FAIL);
 	}
-	int get_hand(TiXmlDocument* document, enum HAND* handedness)
+	int get_hand(TiXmlDocument* document, HAND* handedness)
 	{
 		if(document)
 		{
-			TiXmlElement* root = document->Root();
+			TiXmlElement* root = document->RootElement();
 			if(root)
 			{
 				const char* hand_str = root->Attribute(HAND_ATTR_NAME);
@@ -61,11 +66,11 @@
 		}
 		return(FAIL);
 	}
-	int set_hand(TiXmlDocument* document, enum HAND handedness)
+	int set_hand(TiXmlDocument* document, HAND handedness)
 	{
 		if(document)
 		{
-			TiXmlElement* root = document->Root();
+			TiXmlElement* root = document->RootElement();
 			if(root)
 			{
 				root->SetAttribute(HAND_ATTR_NAME, handedness == LEFT_HAND ? HAND_LEFT_VALUE : HAND_RIGHT_VALUE);
@@ -74,7 +79,7 @@
 		}
 		return(FAIL);
 	}
-	int close_prefs(TiXmlDocument* doocument)
+	int close_prefs(TiXmlDocument* document)
 	{
 		if(document->SaveFile(PREFS_FILE) == FALSE)
 			return(FAIL);

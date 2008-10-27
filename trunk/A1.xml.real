@@ -54,16 +54,10 @@
     	<angle x="-35" y="-25">
 		<grid id="st1_esc" x="1" y="-3" z="2" prev="g4" next="st2" />
 	</angle>
-	<angle x="-15" y="-10">
-		<grid id="st1_esc2" x="0" y="-1" z="0" prev="g1" next="st2" />
-	</angle>
     </escgrid>
     <escgrid id="st2" x="-2.4f" y="1" z="7.15f" prev="st1" next="st1">
     	<angle x="-35" y="-25">
 		<grid id="st2_esc" x="0" y="-3" z="2" prev="st1" next="st1" />
-	</angle>
-	<angle x="-15" y="-10">
-		<grid id="st2_esc2" x="-1" y="-1" z="0" prev="st1" next="st1" />
 	</angle>
     </escgrid>
 </stage>

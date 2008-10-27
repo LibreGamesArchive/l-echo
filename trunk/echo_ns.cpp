@@ -165,6 +165,10 @@ namespace echo_ns
 	{
 		main_char->start_step();
 	}
+	void toggle_run()
+	{
+		main_char->toggle_run();
+	}
 	
 	void add_static_grid(static_grid* sg)
 	{

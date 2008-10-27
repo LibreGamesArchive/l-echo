@@ -84,6 +84,8 @@ class echo_char
 		//change speed to walking if we can
 		void start_step();
 		
+		void toggle_run();
+		
 		//pause or unpause
 		void toggle_pause();
 		//is this character paused?
