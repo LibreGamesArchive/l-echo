@@ -52,14 +52,13 @@ void stair::init_to_null()
 
 void stair::draw(vector3f angle)
 {
-	draw_goal(angle);
-	
 	gfx_push_matrix();
-	gfx_translatef(ginfo->pos.x, ginfo->pos.y, ginfo->pos.z);
-	gfx_rotatef(this->angle, 0, 1, 0);
-	
-	draw_stairs();
-	
+		gfx_color3f(1, 1, 1);
+		gfx_translatef(ginfo->pos.x, ginfo->pos.y, ginfo->pos.z);
+		gfx_rotatef(this->angle, 0, 1, 0);
+		draw_stairs();
 	gfx_pop_matrix();
+	
+	draw_goal(angle);
 }
 

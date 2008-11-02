@@ -154,12 +154,18 @@ typedef std::map<std::string, FUNCTOR_VEC*> DEPENDENCY_MAP;
 
 stage* load_stage(const char* file_name)
 {
-	TiXmlDocument* doc = new TiXmlDocument(file_name);
-	LD_CHKPTR(doc);
-	if(doc->LoadFile())
+	//ECHO_PRINT("start of load_stage<>%s<>\n", file_name);
+	TiXmlDocument doc(file_name);
+	//ECHO_PRINT("doc init\n");
+	//LD_CHKPTR(doc);
+	//ECHO_PRINT("doc not null\n");
+	if(doc.LoadFile())
 	{
+		//ECHO_PRINT("loaded file\n");
 		DEPENDENCY_MAP* map = new DEPENDENCY_MAP();
+		//ECHO_PRINT("map init\n");
 		LD_CHKPTR(map);
+		//ECHO_PRINT("map not null\n");
 		stage* ret = new stage();
 		LD_CHKPTR(ret);
 #ifdef ECHO_NDS
@@ -168,11 +174,11 @@ stage* load_stage(const char* file_name)
 		LEVEL_MAP* ffgrids = new LEVEL_MAP();
 		LD_CHKPTR(ffgrids);
 #endif
-		TiXmlElement* root = doc->RootElement();
+		TiXmlElement* root = doc.RootElement();
 		if(!root)
 		{
 			lderr("cannot find root element!");
-			delete doc;
+			//delete doc;
 			delete map;
 			delete ret;
 #ifdef ECHO_NDS
@@ -196,7 +202,7 @@ stage* load_stage(const char* file_name)
 			else if(child->Type() != TiXmlNode::COMMENT)
 			{
 				lderr("unknown node type!");
-				delete doc;
+				//delete doc;
 				delete map;
 				delete ret;
 #ifdef ECHO_NDS
@@ -210,7 +216,7 @@ stage* load_stage(const char* file_name)
 		if(!start)
 		{
 			lderr("no starting point specified!");
-			delete doc;
+			//delete doc;
 			delete map;
 			delete ret;
 #ifdef ECHO_NDS
@@ -225,7 +231,7 @@ stage* load_stage(const char* file_name)
 		if(!start_grid)
 		{
 			lderr("start grid not found...");
-			delete doc;
+			//delete doc;
 			delete map;
 			delete ret;
 #ifdef ECHO_NDS
@@ -239,7 +245,7 @@ stage* load_stage(const char* file_name)
 		if(!name)
 		{
 			lderr("name of stage not specified!");
-			delete doc;
+			//delete doc;
 			delete map;
 			delete ret;
 #ifdef ECHO_NDS
@@ -253,7 +259,7 @@ stage* load_stage(const char* file_name)
 		if(root->QueryIntAttribute("goals", &num_goals) != TIXML_SUCCESS)
 		{
 			lderr("cannot find number of goals!");
-			delete doc;
+			//delete doc;
 			delete map;
 			delete ret;
 #ifdef ECHO_NDS
@@ -314,7 +320,7 @@ stage* load_stage(const char* file_name)
 	else
 	{
 		lderr("cannot open file! (might not be correct xml file): ", file_name);
-		delete doc;
+		//delete doc;
 		return(NULL);
 	}
 	return(NULL);

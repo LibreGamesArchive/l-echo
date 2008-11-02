@@ -84,7 +84,7 @@ package-mac: mac
 	sudo umount /mnt/dmg
 	
 setup-nds:
-	cp -r ../n-echo .
+	cp -r n-echo_template n-echo
 	cp -t n-echo A*.xml.real
 	cp -t n-echo/source *.cpp tinyxml/*.cpp
 	cp -t n-echo/include *.h tinyxml/*.h

@@ -141,9 +141,8 @@ void grid::set_real_prev(grid* g)
 
 void grid::draw(vector3f angle)	//TODO CHANGE FOR NORMALS
 {
-	draw_goal(angle);
-	
 	draw_rect(*(points[0]), *(points[1]), *(points[2]), *(points[3]));
+	draw_goal(angle);	
 }
 
 vector3f** grid::generate_points(grid_info_t my_info)
@@ -243,7 +242,7 @@ void grid::draw_goal(vector3f angle)
 {
 	if(is_goal(angle))
 	{
-		draw_goal_gfx(get_info(angle)->pos);
+		draw_goal_gfx(&(get_info(angle)->pos));
 		/*
 		goal_angle += 5;
 		if(goal_angle == 360)

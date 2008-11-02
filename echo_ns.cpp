@@ -90,6 +90,7 @@ namespace echo_ns
 					grid_info_t* info = g->get_info(echo_ns::angle);
 					if(info)
 					{
+						gfx_push_matrix();
 						gfx_translatef(info->pos.x, info->pos.y, info->pos.z);
 #ifndef ECHO_NDS
 						gfx_outline_start();
@@ -101,6 +102,7 @@ namespace echo_ns
 #ifndef ECHO_NDS
 						gfx_outline_end();
 #endif
+						gfx_pop_matrix();
 						if(opacity_incr)
 						{
 							null_char_opacity += 0.05f;

@@ -1,0 +1,29 @@
+Ok, listen up.  This is a development build!  No guarantees.
+
+To install:
+
+1) DLDI the sucker (nds file).
+2) Put the nds file wherever you'd like.
+3) Put the folder "apps" at the ROOT of the card
+
+To control:
+
+DPad (for right handers) or ABXY (for left handers) and Touch Screen  
+                               to control the perspective (arrow keys/ABXY used for loading if top screen is in load mode)
+B (for right handers) or Down (for left handers)
+                               to toggle running
+L/R                            to start/pause/resume
+Start/Select                   to switch bewteen info, load, start, and debug modes
+
+This program is under GPLv3.
+
+Contact me at: penguin673 at gmail dot com
+
+That is all.
+
+N-Echo (C) 2008 Jeff Chien
+
+echochrome is a trademark of Sony Computer Entertainment Inc. © 2008 Sony Computer Entertainment Inc.
+
+"PlayStation?", "PLAYSTATION" and "PS" Family logo are registered trademarks of Sony Computer Entertainment Inc. 
+

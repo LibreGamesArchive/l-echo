@@ -24,7 +24,7 @@
 //#include <iostream>
 #include <cmath>
 
-#ifdef RECHO_NDS
+#ifdef ECHO_NDS
 	#include <nds.h>
 	#include <nds/arm9/trig_lut.h>
 	

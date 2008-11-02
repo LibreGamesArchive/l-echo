@@ -41,13 +41,13 @@
 #include <cstdlib>
 #include <iostream>
 
-#ifdef ARM9
+#ifdef ECHO_NDS
 	#define POP_MATRIX glPopMatrix(1)
 #else
 	#define POP_MATRIX glPopMatrix()
 #endif
 
-#ifndef ARM9
+#ifndef ECHO_NDS
 	static int drawing_outline = 0;
 #endif
 
@@ -55,16 +55,20 @@
 void draw_line(float x1, float y1, float z1, float x2, float y2, float z2)
 {
 	gfx_color3f(0, 0, 0);
-#ifdef ARM9
+#ifdef ECHO_NDS
 	glBegin(GL_TRIANGLES);
-                glVertex3f(x1, y1, z1);
-                glVertex3f(x2, y2, z2);
-                glVertex3f(x2, y2, z2);
-        glEnd();
+	{
+			glVertex3f(x1, y1, z1);
+			glVertex3f(x2, y2, z2);
+			glVertex3f(x2, y2, z2);
+	}
+	glEnd();
 #else
 	glBegin(GL_LINES);
+	{
 		glVertex3f(x1, y1, z1);
 		glVertex3f(x2, y2, z2);
+	}
 	glEnd();
 #endif
 }
@@ -72,16 +76,20 @@ void draw_line(float x1, float y1, float z1, float x2, float y2, float z2)
 void draw_line(vector3f p1, vector3f p2)
 {
 	gfx_color3f(0, 0, 0);
-#ifdef ARM9
+#ifdef ECHO_NDS
 	glBegin(GL_TRIANGLES);
-                glVertex3f(p1.x, p1.y, p1.z);
-                glVertex3f(p2.x, p2.y, p2.z);
-                glVertex3f(p2.x, p2.y, p2.z);
-        glEnd();
-#else
-	glBegin(GL_LINES);
+	{
 		glVertex3f(p1.x, p1.y, p1.z);
 		glVertex3f(p2.x, p2.y, p2.z);
+		glVertex3f(p2.x, p2.y, p2.z);
+	}
+	glEnd();
+#else
+	glBegin(GL_LINES);
+	{
+		glVertex3f(p1.x, p1.y, p1.z);
+		glVertex3f(p2.x, p2.y, p2.z);
+	}
 	glEnd();
 #endif
 }
@@ -89,37 +97,47 @@ void draw_line(vector3f p1, vector3f p2)
 void draw_hole(vector3f pos)
 {
 	gfx_color3f(0, 0, 0);
-	glPushMatrix();
-	glTranslatef(pos.x, pos.y + 0.03, pos.z);
-	glBegin(GL_QUADS);
-		glVertex3f(0, 0, HALF_GRID);
-		glVertex3f(HALF_GRID, 0, 0);
-		glVertex3f(0, 0, -HALF_GRID);
-		glVertex3f(-HALF_GRID, 0, 0);
-	glEnd();
+	gfx_push_matrix();
+	{
+		glTranslatef(pos.x, pos.y + 0.03, pos.z);
+		glBegin(GL_QUADS);
+		{
+			glVertex3f(0, 0, HALF_GRID);
+			glVertex3f(HALF_GRID, 0, 0);
+			glVertex3f(0, 0, -HALF_GRID);
+			glVertex3f(-HALF_GRID, 0, 0);
+		}
+		glEnd();
+	}
 	POP_MATRIX;
 }
 
 void draw_launcher(vector3f pos)
 {
 	gfx_color3f(0, 0, 0);
-	glPushMatrix();
-	glTranslatef(pos.x, pos.y + 0.03, pos.z);
-#ifdef ARM9
-	glBegin(GL_TRIANGLE_STRIP);
-                        glVertex3f(0, 0, HALF_GRID);
-                        glVertex3f(HALF_GRID, 0, 0);
-                        glVertex3f(0, 0, -HALF_GRID);
-                        glVertex3f(-HALF_GRID, 0, 0);
-	glEnd();
+	gfx_push_matrix();
+	{
+		glTranslatef(pos.x, pos.y + 0.03, pos.z);
+#ifdef ECHO_NDS
+		glBegin(GL_TRIANGLE_STRIP);
+		{
+			glVertex3f(0, 0, HALF_GRID);
+			glVertex3f(HALF_GRID, 0, 0);
+			glVertex3f(0, 0, -HALF_GRID);
+			glVertex3f(-HALF_GRID, 0, 0);
+		}
+		glEnd();
 #else
-	glBegin(GL_LINE_LOOP);
-		glVertex3f(0, 0, HALF_GRID);
-		glVertex3f(HALF_GRID, 0, 0);
-		glVertex3f(0, 0, -HALF_GRID);
-		glVertex3f(-HALF_GRID, 0, 0);
-	glEnd();
+		glBegin(GL_LINE_LOOP);
+		{
+			glVertex3f(0, 0, HALF_GRID);
+			glVertex3f(HALF_GRID, 0, 0);
+			glVertex3f(0, 0, -HALF_GRID);
+			glVertex3f(-HALF_GRID, 0, 0);
+		}
+		glEnd();
 #endif
+	}
 	POP_MATRIX;
 }
 
@@ -127,10 +145,12 @@ void draw_rect(vector3f p1, vector3f p2, vector3f p3, vector3f p4)
 {
 	gfx_color3f(1, 1, 1);
 	glBegin(GL_QUADS);
+	{
 		glVertex3f(p1.x, p1.y, p1.z);
 		glVertex3f(p2.x, p2.y, p2.z);
 		glVertex3f(p3.x, p3.y, p3.z);
 		glVertex3f(p4.x, p4.y, p4.z);
+	}
 	glEnd();
 }
 
@@ -141,14 +161,16 @@ void draw_rect(float x1, float y1, float z1
 {
 	gfx_color3f(1, 1, 1);
 	glBegin(GL_QUADS);
+	{
 		glVertex3f(x1, y1, z1);
 		glVertex3f(x2, y2, z2);
 		glVertex3f(x3, y3, z3);
 		glVertex3f(x4, y4, z4);
+	}
 	glEnd();
 }
 
-#ifdef ARM9
+#ifdef ECHO_NDS
 void draw_rectv16(v16 x1, v16 y1, v16 z1
 		, v16 x2, v16 y2, v16 z2
 		, v16 x3, v16 y3, v16 z3
@@ -156,149 +178,183 @@ void draw_rectv16(v16 x1, v16 y1, v16 z1
 {
 	gfx_color3f(1, 1, 1);
 	glBegin(GL_QUADS);
+	{
 		glVertex3v16(x1, y1, z1);
 		glVertex3v16(x2, y2, z2);
 		glVertex3v16(x3, y3, z3);
 		glVertex3v16(x4, y4, z4);
+	}
 	glEnd();
 }
 #endif
 
-void draw_goal_gfx(vector3f pos)
+void draw_goal_gfx(vector3f* pos)
 {
 #ifndef ECHO_NDS
 	if(!drawing_outline)
 #endif
 	{
-		glPushMatrix();
-		glColor3f(0, 0, 0);
-		glTranslatef(pos.x, pos.y, pos.z);
-		draw_character(NULL);
+		gfx_color3f(0.25f, 0.25f, 0.25f);
+		gfx_push_matrix();
+			glTranslatef(pos->x, pos->y, pos->z);
+			draw_character(NULL);
 		POP_MATRIX;
 	}
 }
 
 void draw_character(echo_char_joints* joints)
 {
-	if(joints == NULL)
+	gfx_push_matrix();	//body
 	{
-		static echo_char_joints* null_joints = NULL;
-		if(null_joints == NULL)
+		glTranslatef(0, 1.875f, 0);
+		draw_body();
+#ifndef ECHO_NDS
+		gfx_push_matrix();	//neck, head
 		{
-			null_joints = new(echo_char_joints);
-			CHKPTR(null_joints);
-			reset_joints(null_joints);
-		}
-		joints = null_joints;
-	}
-#ifdef LAB
-	glPushMatrix();
-	glTranslatef(0, 1.875f, 0);
-		draw_body();
-	POP_MATRIX;
-#else
-	glPushMatrix();
-	glTranslatef(0, 1.875f, 0);
-		draw_body();
-		glPushMatrix();	//neck, head
 			glTranslatef(0, 0.3f, 0);
 			draw_sphere_pointzero75();
-			gfx_rotatef(joints->head_x, 1, 0, 0);
-			gfx_rotatef(joints->head_y, 0, 1, 0);
-			gfx_rotatef(joints->head_z, 0, 0, 1);
+			if(joints != NULL)
+			{
+				gfx_rotatef(joints->head_x, 1, 0, 0);
+				gfx_rotatef(joints->head_y, 0, 1, 0);
+				gfx_rotatef(joints->head_z, 0, 0, 1);
+			}
 			glTranslatef(0, 0.3f, 0);
 			draw_head();
-		POP_MATRIX;
-		glPushMatrix();	//left hand
+		}
+		POP_MATRIX; //end neck, hand
+		gfx_push_matrix();	//left hand
+		{
 			glTranslatef(0.2f, 0.2f, 0);
 			draw_sphere_pointzero75();
-			gfx_rotatef(joints->lshoulder_x, 1, 0, 0);
-			gfx_rotatef(joints->lshoulder_y, 0, 1, 0);
-			gfx_rotatef(12 + joints->lshoulder_z, 0, 0, 1);
+			if(joints != NULL)
+			{
+				gfx_rotatef(joints->lshoulder_x, 1, 0, 0);
+				gfx_rotatef(joints->lshoulder_y, 0, 1, 0);
+				gfx_rotatef(joints->lshoulder_z + 12, 0, 0, 1);
+			}
+			else
+				gfx_rotatef(12, 0, 0, 1);
 			glTranslatef(0, -0.05f, 0);
 			draw_limb();
 			glTranslatef(0, -0.45f, 0);
 			draw_sphere_pointzero75();
-			gfx_rotatef(joints->larm_x, 1, 0, 0);
-			gfx_rotatef(joints->larm_y, 0, 1, 0);
+			if(joints != NULL)
+			{
+				gfx_rotatef(joints->larm_x, 1, 0, 0);
+				gfx_rotatef(joints->larm_y, 0, 1, 0);
+			}
 			gfx_rotatef(-12, 0, 0, 1);
 			glTranslatef(0, -0.05f, 0);
 			draw_limb();
 			glTranslatef(0, -0.45f, 0);
 			draw_sphere_pointzero75();
-			gfx_rotatef(joints->lhand_x, 1, 0, 0);
+			if(joints != NULL)
+				gfx_rotatef(joints->lhand_x, 1, 0, 0);
 			glTranslatef(-0.03f, -0.06f, 0);
 			draw_left_hand();
-		POP_MATRIX;
-		glPushMatrix();	//right hand
+		}
+		POP_MATRIX;	//end left hand
+		gfx_push_matrix();	//right hand
+		{
 			glTranslatef(-0.2f, 0.2f, 0);
 			draw_sphere_pointzero75();
-			gfx_rotatef(joints->rshoulder_x, 1, 0, 0);
-			gfx_rotatef(joints->rshoulder_y, 0, 1, 0);
-			gfx_rotatef(-12 + joints->rshoulder_z, 0, 0, 1);
+			if(joints != NULL)
+			{
+				gfx_rotatef(joints->rshoulder_x, 1, 0, 0);
+				gfx_rotatef(joints->rshoulder_y, 0, 1, 0);
+				gfx_rotatef(joints->rshoulder_z - 12, 0, 0, 1);
+			}
+			else
+				gfx_rotatef(-12, 0, 0, 1);
 			glTranslatef(0, -0.05f, 0);
 			draw_limb();
 			glTranslatef(0, -0.45f, 0);
 			draw_sphere_pointzero75();
-			gfx_rotatef(joints->rarm_x, 1, 0, 0);
-			gfx_rotatef(joints->rarm_y, 0, 1, 0);
+			if(joints != NULL)
+			{
+				gfx_rotatef(joints->rarm_x, 1, 0, 0);
+				gfx_rotatef(joints->rarm_y, 0, 1, 0);
+			}
 			gfx_rotatef(12, 0, 0, 1);
 			glTranslatef(0, -0.05f, 0);
 			draw_limb();
 			glTranslatef(0, -0.45f, 0);
 			draw_sphere_pointzero75();
-			gfx_rotatef(joints->rhand_x, 1, 0, 0);
+			if(joints != NULL)
+				gfx_rotatef(joints->rhand_x, 1, 0, 0);
 			glTranslatef(0.03f, -0.06f, 0);
 			draw_right_hand();
-		POP_MATRIX;
-		glPushMatrix();	//waist, lower body
+		}
+		POP_MATRIX;	//end right hand
+		gfx_push_matrix();	//waist, lower body
+		{
 			glTranslatef(0, -0.32f, 0);
 			draw_sphere_point1();
-			gfx_rotatef(joints->waist_y, 0, 1, 0);
-			gfx_rotatef(joints->waist_z, 0, 0, 1);
+			if(joints != NULL)
+			{
+				gfx_rotatef(joints->waist_y, 0, 1, 0);
+				gfx_rotatef(joints->waist_z, 0, 0, 1);
+			}
 			glTranslatef(0, -0.32f, 0);
 			draw_lower_body();
-			glPushMatrix();	//left leg
+			gfx_push_matrix();	//left leg
+			{
 				glTranslatef(0.1f, -0.06f, 0);
 				draw_sphere_pointzero75();
-				gfx_rotatef(joints->lthigh_x, 1, 0, 0);
-				gfx_rotatef(joints->lthigh_y, 0, 1, 0);
-				gfx_rotatef(joints->lthigh_z, 0, 0, 1);
+				if(joints != NULL)
+				{
+					gfx_rotatef(joints->lthigh_x, 1, 0, 0);
+					gfx_rotatef(joints->lthigh_y, 0, 1, 0);
+					gfx_rotatef(joints->lthigh_z, 0, 0, 1);
+				}
 				glTranslatef(0, -0.05f, 0);
 				draw_limb();
 				glTranslatef(0, -0.45f, 0);
 				draw_sphere_pointzero75();
-				gfx_rotatef(joints->lleg_x, 1, 0, 0);
+				if(joints != NULL)
+					gfx_rotatef(joints->lleg_x, 1, 0, 0);
 				glTranslatef(0, -0.05f, 0);
 				draw_limb();
 				glTranslatef(0, -0.45f, 0);
 				draw_sphere_pointzero75();
-				gfx_rotatef(joints->lfoot_x, 1, 0, 0);
+				if(joints != NULL)
+					gfx_rotatef(joints->lfoot_x, 1, 0, 0);
 				glTranslatef(0.01f, -0.15f, -0.075f);
 				draw_foot();
-			POP_MATRIX;
-			glPushMatrix();	//right leg
+			}
+			POP_MATRIX;	//end left leg
+			gfx_push_matrix();	//right leg
+			{
 				glTranslatef(-0.1f, -0.06f, 0);
 				draw_sphere_pointzero75();
-				gfx_rotatef(joints->rthigh_x, 1, 0, 0);
-				gfx_rotatef(joints->rthigh_y, 0, 1, 0);
-				gfx_rotatef(joints->rthigh_z, 0, 0, 1);
+				if(joints != NULL)
+				{
+					gfx_rotatef(joints->rthigh_x, 1, 0, 0);
+					gfx_rotatef(joints->rthigh_y, 0, 1, 0);
+					gfx_rotatef(joints->rthigh_z, 0, 0, 1);
+				}
 				glTranslatef(0, -0.05f, 0);
 				draw_limb();
 				glTranslatef(0, -0.45f, 0);
 				draw_sphere_pointzero75();
-				gfx_rotatef(joints->rleg_x, 1, 0, 0);
+				if(joints != NULL)
+					gfx_rotatef(joints->rleg_x, 1, 0, 0);
 				glTranslatef(0, -0.05f, 0);
 				draw_limb();
 				glTranslatef(0, -0.45f, 0);
 				draw_sphere_pointzero75();
-				gfx_rotatef(joints->rfoot_x, 1, 0, 0);
+				if(joints != NULL)
+					gfx_rotatef(joints->rfoot_x, 1, 0, 0);
 				glTranslatef(-0.01f, -0.15f, -0.075f);
 				draw_foot();
-			POP_MATRIX;
-		POP_MATRIX;
-	POP_MATRIX;
+			}
+			POP_MATRIX;	//end right leg
+		}
+		POP_MATRIX; //end lower body
 #endif
+	}
+	POP_MATRIX;	//end body
 }
 
 void gfx_rotatef(float angle, float x, float y, float z)
@@ -318,6 +374,7 @@ void gfx_translatef(float x, float y, float z)
 void gfx_push_matrix()
 {
 	glPushMatrix();
+	//glLoadIdentity();
 }
 
 void gfx_pop_matrix()
@@ -332,14 +389,14 @@ void gfx_identity()
 
 void gfx_color3f(float r, float g, float b)
 {
-#ifndef	ARM9
+#ifndef	ECHO_NDS
 	if(!drawing_outline)
 #endif
 		glColor3f(r, g, b);
 }
 
 //From http://www.codeproject.com/KB/openGL/Outline_Mode.aspx
-#ifndef ARM9
+#ifndef ECHO_NDS
 #define OUTLINE_POLYOFFSET
 void gfx_outline_start()
 {

@@ -338,68 +338,73 @@ void echo_char::draw(float x, float y, float z)
 {
 	//*
 	gfx_push_matrix();
-	gfx_translatef(x, y, z);
-	float main_per = 0;
-	grid* main_grid = NULL;
-	if(grid1 && grid1per >= 0.5f)
 	{
-		main_per = grid1per;
-		main_grid = grid1;
-	}
-	else if(grid2 && grid2per >= 0.5f)
-	{
-		main_per = grid2per;
-		main_grid = grid2;
-	}
-	if(main_grid)
-	{
-		gfx_translatef(0, grid2->vert_shift(main_per), 0);
-		joints.rshoulder_swing = -20 * echo_cos(dist_traveled_cyclic);
-		joints.lshoulder_swing = 20 * echo_cos(dist_traveled_cyclic);
-		joints.rarm_bend = -10 * echo_cos(dist_traveled_cyclic) - 20;
-		joints.larm_bend = 10 * echo_cos(dist_traveled_cyclic) - 20;
-		joints.rthigh_lift = -45 * echo_cos(dist_traveled_cyclic);
-		joints.lthigh_lift = 45 * echo_cos(dist_traveled_cyclic);
 		
-		#define LEG_BEND_MAX	30
-		
-		//*
-		if(dist_traveled > 1 && dist_traveled <= 1.5f)
-			joints.rleg_bend = LEG_BEND_MAX * echo_cos(dist_traveled * 180 + 180);
-		else if(dist_traveled > 3.0f || dist_traveled <= 1)
-			joints.rleg_bend = LEG_BEND_MAX * echo_sin(dist_traveled * 45);
-		else
-			joints.rleg_bend = 0; 
-		if(dist_traveled > 3 && dist_traveled <= 3.5f)
-			joints.lleg_bend = LEG_BEND_MAX * echo_cos(dist_traveled * 180 + 180);
-		else if(dist_traveled > 1.0f && dist_traveled <= 3)
-			joints.lleg_bend = LEG_BEND_MAX * echo_sin(dist_traveled * 45 - 90);
-		else
-			joints.lleg_bend = 0;
-		// */
-	}
-	if(grid1 && grid2)
-	{
-		grid_info_t* i1 = grid1->get_info(echo_ns::angle);
-		grid_info_t* i2 = grid2->get_info(echo_ns::angle);
-		if(i1 && i2)
+		float main_per = 0;
+		grid* main_grid = NULL;
+		if(grid1 && grid1per >= 0.5f)
 		{
-			gfx_rotatef(90 - TO_DEG(atan2(i2->pos.z - i1->pos.z, i2->pos.x - i1->pos.x))
-				, 0, 1, 0);
+			main_per = grid1per;
+			main_grid = grid1;
 		}
-	}
+		else if(grid2 && grid2per >= 0.5f)
+		{
+			main_per = grid2per;
+			main_grid = grid2;
+		}
+		if(main_grid)
+		{
+			y += grid2->vert_shift(main_per);
+			//gfx_translatef(0, grid2->vert_shift(main_per), 0);
+			joints.rshoulder_swing = -20 * echo_cos(dist_traveled_cyclic);
+			joints.lshoulder_swing = 20 * echo_cos(dist_traveled_cyclic);
+			joints.rarm_bend = -10 * echo_cos(dist_traveled_cyclic) - 20;
+			joints.larm_bend = 10 * echo_cos(dist_traveled_cyclic) - 20;
+			joints.rthigh_lift = -45 * echo_cos(dist_traveled_cyclic);
+			joints.lthigh_lift = 45 * echo_cos(dist_traveled_cyclic);
+			
+			#define LEG_BEND_MAX	30
+			
+			//*
+			if(dist_traveled > 1 && dist_traveled <= 1.5f)
+				joints.rleg_bend = LEG_BEND_MAX * echo_cos(dist_traveled * 180 + 180);
+			else if(dist_traveled > 3.0f || dist_traveled <= 1)
+				joints.rleg_bend = LEG_BEND_MAX * echo_sin(dist_traveled * 45);
+			else
+				joints.rleg_bend = 0; 
+			if(dist_traveled > 3 && dist_traveled <= 3.5f)
+				joints.lleg_bend = LEG_BEND_MAX * echo_cos(dist_traveled * 180 + 180);
+			else if(dist_traveled > 1.0f && dist_traveled <= 3)
+				joints.lleg_bend = LEG_BEND_MAX * echo_sin(dist_traveled * 45 - 90);
+			else
+				joints.lleg_bend = 0;
+			// */
+		}
+		gfx_translatef(x, y, z);
+		//direction he is facing.
+		if(grid1 && grid2)
+		{
+			grid_info_t* i1 = grid1->get_info(echo_ns::angle);
+			grid_info_t* i2 = grid2->get_info(echo_ns::angle);
+			if(i1 && i2)
+			{
+				gfx_rotatef(90 - TO_DEG(atan2(i2->pos.z - i1->pos.z, i2->pos.x - i1->pos.x))
+					, 0, 1, 0);
+			}
+		}
+		//gfx_translatef(x, y, z);
 #ifndef ECHO_NDS
-	//gfx_colorf
-	gfx_outline_start();
-	draw_character(&joints);
-	gfx_outline_mid();
-	draw_character(&joints);
-	gfx_outline_end();
-	//ECHO_PRINT("joints->rthigh_lift: %f\n", joints.rthigh_lift);
+		gfx_outline_start();
+		draw_character(&joints);
+		//gfx_identity();
+		gfx_outline_mid();
+		draw_character(&joints);
+		gfx_outline_end();
 #else
-	gfx_set_polyID(1);
-	draw_character(&joints);
+		gfx_set_polyID(1);
+		draw_character(&joints);
 #endif
+	}
 	gfx_pop_matrix();
 	// */
 }

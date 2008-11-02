@@ -1,0 +1,89 @@
+<?xml version="1.0" standalone="no" ?>
+<stage name="A4" start="start" goals="3">
+	<freeform_grid id="p_east" x="0.75f" y="0" z="0" prev="NONE" next="NONE" noland="1">
+		<angle x="0" y="3" z="0" />
+		<angle x="0" y="0" z="0.75f" />
+	</freeform_grid>
+	<freeform_grid id="p_west" x="-0.75f" y="0" z="0" prev="NONE" next="NONE" noland="1">
+		<angle x="0" y="3" z="0" />
+		<angle x="0" y="0" z="0.75f" />
+	</freeform_grid>
+	<freeform_grid id="p_south" x="0" y="0" z="0.75f" prev="NONE" next="NONE" noland="1">
+		<angle x="0" y="3" z="0" />
+		<angle x="0.75f" y="0" z="0" />
+	</freeform_grid>
+	<freeform_grid id="p_north" x="0" y="0" z="-0.75f" prev="NONE" next="NONE" noland="1">
+		<angle x="0" y="3" z="0" />
+		<angle x="0.75f" y="0" z="0" />
+	</freeform_grid>
+	
+	<grid id="west6" x="-5" y="0" z="-3" prev="west5" next="north1" goal="1">
+		<triggers>
+			<trigger id="start">
+				<not>
+					<goal id="south8" />
+				</not>
+			</trigger>
+		</triggers>
+	</grid>
+	
+	<grid id="start" x="3" y="0" z="-3" prev="north7" next="east1" />
+	<grid id="east1" x="3" y="0" z="-2" prev="start" next="east2" />
+	<grid id="east2" x="3" y="0" z="-1" prev="east1" next="east3" />
+	<grid id="east3" x="3" y="0" z="0" prev="east2" next="east4" />
+	<grid id="east4" x="3" y="0" z="1" prev="east3" next="east5" />
+	<grid id="east5" x="3" y="0" z="2" prev="east4" next="east6" />
+	<grid id="east6" x="3" y="0" z="3" prev="east5" next="south1" />
+	
+	<grid id="south1" x="2" y="0" z="3" prev="east6" next="south2" />
+	<hole id="south2" x="1" y="0" z="3" prev="south1" next="south3">
+		<range x_min="-40" x_max="40" y_min="-150" y_max="-170" z_min="0" z_max="0">
+			<grid id="south2_esc" x="1" y="0" z="3" prev="south1" next="south3"/>
+		</range>
+	</hole>
+	<grid id="south3" x="0" y="0" z="3" prev="south2" next="south4" />
+	<grid id="south4" x="-1" y="0" z="3" prev="south3" next="south5" />
+	<grid id="south5" x="-2" y="0" z="3" prev="south4" next="south6" />
+	<grid id="south6" x="-3" y="0" z="3" prev="south5" next="south7" />
+	<grid id="south7" x="-4" y="0" z="3" prev="south6" next="south8" />
+	<grid id="south8" x="-5" y="0" z="3" prev="south7" next="west1" goal="1">
+		<triggers>
+			<trigger id="start">
+				<not>
+					<goal id="west6" />
+				</not>
+			</trigger>
+		</triggers>
+	</grid>
+	
+	<escgrid id="west1" x="-5" y="0" z="2" prev="south8" next="south8">
+		<range x_min="-40" x_max="40" y_min="100" y_max="105" z_min="0" z_max="0">
+			<grid id="west1_esc" x="-5" y="0" z="2" prev="south8" next="west2" />
+		</range>
+	</escgrid>
+	<grid id="west2" x="-5" y="0" z="1" prev="west1" next="west3" nodraw="1"/>
+	<escgrid id="west3" x="-5" y="0" z="0" prev="west4" next="west4">
+		<range x_min="-40" x_max="40" y_min="100" y_max="105" z_min="0" z_max="0">
+			<grid id="west3_esc" x="-5" y="0" z="0" prev="west2" next="west4" />
+		</range>
+	</escgrid>
+	<grid id="west4" x="-5" y="0" z="-1" prev="west3" next="west5" />
+	<grid id="west5" x="-5" y="0" z="-2" prev="west4" next="west6" />
+	
+	
+	<grid id="north1" x="-4" y="0" z="-3" prev="west6" next="north2" />
+	<grid id="north2" x="-3" y="0" z="-3" prev="north1" next="north3" />
+	<escgrid id="north3" x="-2" y="0" z="-3" prev="north2" next="north2">
+		<range x_min="-40" x_max="40" y_min="15" y_max="25" z_min="0" z_max="0">
+			<grid id="north3_esc" x="-2" y="0" z="-3" prev="north2" next="north4" />
+		</range>
+	</escgrid>
+	<grid id="north4" x="-1" y="0" z="-3" prev="north3" next="north5" nodraw="1"/>
+	<escgrid id="north5" x="0" y="0" z="-3" prev="north6" next="north6">
+		<range x_min="-40" x_max="40" y_min="15" y_max="25" z_min="0" z_max="0">
+			<grid id="north5_esc" x="0" y="0" z="-3" prev="north4" next="north6" />
+		</range>
+	</escgrid>
+	<grid id="north6" x="1" y="0" z="-3" prev="north5" next="north7" />
+	<grid id="north7" x="2" y="0" z="-3" prev="north6" next="start" />
+</stage>
