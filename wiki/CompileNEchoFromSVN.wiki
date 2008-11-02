@@ -38,20 +38,8 @@ http://code.google.com/p/l-echo/source/checkout
 
 I never really use any SVN client other for commits, so don't ask me.
 
-===Getting the template===
-
-Down and unzip this:
-
-http://l-echo.googlecode.com/files/n-echo_template.zip
-
 ==Compiling==
 
-1) Copy all the .cpp files in the root of the SVN code (the files like echo_character.cpp, grid.cpp, etc.) and in tinyxml/ (tinyxml.cpp, tinystr.cpp, etc.) to the source/ directory in n-echo_template/.
+1) At the l-echo folder: `make setup-nds`
 
-2) Copy all the .h files in the root of the SVN code (echo_character.h, echo_debug.h, etc.) and in tinyxml/ (tinyxml.h, tinystr.h) to the include/ directory in n-echo_template/.
-
-3) Go to the terminal (Windows: "Start" -> "Run" -> "cmd.exe", Mac: Google up xterm), go to where you put n-echo_template/
-
-4) Enter "make", and that should be it.  
-
-5) Read the readme! (And the start/pause/resume button is supposed to be A, not N).  Be sure to have sample1.xml at the root of the directory (I might move it to /data/n-echo, or somewhere.  I'll make n-echo look for it)...
+2) Enter the n-echo folder, and: `make`
