@@ -43,27 +43,43 @@
 	}
 	int get_hand(TiXmlDocument* document, HAND* handedness)
 	{
-		if(document)
+		ECHO_PRINT("at get_hand\n");
+		if(document != NULL)
 		{
+			ECHO_PRINT("after document != NULL\n");
 			TiXmlElement* root = document->RootElement();
-			if(root)
+			ECHO_PRINT("after get root\n");
+			if(root != NULL)
 			{
+				ECHO_PRINT("after root != NULL\n");
 				const char* hand_str = root->Attribute(HAND_ATTR_NAME);
-				if(hand_str)
+				ECHO_PRINT("after get hand_str\n");
+				if(hand_str != NULL)
 				{
+					ECHO_PRINT("after hand_str != NULL\n");
 					if(!strcmp(hand_str, HAND_LEFT_VALUE))
 					{
+						ECHO_PRINT("after hand_str == left\n");
 						*handedness = LEFT_HAND;
+						ECHO_PRINT("left hand\n");
 						return(WIN);
 					}
 					else if(!strcmp(hand_str, HAND_RIGHT_VALUE))
 					{
+						ECHO_PRINT("after hand_str == right\n");
 						*handedness = RIGHT_HAND;
+						ECHO_PRINT("right hand\n");
 						return(WIN);
 					}
 				}
+				else
+					ECHO_PRINT("hand_str is null?\n");
 			}
+			else
+				ECHO_PRINT("Root element is null?\n");
 		}
+		else
+			ECHO_PRINT("Doc is null?\n");
 		return(FAIL);
 	}
 	int set_hand(TiXmlDocument* document, HAND handedness)

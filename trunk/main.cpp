@@ -144,7 +144,7 @@
 
 #ifdef ECHO_NDS
 	//mode of the top screen (subscreen)
-	static int sub_mode = NDS_START_MODE;
+	static int sub_mode = NDS_DEBUG_MODE;
 	//address of the "second console", used by the info and loader screens
 	static u16* string_map = NULL;
 	//basic flags of the top screen
@@ -265,13 +265,15 @@ static void start_or_pause();
 int main(int argc, char **argv)
 {
 #ifdef ECHO_NDS
+	
 	//initialize the file system
 	fatInitDefault();
 	//get the files
-	files = get_files("/apps/n-echo");
+	files = get_files("/");
 	//initialize the screens
 	init(argc, argv, 255, 191);
 	
+	//*
 	ECHO_PRINT("trying to load prefs...\n");
 	TiXmlDocument* doc = NULL;
 	if(open_prefs(&doc) == WIN)
@@ -282,9 +284,11 @@ int main(int argc, char **argv)
 	}
 	else
 		ECHO_PRINT("couldn't load prefs!\n");
+	// */
 	
 	//load the menu
 	load(NULL);
+	defaultExceptionHandler();
 	//infinite loop
 	while(1)
 	{
@@ -295,6 +299,7 @@ int main(int argc, char **argv)
 		{
 			//display bottom screen
 			display();
+			
 			//draw the image
 			glFlush(0);
 		}
@@ -302,21 +307,6 @@ int main(int argc, char **argv)
         swiWaitForVBlank();
 	}
 #elif ECHO_PC
-	echo_char_joints* joints = new(echo_char_joints);
-	joints->rwrist = 10;
-	ECHO_PRINT("joints.rwrist: %f\n", joints->rwrist);
-	ECHO_PRINT("joints.rhand_x: %f\n", joints->rhand_x);
-	ECHO_PRINT("joints.lhand_x: %f\n", joints->lhand_x);
-	joints->lwrist = 20;
-	ECHO_PRINT("joints.rwrist: %f\n", joints->rwrist);
-	ECHO_PRINT("joints.rhand_x: %f\n", joints->rhand_x);
-	ECHO_PRINT("joints.lhand_x: %f\n", joints->lhand_x);
-	reset_joints(joints);
-	ECHO_PRINT("joints.rwrist: %f\n", joints->rwrist);
-	ECHO_PRINT("joints.rhand_x: %f\n", joints->rhand_x);
-	ECHO_PRINT("joints.lhand_x: %f\n", joints->lhand_x);
-	delete joints;
-	
 	//fill lookup tables
 	init_math();
 	#ifdef ECHO_WIN //goddammmit windows, adhere to POSIX!
@@ -380,10 +370,12 @@ int main(int argc, char **argv)
 #ifdef ECHO_NDS
 void refresh_hand(TiXmlDocument* doc)
 {
-	HAND* hand = NULL;
-	if(get_hand(doc, hand) == WIN)
+	HAND hand = RIGHT_HAND;
+	ECHO_PRINT("get hand started\n");
+	if(get_hand(doc, &hand) == WIN)
 	{
-		if(*hand == RIGHT_HAND)
+		ECHO_PRINT("get hand ended\n");
+		if(hand == RIGHT_HAND)
 		{
 			ECHO_PRINT("right handed\n");
 			left_key = KEY_LEFT;
@@ -403,14 +395,16 @@ void refresh_hand(TiXmlDocument* doc)
 		}
 	}
 	else
-		ECHO_PRINT("couldn't get handedness!");
+		ECHO_PRINT("couldn't get handedness!\n");
 }
 #endif
 
 static void load(const char* fname)
 {
+	ECHO_PRINT("start of load\n");
 	//load stage
 	stage* s = (fname ? load_stage(echo_merge(files->current_dir, fname)) : NULL);
+	ECHO_PRINT("after load_stage\n");
 	//if the stage file is bad (fname != NULL && s == NULL), fuhgeddaboutit!
 	if(s || !fname)
 	{
@@ -675,7 +669,7 @@ static void resize(int w, int h)
 		console2_draw_string(0, 0, files->current_dir, 16);
 		
 		int each_file = 0;
-		while(each_file < NUM_FILES_DISPLAYED)
+		while(each_file < files->num_files)
 		{
 			//display an arrow next to the currently selected file
 			if(file_start + each_file == file_index)
@@ -871,10 +865,12 @@ static void resize(int w, int h)
 			//the background of the loader
 			glColor3f(0, 0, 0);
 			glBegin(GL_QUADS);
-			glVertex3f(0, real_height, 0);
-			glVertex3f(real_width * LOADER_WIDTH, real_height, 0);
-			glVertex3f(real_width * LOADER_WIDTH, -real_height, 0);
-			glVertex3f(0, -real_height, 0);
+			{
+				glVertex3f(0, real_height, 0);
+				glVertex3f(real_width * LOADER_WIDTH, real_height, 0);
+				glVertex3f(real_width * LOADER_WIDTH, -real_height, 0);
+				glVertex3f(0, -real_height, 0);
+			}
 			glEnd();
 			
 			//slightly in front
@@ -1002,7 +998,13 @@ static void display()
 			{
 				//load stage file
 				if(!is_dir(files, file_index))
+				{
+					sub_mode = NDS_DEBUG_MODE;
+					refresh_sub_mode();
+					ECHO_PRINT("before loading\n");
 					load(files->file_names[file_index]);
+					ECHO_PRINT("after loading\n");
+				}
 				//open the directory
 				else
 				{
@@ -1061,6 +1063,7 @@ static void display()
 			if(key & left_key)	left();
 			if(key & down_key)	down();
 			if(key & up_key)	up();
+			if(key & b_key)		echo_ns::toggle_run();
 		}
 		if(key & KEY_START)
 		{
