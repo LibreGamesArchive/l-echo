@@ -1,11 +1,11 @@
 #include <stdio.h>
-
-#define floattov16(n)        ((short int)((n) * (1 << 12)))
+#include <gen.h>
 
 int print_id(int id);
 
 int main()
 {
+	PRINT_STATS;
 	float each = -2 * 0.166f;
 	printf("#ifdef ARM9\n");
 	printf("\t#define SET_ID(id)	gfx_set_polyID(id)\n");
@@ -14,6 +14,7 @@ int main()
 	printf("#endif\n\n");
 	printf("void draw_stairs()\n{\n");
 	printf("#ifndef ECHO_NDS\n");
+	//printf("\tglColor3f(1, 1, 1);\n");
 	printf("\tglBegin(GL_QUAD_STRIP);\n");
 	while(each <= 0.5f)
 	{
