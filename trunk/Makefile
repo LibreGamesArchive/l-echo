@@ -24,8 +24,13 @@ NPKG 	:= ../n$(PKGCOMMON).zip
 DESC      := L-Echo $(VERSION)
 UPLOAD := python googlecode_upload.py -p 'l-echo' -s 
 
+
 all: $(OFILES)
 	gcc tinyxml/*.o *.o -DTIXML_USE_STL -lGL -lGLU -lglut -lpthread -g3 -Wall -o l-echo
+
+valgrind:
+	valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes --suppressions=fglrx.supp --sim-hints=lax-ioctls ./l-echo A1.xml.real 2> summary.txt
+	sed 's|.*/usr/lib.*|LOL|'  summary.txt > summary3.txt
 
 #lab: CXXFLAGS += -DLAB
 lab: $(OFILES)

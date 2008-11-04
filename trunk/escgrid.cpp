@@ -47,18 +47,42 @@ escgrid::escgrid(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info_t
 	init(my_escangle, my_normal_info, my_esc_info, my_normal_prev, my_esc_prev, my_normal_next, my_esc_next);
 }
 
-void escgrid::delete_table()
+void escgrid::delete_table(int delete_every)
 {
+	ECHO_PRINT("deleting table for escgrid\n");
 	if(delete_at_deconstruct)
 	{
+		ECHO_PRINT("delete_at_deconstruct is true\n");
 		if(escs)
 		{
+			ECHO_PRINT("deleting escs\n");
 			//std::cout << "lol1";
+			if(delete_every == 1)
+			{
+				int each = 0;
+				while(each < num_esc)
+				{
+					grid* del = escs[each];
+					delete del;
+					each++;
+				}
+			}
 			delete[] escs;
 		}
 		if(ranges)
 		{
+			ECHO_PRINT("deleting ranges\n");
 			//std::cout << "lol2";
+			if(delete_every == 1)
+			{
+				int each = 0;
+				while(each < num_esc)
+				{
+					angle_range* del = ranges[each];
+					delete del;
+					each++;
+				}
+			}
 			delete[] ranges;
 		}
 	}
@@ -69,7 +93,7 @@ void escgrid::init(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info
 {
 	grid::init(my_normal_info, my_normal_prev, my_normal_next);
 	num_esc = 1;
-	delete_table();
+	delete_table(1);
 	ranges = new angle_range*[1];
 	CHKPTR(ranges);
 	escs = new grid*[1];
@@ -81,8 +105,10 @@ void escgrid::init(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info
 
 void escgrid::init(grid_info_t* my_info, grid* my_prev, grid* my_next)
 {
+	ECHO_PRINT("\nINIT ESCGRID\n\n");
 	grid::init(my_info, my_prev, my_next);
-	delete_table();
+	ECHO_PRINT("\nEND INIT ESCGRID: GRID\n\n");
+	delete_table(1);
 	ranges = NULL;
 	escs = NULL;
 	delete_at_deconstruct = 1;
@@ -92,7 +118,7 @@ void escgrid::init(grid_info_t* my_info, grid* my_prev, grid* my_next)
 void escgrid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, angle_range** my_escranges, grid** my_escs, int my_num_escs)
 {
 	grid::init(my_info, my_prev, my_next);
-	delete_table();
+	delete_table(1);
 	ranges = my_escranges;
 	escs = my_escs;
 	delete_at_deconstruct = 0;
@@ -101,7 +127,7 @@ void escgrid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, angle_ran
 
 escgrid::~escgrid()
 {
-	delete_table();
+	delete_table(1);
 }
 
 void escgrid::init_to_null()
@@ -133,8 +159,9 @@ void escgrid::add(angle_range* range, grid* esc)
 			new_escs[each] = escs[each];
 			each++;
 		}
-		delete_table();
+		delete_table(0);
 	}
+	delete_at_deconstruct = 1;
 	escs = new_escs;
 	ranges = new_ranges;
 	// */

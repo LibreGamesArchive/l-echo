@@ -37,7 +37,7 @@ stage::stage()
 	CHKPTR(levels);
 }
 
-stage::stage(grid* my_start, std::string my_name, int my_num_goals)
+stage::stage(grid* my_start, std::string* my_name, int my_num_goals)
 {
 	farthest = 0;
 	grids = new STAGE_MAP();
@@ -47,6 +47,31 @@ stage::stage(grid* my_start, std::string my_name, int my_num_goals)
 	start = my_start;
 	name = my_name;
 	num_goals = my_num_goals;
+}
+
+
+stage::~stage()
+{
+	delete name;
+	
+	STAGE_MAP::iterator it = grids->begin();
+	STAGE_MAP::iterator end = grids->end();
+	while(it != end)
+	{
+		if(it->second != NULL)
+			delete it->second;
+	    ++it;
+	}
+	delete grids;
+	LEVEL_MAP::iterator level_it = levels->begin();
+	LEVEL_MAP::iterator level_end = levels->end();
+	while(level_it != level_end)
+	{
+		if(level_it->second != NULL)
+			delete level_it->second;
+	    ++level_it;
+	}
+	delete levels;
 }
 
 void stage::add(std::string id, grid* ptr)
@@ -148,7 +173,7 @@ void stage::set_start(grid* g)
     start = g;
 }
 
-void stage::set_name(std::string my_name)
+void stage::set_name(std::string* my_name)
 {
     name = my_name;
 }
@@ -163,7 +188,7 @@ grid* stage::get_start()
     return(start);
 }
 
-std::string stage::get_name()
+std::string* stage::get_name()
 {
     return(name);
 }

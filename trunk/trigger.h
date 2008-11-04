@@ -37,6 +37,7 @@ class trigger
 		trigger();
 		trigger(filter* filter);
 		trigger(filter* filter, grid* my_target);
+		~trigger();
 		void toggle(vector3f angle);
 		void set_target(grid* my_target);
 };

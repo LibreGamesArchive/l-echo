@@ -37,11 +37,13 @@ void dump_grid_info(grid_info_t ginfo)
 
 grid::grid()
 {
+	already_init = 0;
 	init_to_null();
 	init(NULL, NULL, NULL);
 }
 grid::grid(grid_info_t* my_info)
 {
+	already_init = 0;
 	init_to_null();
 	//ECHO_PRINT("2\n");
 	init(my_info, NULL, NULL);
@@ -49,6 +51,7 @@ grid::grid(grid_info_t* my_info)
 
 grid::grid(grid_info_t* my_info, grid* my_prev, grid* my_next)
 {
+	already_init = 0;
 	init_to_null();
 	//ECHO_PRINT("3\n");
 	init(my_info, my_prev, my_next);
@@ -56,6 +59,7 @@ grid::grid(grid_info_t* my_info, grid* my_prev, grid* my_next)
 
 grid::grid(grid_info_t* my_info, grid* my_prev, grid* my_next, int num_neighbor)
 {
+	already_init = 0;
 	init_to_null();
 	//ECHO_PRINT("4\n");
 	init(my_info, my_prev, my_next, num_neighbor);
@@ -69,6 +73,12 @@ void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next)
 
 void grid::init_to_null()
 {
+	if(already_init == 1)
+	{
+		delete_points();
+		delete_triggers();
+		delete_neighbors();
+	}
 	ginfo = NULL;
 	neighbors = NULL;
 	triggers = NULL;
@@ -76,6 +86,7 @@ void grid::init_to_null()
 #ifdef ARM9
 	polyID = 0;
 #endif
+	already_init = 1;
 }
 
 void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, int my_num_neighbors)
@@ -84,34 +95,73 @@ void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, int my_num_n
 	am_goal = 0;
 	//goal_angle = 0;
 	draw_me = 1;
-	if(triggers)
-		delete triggers;
+	delete_triggers();
 	triggers = new TRIGGER_SET();
 	CHKPTR(triggers);
 	
 	ginfo = my_info;
 	n_neighbors = my_num_neighbors;
-	if(neighbors)
-		delete[] neighbors;
+	delete_neighbors();
 	neighbors = new grid*[my_num_neighbors < 2 ? 2 : my_num_neighbors];
 	CHKPTR(neighbors);
 	neighbors[0] = my_prev;
 	neighbors[1] = my_next;
-	if(points)
-		delete[] points;
+	delete_points();
 	points = ginfo != NULL ? generate_points(*ginfo) : NULL;
+}
+
+void grid::delete_points()
+{
+	ECHO_PRINT("deleting points\n");
+	if(points != NULL)
+	{
+		ECHO_PRINT("\tpoints not equal to NULL\n");
+		delete points[0];
+		delete points[1];
+		delete points[2];
+		delete points[3];
+		delete[] points;
+	}
+}
+
+void grid::delete_triggers()
+{
+	ECHO_PRINT("deleting triggers\n");
+	if(triggers != NULL)
+	{
+		ECHO_PRINT("\ttriggers is NO NULL\n");
+		TRIGGER_SET::iterator it = triggers->begin();
+		while(it != triggers->end())
+		{
+			trigger* del = *it;
+			if(del != NULL)
+				delete del;
+			it++;
+		}
+		delete triggers;
+	}
+}
+
+void grid::delete_neighbors()
+{
+	ECHO_PRINT("deleting neighbors\n");
+	if(neighbors != NULL)
+	{
+		ECHO_PRINT("\tneighbors is NOT NULL\n");
+		delete[] neighbors;
+	}
 }
 
 grid::~grid()
 {
+	ECHO_PRINT("deallocating grid\n");
+	delete ginfo;
 	//*
-	if(neighbors)
+	if(neighbors != NULL)
 		delete[] neighbors;
-	if(points)
-		delete[] points;
-	if(triggers)
-		delete triggers;
-	// */
+	delete_points();
+	delete_triggers();
+	// */triggers
 }
 
 grid* grid::get_real_next()
@@ -196,7 +246,6 @@ void grid::dump()
 	if(ginfo)    dump_grid_info(*ginfo);
 	else        ECHO_PRINT("NULL grid_info_t?");
 	ECHO_PRINT("]");
-	//std::cout << "," << neighbors[0] << "," << neighbors[1] << "]";
 }
 
 void grid::add_trigger(trigger* trig)

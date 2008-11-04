@@ -240,3 +240,14 @@ vector3f* vector3f::angle_to_real()
 #endif
 }
 
+angle_range::~angle_range()
+{
+	if(v1 != v2)
+	{
+		delete v1;
+		delete v2;
+	}
+	else
+		delete v1;
+}
+

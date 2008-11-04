@@ -152,6 +152,32 @@ typedef std::map<std::string, FUNCTOR_VEC*> DEPENDENCY_MAP;
 	static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot);
 #endif
 
+void delete_functors(FUNCTOR_VEC* vec)
+{
+	FUNCTOR_VEC::iterator it = vec->begin();
+	while(it != vec->end())
+	{
+		functor* func = *it;
+		if(func != NULL)
+			delete func;
+		it++;
+	}
+	delete vec;
+}
+
+void delete_dependencies(DEPENDENCY_MAP* map)
+{
+	DEPENDENCY_MAP::iterator it = map->begin();
+	while(it != map->end())
+	{
+		FUNCTOR_VEC* vec = it->second;
+		if(vec != NULL)
+			delete_functors(vec);
+		it++;
+	}
+	delete map;
+}
+
 stage* load_stage(const char* file_name)
 {
 	//ECHO_PRINT("start of load_stage<>%s<>\n", file_name);
@@ -179,7 +205,7 @@ stage* load_stage(const char* file_name)
 		{
 			lderr("cannot find root element!");
 			//delete doc;
-			delete map;
+			delete_dependencies(map);
 			delete ret;
 #ifdef ECHO_NDS
 			delete nonffgrids;
@@ -203,11 +229,11 @@ stage* load_stage(const char* file_name)
 			{
 				lderr("unknown node type!");
 				//delete doc;
-				delete map;
+				delete_dependencies(map);
 				delete ret;
 #ifdef ECHO_NDS
-			delete nonffgrids;
-			delete ffgrids;
+				delete nonffgrids;
+				delete ffgrids;
 #endif
 				return(NULL);
 			}
@@ -217,7 +243,7 @@ stage* load_stage(const char* file_name)
 		{
 			lderr("no starting point specified!");
 			//delete doc;
-			delete map;
+			delete_dependencies(map);
 			delete ret;
 #ifdef ECHO_NDS
 			delete nonffgrids;
@@ -232,7 +258,7 @@ stage* load_stage(const char* file_name)
 		{
 			lderr("start grid not found...");
 			//delete doc;
-			delete map;
+			delete_dependencies(map);
 			delete ret;
 #ifdef ECHO_NDS
 			delete nonffgrids;
@@ -246,7 +272,7 @@ stage* load_stage(const char* file_name)
 		{
 			lderr("name of stage not specified!");
 			//delete doc;
-			delete map;
+			delete_dependencies(map);
 			delete ret;
 #ifdef ECHO_NDS
 			delete nonffgrids;
@@ -254,13 +280,13 @@ stage* load_stage(const char* file_name)
 #endif
 			return(NULL);
 		}
-		ret->set_name(*(new std::string(name)));
+		ret->set_name(new std::string(name));
 		int num_goals = 0;
 		if(root->QueryIntAttribute("goals", &num_goals) != TIXML_SUCCESS)
 		{
 			lderr("cannot find number of goals!");
 			//delete doc;
-			delete map;
+			delete_dependencies(map);
 			delete ret;
 #ifdef ECHO_NDS
 			delete nonffgrids;
@@ -272,7 +298,7 @@ stage* load_stage(const char* file_name)
 		
 		if(!map->empty())
 			ldwarn("dependencies not satisfied...");
-		delete map;
+		delete_dependencies(map);
 #ifdef ECHO_NDS
 #define GRID_POLYID_START	19
 		unsigned int polyID = GRID_POLYID_START;
@@ -441,13 +467,20 @@ static int add_esc(TiXmlElement* child, stage* st, DEPENDENCY_MAP* map, escgrid*
 		vector3f* each_angle = new vector3f();
 		LD_CHKPTR(each_angle);
 		if(!get_angle(child, each_angle))
+		{
+			delete each_angle;
 			return(0);
+		}
 #ifdef ECHO_NDS
 		grid* g = parse_grid(child->FirstChild()->ToElement(), st, map, escroot ? escroot : egrid, nonffgrids, ffgrids);
 #else
 		grid* g = parse_grid(child->FirstChild()->ToElement(), st, map, escroot ? escroot : egrid);
 #endif
-		if(!g)	return(0);
+		if(!g)
+		{
+			delete each_angle;
+			return(0);
+		}
 		egrid->add(each_angle, g);
 	}
 	else if(!strcmp(type, "range"))
@@ -455,17 +488,28 @@ static int add_esc(TiXmlElement* child, stage* st, DEPENDENCY_MAP* map, escgrid*
 		vector3f* v1 = new vector3f();
 		LD_CHKPTR(v1);
 		if(!get_float(child, "x_min", &v1->x) || !get_float(child, "y_min", &v1->y))
+		{
+			delete v1;
 			return(0);
+		}
 		vector3f* v2 = new vector3f();
 		LD_CHKPTR(v2);
 		if(!get_float(child, "x_max", &v2->x) || !get_float(child, "y_max", &v2->y))
+		{
+			delete v2;
 			return(0);
+		}
 #ifdef ECHO_NDS
 		grid* g = parse_grid(child->FirstChild()->ToElement(), st, map, escroot ? escroot : egrid, nonffgrids, ffgrids);
 #else
 		grid* g = parse_grid(child->FirstChild()->ToElement(), st, map, escroot ? escroot : egrid);
 #endif
-		if(!g)	return(0);
+		if(!g)
+		{
+			delete v1;
+			delete v2;
+			return(0);
+		}
 		egrid->add(new angle_range(v1, v2), g);
 	}
 	else
@@ -540,11 +584,13 @@ static filter* get_filter(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, con
 	}
 	if(!strcmp(type, "goal"))
 	{
-		filter* ret = new filter();
-		LD_CHKPTR(ret);
 		char* name = get_attribute(txe, "id", "no id for goal filter");
 		if(!name)
+		{
 			return(NULL);
+		}
+		filter* ret = new filter();
+		LD_CHKPTR(ret);
 		grid* g = st->get(name);
 		if(g)
 			ret->set_target(g);
@@ -808,6 +854,7 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 		if(!get_vec(vec_element->ToElement(), dir_angle))
 		{
 			delete info;
+			delete dir_angle;
 			return(NULL);
 		}
 		vec_element = vec_element->NextSibling();
@@ -947,6 +994,7 @@ static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgr
 			LD_PRINT("dep called for %s (%s) by %s", it->obj, typeid(*(it->obj)).name(), name);
 			it++;
 		}
+		delete_functors(deps);
 		map->erase(name);
 	}
 	else

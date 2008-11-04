@@ -63,7 +63,7 @@ class escgrid : public grid
 	protected:
 		virtual grid** get_neighbors(vector3f angle);
 		virtual int num_neighbors(vector3f angle);
-		void delete_table();
+		void delete_table(int delete_every);
 
 };
 #endif
