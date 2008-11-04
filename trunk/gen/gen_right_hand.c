@@ -1,23 +1,20 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
+#include <gen.h>
 
-#define PI		3.141592f
-#define LATS		8
-#define ANGLE_INCR	PI / LATS
 #define X_RADIUS	0.075f
 #define Y_RADIUS	0.1f
 #define Z_RADIUS	0.075f
 #define TOP		PI / 2
 #define BOTTOM		PI
 
-#define floattov16(n)        ((short int)((n) * (1 << 12)))
-
 void print_sphere_pt(float theta, float phi);
 void print_sphere_pt_nds(float theta, float phi);
 
 int main()
 {
+	PRINT_STATS;
 	printf("void draw_right_hand()\n{\n");
 	printf("#ifndef ECHO_NDS\n");
 	float theta = PI / 2;
@@ -35,6 +32,23 @@ int main()
 		theta += ANGLE_INCR;
 	}
 	printf("#else\n");
+	printf("\tglBegin(GL_QUAD_STRIP);\n");	//12 verts
+		print_pt(0, 0, Z_RADIUS);
+		print_pt(-X_RADIUS, 0, Z_RADIUS);
+		print_pt(0, -Y_RADIUS, Z_RADIUS);
+		print_pt(-X_RADIUS, -Y_RADIUS, Z_RADIUS);
+		print_pt(0, -Y_RADIUS, -Z_RADIUS);
+		print_pt(-X_RADIUS, -Y_RADIUS, -Z_RADIUS);
+		print_pt(0, 0, -Z_RADIUS);
+		print_pt(-X_RADIUS, 0, -Z_RADIUS);
+	printf("\tglEnd();\n");
+	printf("\tglBegin(GL_QUADS);\n");
+		print_pt(-X_RADIUS, 0, Z_RADIUS);
+		print_pt(-X_RADIUS, -Y_RADIUS, Z_RADIUS);
+		print_pt(-X_RADIUS, -Y_RADIUS, -Z_RADIUS);
+		print_pt(-X_RADIUS, 0, -Z_RADIUS);
+	printf("\tglEnd();\n");
+	/*
 	theta = PI / 2;
 	while(theta < PI * 3 / 2)
 	{
@@ -43,12 +57,13 @@ int main()
 		while(phi <= BOTTOM)
 		{
 			print_sphere_pt_nds(theta, phi);
-			print_sphere_pt_nds(theta + ANGLE_INCR, phi);
-			phi += ANGLE_INCR;
+			print_sphere_pt_nds(theta + NDS_ANGLE_INCR, phi);
+			phi += NDS_ANGLE_INCR;
 		}
 		printf("\tglEnd();\n");
-		theta += ANGLE_INCR;
+		theta += NDS_ANGLE_INCR;
 	}
+	// */
 	printf("#endif\n");
 	printf("}\n");
 }
