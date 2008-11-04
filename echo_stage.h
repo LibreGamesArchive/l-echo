@@ -37,7 +37,7 @@ class stage
     protected:
         STAGE_MAP* grids;
         grid* start;
-        std::string name;
+        std::string* name;
         int num_goals;
 	
 	LEVEL_MAP* levels;
@@ -45,7 +45,8 @@ class stage
 	
     public:
         stage();
-        stage(grid* my_start, std::string my_name, int my_num_goals);
+        stage(grid* my_start, std::string* my_name, int my_num_goals);
+        ~stage();
         void add(std::string id, grid* ptr);
 	void add_pos(vector3f pos, grid* g);
 	GRID_PTR_SET* get_level(vector3f pos);
@@ -56,11 +57,11 @@ class stage
         void draw(vector3f angle);
 
         void set_start(grid* g);
-        void set_name(std::string name);
+        void set_name(std::string* name);
         void set_num_goals(int num_goals);
 
         grid* get_start();
-        std::string get_name();
+        std::string* get_name();
         int get_num_goals();
 	
 	void set_farthest(float new_far);

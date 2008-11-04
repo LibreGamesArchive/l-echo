@@ -72,6 +72,19 @@ int or_filter::is_true(vector3f angle)
 	}
 	return(0);
 }
+or_filter::~or_filter()
+{
+	ECHO_PRINT("deleting and_filter\n");
+	FILTER_SET::iterator it = filters->begin(), end = filters->end();
+	while(it != end)
+	{
+		filter* del = *it;
+		if(del != NULL)
+			delete del;
+		it++;
+	}
+	delete filters;
+}
 and_filter::and_filter()
 {
 	filters = new FILTER_SET();
@@ -91,4 +104,17 @@ int and_filter::is_true(vector3f angle)
 		it++;
 	}
 	return(1);
+}
+and_filter::~and_filter()
+{
+	ECHO_PRINT("deleting and_filter\n");
+	FILTER_SET::iterator it = filters->begin(), end = filters->end();
+	while(it != end)
+	{
+		filter* del = *it;
+		if(del != NULL)
+			delete del;
+		it++;
+	}
+	delete filters;
 }

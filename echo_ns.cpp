@@ -36,7 +36,7 @@
 
 namespace echo_ns
 {
-	grid *hole_grid = new grid();
+	grid* hole_grid = new grid();
 	//CHKPTR(hole_grid);
 	
 	float null_char_opacity = NULL_CHAR_OPACITY_MIN;
@@ -49,8 +49,19 @@ namespace echo_ns
 	//CAM_MAPS* maps = new CAM_MAPS();
 	STATIC_SET* statics = new STATIC_SET();
 	
+	void deallocate()
+	{
+		if(current_stage != NULL)
+			delete current_stage;
+		if(main_char != NULL)
+			delete main_char;
+		delete hole_grid;
+		delete statics;
+	}
 	void init(stage* st)
 	{
+		if(current_stage != NULL)
+			delete current_stage;
 		started = 0;
 		current_stage = st;
 		if(st != NULL)

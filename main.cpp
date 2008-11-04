@@ -162,6 +162,8 @@
 	static int loading = 0, load_frame = 0;
 	//the temp address of the counter (holds number of goals)
 	static char* counter = NULL;
+	//was the counter allocated?
+	static int counter_alloc = 0;
 	//was this paused before the loader was toggled?
 	static int was_paused = 0;
 #endif
@@ -233,12 +235,12 @@ static echo_files* files = NULL;
 	//special keys esp. arrow keys
 	static void spec_key(int key, int x, int y);
 	//draw a string on screen
-	static void draw_string(float x, float y, const char *string);
-	static void draw_string(float x, float y, char *string);
+	static int draw_string(float x, float y, const char *string);
+	static int draw_string(float x, float y, char *string);
 	//draw a file name (using size 12 font instead of size 12)
-	static void draw_fname_string(float x, float y, char *string);
+	static int draw_fname_string(float x, float y, char *string);
 	//draw the status (twice as spaced out)
-	static void draw_message_string(float x, float y, char *string);
+	static int draw_message_string(float x, float y, char *string);
 #endif
 //dragged
 static void pointer(int x, int y);
@@ -262,10 +264,24 @@ static void echo_pause();
 //starts or pauses (the 'p' key on pc/mac/linux, shoulder button on nds)
 static void start_or_pause();
 
+void main_deallocate()
+{
+	ECHO_PRINT("main_deallocate: deallocating echo_ns\n");
+	echo_ns::deallocate();
+	ECHO_PRINT("main_deallocate: finished deallocating echo_ns\n");
+#ifndef ECHO_NDS
+	if(counter_alloc == 1 && counter != NULL)
+		delete[] counter;
+#endif
+	ECHO_PRINT("main_deallocate: deallocating files\n");
+	delete_echo_files(files);
+	ECHO_PRINT("main_deallocate: exiting...\n");
+}
+
 int main(int argc, char **argv)
 {
+	atexit(main_deallocate);
 #ifdef ECHO_NDS
-	
 	//initialize the file system
 	fatInitDefault();
 	//get the files
@@ -402,8 +418,10 @@ void refresh_hand(TiXmlDocument* doc)
 static void load(const char* fname)
 {
 	ECHO_PRINT("start of load\n");
+	char* abs_path = echo_merge(files->current_dir, fname);
 	//load stage
-	stage* s = (fname ? load_stage(echo_merge(files->current_dir, fname)) : NULL);
+	stage* s = (fname ? load_stage(abs_path) : NULL);
+	delete[] abs_path;
 	ECHO_PRINT("after load_stage\n");
 	//if the stage file is bad (fname != NULL && s == NULL), fuhgeddaboutit!
 	if(s || !fname)
@@ -422,7 +440,7 @@ static void load(const char* fname)
 			//the distance to the farthest point plus 2.5 for good measure.
 			depth = echo_ns::current_stage->get_farthest() + 2.5f;
 			//so i don't have to call it all the time
-			name_cache = const_cast<char*>(echo_ns::current_stage->get_name().c_str());
+			name_cache = const_cast<char*>(echo_ns::current_stage->get_name()->c_str());
 		}
 		//if we want our menu
 		else
@@ -731,33 +749,56 @@ static void resize(int w, int h)
 	}
 #elif ECHO_PC
 	//copied from http://lighthouse3d.com/opengl/glut/index.php?bmpfontortho
-	static void draw_message_string(float x, float y, char *string)
+	static int draw_message_string(float x, float y, char *string)
 	{
-		char *c = string;
-		while(*c != '\0')
+		if(string)
 		{
-			glRasterPos2f(x, y);
-			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
-			//twice as spaced out as the other strings
-			x += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c) / font_div * 2;
-			c++;
+			while(*string != '\0')
+			{
+				glRasterPos2f(x, y);
+				glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *string);
+				//twice as spaced out as the other strings
+				x += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *string) / font_div * 2;
+				string++;
+			}
+			return(WIN);
 		}
+		return(FAIL);
 	}
 	
-	static void draw_string(float x, float y, const char *string)
+	static int draw_string(float x, float y, const char *string)
 	{
-		int i = 0;
-		while(string[i] != '\0')
+		if(string)
 		{
-			glRasterPos2f(x, y);
-			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, string[i]);
-			x += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, string[i]) / font_div;
-			i++;
+			int i = 0;
+			while(string[i] != '\0')
+			{
+				glRasterPos2f(x, y);
+				glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, string[i]);
+				x += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, string[i]) / font_div;
+				i++;
+			}
+			return(WIN);
 		}
+		return(FAIL);
 	}
 	
-	static void draw_string(float x, float y, char *string)
+	static int draw_string(float x, float y, char *string)
 	{
+		if(string)
+		{
+			while(*string != '\0')
+			{
+				glRasterPos2f(x, y);
+				glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *string);
+				//twice as spaced out as the other strings
+				x += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *string) / font_div;
+				string++;
+			}
+			return(WIN);
+		}
+		return(FAIL);
+		/*
 		char *c = string;
 		while(*c != '\0')
 		{
@@ -766,10 +807,25 @@ static void resize(int w, int h)
 			x += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c) / font_div;
 			c++;
 		}
+		// */
 	}
 	
-	static void draw_fname_string(float x, float y, char *string)
+	static int draw_fname_string(float x, float y, char *string)
 	{
+		if(string)
+		{
+			while(*string != '\0')
+			{
+				glRasterPos2f(x, y);
+				glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *string);
+				//twice as spaced out as the other strings
+				x += glutBitmapWidth(GLUT_BITMAP_HELVETICA_12, *string) / font_div;
+				string++;
+			}
+			return(WIN);
+		}
+		return(FAIL);
+		/*
 		char *c = string;
 		while(*c != '\0')
 		{
@@ -778,6 +834,7 @@ static void resize(int w, int h)
 			x += glutBitmapWidth(GLUT_BITMAP_HELVETICA_12, *c) / font_div;
 			c++;
 		}
+		// */
 	}
 	
 	static void draw_HUD()
@@ -828,23 +885,35 @@ static void resize(int w, int h)
 		//num goals left
 		
 		int goals_left = echo_ns::goals_left();
+		
 		if(goals_left > 0)
 		{
 			//not very precise, but oh well
 			counter = new char[(int)log(goals_left) + 10];
+			counter_alloc = 1;
 			CHKPTR(counter);
 			sprintf(counter, COUNTER_HEAD, goals_left);
 		}
 		else if(echo_ns::num_goals())
+		{
 			counter = SUCCESS;
+			counter_alloc = 0;
+		}
 		else
+		{
 			counter = NO_GOALS;
+			counter_alloc = 0;
+		}
 		
 		glColor3f(0, 0, 0);
 		//bottom left, above status
 		draw_string(-0.6f * real_width, -0.8f * real_height, counter);
 		if(goals_left > 0)
-			delete counter;
+		{
+			if(counter_alloc == 1)
+				delete[] counter;
+			counter = NULL;
+		}
 	}
 	static void draw_loader()
 	{
@@ -852,7 +921,7 @@ static void resize(int w, int h)
 		if(loading || load_frame > 0)
 		{
 			//loader is being tucked away
-			if(!loading)
+			if(loading == 0)
 				load_frame--;
 			//loader is coming out
 			else if(load_frame < LOAD_MAX)
@@ -1023,13 +1092,13 @@ static void display()
 								CHKPTR(dir);
 								//cut off last '/' and after
 								strncpy(dir, files->current_dir, len);
-								delete files;
+								delete_echo_files(files);
 								files = get_files(dir);
 							}
 							//going to root
 							else if(len == 0)
 							{
-								delete files;
+								delete_echo_files(files);
 								files = get_files("/");
 							}
 						}
@@ -1038,7 +1107,7 @@ static void display()
 					else
 					{
 						const char* new_dir = echo_merge(files->current_dir, files->file_names[file_index]);
-						delete files;
+						delete_echo_files(files);
 						files = get_files(new_dir);
 					}
 					//reset loader
@@ -1132,7 +1201,7 @@ static void display()
 						dir = echo_merge(files->current_dir, file);
 					}
 					delete files;
-					files = get_files(dir);
+					delete_echo_files(files);
 					file_index = 0;
 					file_start = 0;
 				}

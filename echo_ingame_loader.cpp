@@ -40,11 +40,35 @@
 #include <echo_loader.h>
 #include <echo_ingame_loader.h>
 
+int delete_echo_files(echo_files* files)
+{
+	if(files != NULL)
+	{
+		//if(files->current_dir != NULL)
+		//	delete[] files->current_dir;
+		if(files->file_names != NULL)
+		{
+			int each = 1;	//0 is ALWAYS constant ".."
+			while(each < files->num_files)
+			{
+				char* del = files->file_names[each];
+				if(del != NULL)
+					delete[] del;
+				each++;
+			}
+			delete[] files->file_names;
+		}
+		delete files;
+		return(WIN);
+	}
+	return(FAIL);
+}
+
 char* echo_merge(const char* arg1, const char* arg2)
 {
 	char* ret = new char[strlen(arg1) + strlen(arg2) + 2];
 	CHKPTR(ret);
-#ifdef WIN32
+#ifdef ECHO_WIN
 	char* slash = strrchr(arg1, '\\');
 #else
 	char* slash = strrchr(arg1, '/');
@@ -52,7 +76,7 @@ char* echo_merge(const char* arg1, const char* arg2)
 	if(slash && slash == arg1 + strlen(arg1) - 1)
 		strcat(strcpy(ret, arg1), arg2);
 	else
-#ifdef WIN32
+#ifdef ECHO_WIN
 		strcat(strcat(strcpy(ret, arg1),  "\\"), arg2);
 #else
 		strcat(strcat(strcpy(ret, arg1),  "/"), arg2);
@@ -60,23 +84,23 @@ char* echo_merge(const char* arg1, const char* arg2)
 	return(ret);
 }
 
-#ifndef ARM9
+#ifndef ECHO_NDS
 int is_dir(const char* dir, const char* fname)
 {
 	if(!strcmp(fname, ".."))
 		return(1);
 	char* merged = echo_merge(dir, fname);
 	int ret = is_dir(merged);
-	delete merged;
+	delete[] merged;
 	return(ret);
 }
 
 int is_dir(const char* fname)
 {
-#ifdef WIN32
+#ifdef ECHO_WIN
 	DWORD attrs = GetFileAttributes(fname);
 	return(attrs != INVALID_FILE_ATTRIBUTES 
-		&& (attrs & FILE_ATTRIBUTE_DIRECTORY));
+		&& (attrs & FILE_ATTRIBUTE_DIRECTORY));	//exists and is directory
 #else
 	int fd = open(fname, O_RDONLY);
 	struct stat *file_stat = new(struct stat);
@@ -133,7 +157,7 @@ echo_files* get_files(const char* dirname)
                 ret->num_files = 0;
                 ret->current_dir = const_cast<char*>(dirname);
                 dirent* each_ent;
-                while(each_ent = readdir(dir))
+                while((each_ent = readdir(dir)) != NULL)
                 {
                         //std::cout << "each_ent->d_name: " << each_ent->d_name << std::endl;
                         if(strcmp(each_ent->d_name, ".") && strcmp(each_ent->d_name, ".."))
@@ -148,7 +172,7 @@ echo_files* get_files(const char* dirname)
                 int each = 1;
                 
                 rewinddir(dir);
-                while(each_ent = readdir(dir))
+                while((each_ent = readdir(dir)) != NULL)
                 {
                         /*
                         fname = new char[strlen(dirname) + strlen(each_ent->d_name) + 1];

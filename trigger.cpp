@@ -37,6 +37,11 @@ trigger::trigger(filter* filter, grid* my_target)
 	target = my_target;
 	my_filter = filter;
 }
+trigger::~trigger()
+{
+	ECHO_PRINT("deleting trigger\n");
+	delete my_filter;
+}
 void trigger::toggle(vector3f angle)
 {
 	if(my_filter == NULL || my_filter->is_true(angle))

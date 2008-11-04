@@ -33,6 +33,8 @@ typedef struct
 } echo_files;
 #endif
 
+int delete_echo_files(echo_files* files);
+
 #ifndef ARM9
 int is_dir(const char* dir, const char* fname);
 int is_dir(const char* fname);

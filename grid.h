@@ -57,6 +57,7 @@ class grid
 		int am_goal;
 		//int goal_angle;
 		int draw_me;
+		int already_init;
 		
 		TRIGGER_SET* triggers;
 		
@@ -77,6 +78,9 @@ class grid
 		//void init(grid_info_t* my_info, grid* my_prev, grid* my_next, int num_neighbor, int is_generate_lines);
 
 		virtual ~grid();
+		void delete_points();
+		void delete_triggers();
+		void delete_neighbors();
 		virtual grid_info_t* get_info(vector3f angle);
 		virtual grid* get_next(vector3f angle, grid* current);
 		virtual void dump();

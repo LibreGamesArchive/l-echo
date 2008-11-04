@@ -37,6 +37,7 @@ namespace echo_ns
 	extern echo_char* main_char;
 	extern STATIC_SET* statics;
 
+	void deallocate();
 	void init(stage* st);
 	void start();
 	
