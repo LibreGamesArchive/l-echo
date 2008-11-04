@@ -100,15 +100,19 @@ void draw_right_hand()
 #else
 	glBegin(GL_QUAD_STRIP);
 		glVertex3v16(0, 0, 307);
-		glVertex3v16(-307, 0, 0);
-		glVertex3v16(0, -409, 0);
-		glVertex3v16(0, -409, 0);
-	glEnd();
-	glBegin(GL_QUAD_STRIP);
-		glVertex3v16(-307, 0, 0);
+		glVertex3v16(-307, 0, 307);
+		glVertex3v16(0, -409, 307);
+		glVertex3v16(-307, -409, 307);
+		glVertex3v16(0, -409, -307);
+		glVertex3v16(-307, -409, -307);
 		glVertex3v16(0, 0, -307);
-		glVertex3v16(0, -409, 0);
-		glVertex3v16(0, -409, 0);
+		glVertex3v16(-307, 0, -307);
+	glEnd();
+	glBegin(GL_QUADS);
+		glVertex3v16(-307, 0, 307);
+		glVertex3v16(-307, -409, 307);
+		glVertex3v16(-307, -409, -307);
+		glVertex3v16(-307, 0, -307);
 	glEnd();
 #endif
 }

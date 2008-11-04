@@ -97,8 +97,14 @@
 	}
 	int close_prefs(TiXmlDocument* document)
 	{
+		ECHO_PRINT("closing prefs...\n");
 		if(document->SaveFile(PREFS_FILE) == FALSE)
+		{
+			ECHO_PRINT("can't save file?\n");
+			delete document;
 			return(FAIL);
+		}
+		ECHO_PRINT("saved file...\n");
 		delete document;
 		return(WIN);
 	}
