@@ -158,10 +158,10 @@ stage* load_stage(const char* file_name)
 	TiXmlDocument doc(file_name);
 	//ECHO_PRINT("doc init\n");
 	//LD_CHKPTR(doc);
-	//ECHO_PRINT("doc not null\n");
+	ECHO_PRINT("doc not null\n");
 	if(doc.LoadFile())
 	{
-		//ECHO_PRINT("loaded file\n");
+		ECHO_PRINT("loaded file\n");
 		DEPENDENCY_MAP* map = new DEPENDENCY_MAP();
 		//ECHO_PRINT("map init\n");
 		LD_CHKPTR(map);

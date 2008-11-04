@@ -99,24 +99,20 @@ void draw_foot()
 	glEnd();
 #else
 	glBegin(GL_QUAD_STRIP);
-		glVertex3v16(0, 614, 0);
-		glVertex3v16(0, 614, 0);
-		glVertex3v16(0, 532, 409);
-		glVertex3v16(-153, 532, 0);
-		glVertex3v16(0, 307, 709);
-		glVertex3v16(-266, 307, 0);
-		glVertex3v16(0, 0, 819);
 		glVertex3v16(-307, 0, 0);
+		glVertex3v16(-307, 0, 819);
+		glVertex3v16(-307, 614, 0);
+		glVertex3v16(-307, 614, 819);
+		glVertex3v16(307, 614, 0);
+		glVertex3v16(307, 614, 819);
+		glVertex3v16(307, 0, 0);
+		glVertex3v16(307, 0, 819);
 	glEnd();
-	glBegin(GL_QUAD_STRIP);
-		glVertex3v16(0, 614, 0);
-		glVertex3v16(0, 614, 0);
-		glVertex3v16(-153, 532, 0);
-		glVertex3v16(0, 532, -409);
-		glVertex3v16(-266, 307, 0);
-		glVertex3v16(0, 307, -709);
-		glVertex3v16(-307, 0, 0);
-		glVertex3v16(0, 0, -819);
+	glBegin(GL_QUADS);
+		glVertex3v16(-307, 0, 819);
+		glVertex3v16(-307, 614, 819);
+		glVertex3v16(307, 614, 819);
+		glVertex3v16(307, 0, 819);
 	glEnd();
 #endif
 }

@@ -143,24 +143,16 @@ void draw_lower_body()
 	glEnd();
 #else
 	glBegin(GL_QUAD_STRIP);
-		glVertex3v16(409, 1064, 0);
-		glVertex3v16(0, 1064, 307);
-	glEnd();
-	glBegin(GL_QUAD_STRIP);
-		glVertex3v16(0, 1064, 307);
-		glVertex3v16(-409, 1064, 0);
-	glEnd();
-	glBegin(GL_QUAD_STRIP);
-		glVertex3v16(-409, 1064, 0);
-		glVertex3v16(0, 1064, -307);
-	glEnd();
-	glBegin(GL_QUAD_STRIP);
-		glVertex3v16(0, 1064, -307);
-		glVertex3v16(409, 1064, 0);
-	glEnd();
-	glBegin(GL_QUAD_STRIP);
-		glVertex3v16(409, 1064, 0);
-		glVertex3v16(0, 1064, 307);
+		glVertex3v16(-819, -614, 614);
+		glVertex3v16(-819, 1213, 614);
+		glVertex3v16(819, -614, 614);
+		glVertex3v16(819, 1213, 614);
+		glVertex3v16(819, -614, -614);
+		glVertex3v16(819, 1213, -614);
+		glVertex3v16(-819, -614, -614);
+		glVertex3v16(-819, 1213, -614);
+		glVertex3v16(-819, -614, 614);
+		glVertex3v16(-819, 1213, 614);
 	glEnd();
 #endif
 }
