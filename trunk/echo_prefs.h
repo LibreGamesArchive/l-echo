@@ -18,18 +18,11 @@
 */
 
 #include <echo_platform.h>
-#ifdef ECHO_NDS
-	#include <tinyxml.h>
-#else
-	#include <tinyxml/tinyxml.h>
-#endif
-
+#include <echo_xml.h>
 #ifdef ECHO_NDS
 	enum HAND { LEFT_HAND, RIGHT_HAND };
-
-	int open_prefs(TiXmlDocument** document);
-	int get_hand(TiXmlDocument* document, HAND* handedness);
-	int set_hand(TiXmlDocument* document, HAND handedness);
-	int close_prefs(TiXmlDocument* document);
+	STATUS open_prefs(echo_xml** document);
+	STATUS get_hand(echo_xml* document, HAND* handedness);
+	STATUS set_hand(echo_xml* document, HAND handedness);
+	STATUS close_prefs(echo_xml* document);
 #endif
-

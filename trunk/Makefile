@@ -1,4 +1,4 @@
-CXXFLAGS = -I./ -DSTRICT_MEM -DDEBUG -DTIXML_USE_STL -g3 -Wall
+CXXFLAGS = -I./ -I./rapidxml -DSTRICT_MEM -DDEBUG -DTIXML_USE_STL -g3 -Wall
 #ifeq( $() )
 #endif
 TINYXML_USE_STL := YES
@@ -92,7 +92,7 @@ setup-nds:
 	cp -r n-echo_template n-echo
 	cp -t n-echo A*.xml.real
 	cp -t n-echo/source *.cpp tinyxml/*.cpp
-	cp -t n-echo/include *.h tinyxml/*.h
+	cp -t n-echo/include *.h tinyxml/*.h rapidxml/*.hpp
 
 nds:
 	make -C n-echo

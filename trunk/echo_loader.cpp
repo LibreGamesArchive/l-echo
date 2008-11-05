@@ -42,11 +42,7 @@
 #include <grid.h>
 #include <stair.h>
 
-#ifdef ECHO_NDS
-	#include <tinyxml.h>
-#else
-	#include <tinyxml/tinyxml.h>
-#endif
+#include <echo_xml.h>
 
 //#define LOAD_DEBUG
 
@@ -146,10 +142,10 @@ typedef std::vector<functor*> FUNCTOR_VEC;
 typedef std::map<std::string, FUNCTOR_VEC*> DEPENDENCY_MAP;
 
 #ifdef ECHO_NDS
-	static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot
+	static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot
 			, LEVEL_MAP* nonffgrids, LEVEL_MAP* ffgrids);
 #else
-	static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot);
+	static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot);
 #endif
 
 void delete_functors(FUNCTOR_VEC* vec)
@@ -180,12 +176,9 @@ void delete_dependencies(DEPENDENCY_MAP* map)
 
 stage* load_stage(const char* file_name)
 {
-	//ECHO_PRINT("start of load_stage<>%s<>\n", file_name);
-	TiXmlDocument doc(file_name);
-	//ECHO_PRINT("doc init\n");
-	//LD_CHKPTR(doc);
-	ECHO_PRINT("doc not null\n");
-	if(doc.LoadFile())
+	echo_xml** doc = new(echo_xml*);
+	CHKPTR(doc);
+	if(echo_xml_load_file(doc, file_name) == WIN)
 	{
 		ECHO_PRINT("loaded file\n");
 		DEPENDENCY_MAP* map = new DEPENDENCY_MAP();
@@ -200,11 +193,13 @@ stage* load_stage(const char* file_name)
 		LEVEL_MAP* ffgrids = new LEVEL_MAP();
 		LD_CHKPTR(ffgrids);
 #endif
-		TiXmlElement* root = doc.RootElement();
-		if(!root)
+		echo_xml_element** root = new(echo_xml_element*);
+		CHKPTR(root);
+		if(echo_xml_get_root(*doc, root) == FAIL)
 		{
 			lderr("cannot find root element!");
-			//delete doc;
+			delete root;
+			delete doc;
 			delete_dependencies(map);
 			delete ret;
 #ifdef ECHO_NDS
@@ -228,7 +223,7 @@ stage* load_stage(const char* file_name)
 			else if(child->Type() != TiXmlNode::COMMENT)
 			{
 				lderr("unknown node type!");
-				//delete doc;
+				delete doc;
 				delete_dependencies(map);
 				delete ret;
 #ifdef ECHO_NDS
@@ -242,7 +237,7 @@ stage* load_stage(const char* file_name)
 		if(!start)
 		{
 			lderr("no starting point specified!");
-			//delete doc;
+			delete doc;
 			delete_dependencies(map);
 			delete ret;
 #ifdef ECHO_NDS
@@ -257,7 +252,7 @@ stage* load_stage(const char* file_name)
 		if(!start_grid)
 		{
 			lderr("start grid not found...");
-			//delete doc;
+			delete doc;
 			delete_dependencies(map);
 			delete ret;
 #ifdef ECHO_NDS
@@ -271,7 +266,7 @@ stage* load_stage(const char* file_name)
 		if(!name)
 		{
 			lderr("name of stage not specified!");
-			//delete doc;
+			delete doc;
 			delete_dependencies(map);
 			delete ret;
 #ifdef ECHO_NDS
@@ -285,7 +280,7 @@ stage* load_stage(const char* file_name)
 		if(root->QueryIntAttribute("goals", &num_goals) != TIXML_SUCCESS)
 		{
 			lderr("cannot find number of goals!");
-			//delete doc;
+			delete doc;
 			delete_dependencies(map);
 			delete ret;
 #ifdef ECHO_NDS
@@ -299,6 +294,8 @@ stage* load_stage(const char* file_name)
 		if(!map->empty())
 			ldwarn("dependencies not satisfied...");
 		delete_dependencies(map);
+		delete doc;
+		
 #ifdef ECHO_NDS
 #define GRID_POLYID_START	19
 		unsigned int polyID = GRID_POLYID_START;
@@ -346,7 +343,7 @@ stage* load_stage(const char* file_name)
 	else
 	{
 		lderr("cannot open file! (might not be correct xml file): ", file_name);
-		//delete doc;
+		delete doc;
 		return(NULL);
 	}
 	return(NULL);
