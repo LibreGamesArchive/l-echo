@@ -27,6 +27,7 @@
 class filter;
 
 #include <grid.h>
+#include <echo_platform.h>
 #include <echo_debug.h>
 
 class filter
@@ -36,7 +37,7 @@ class filter
 	public:
 		filter();
 		filter(grid* my_target);
-		virtual ~filter(){ ECHO_PRINT("deleting filter\n"); }
+		virtual ~filter();
 		virtual int is_true(vector3f angle);
 		void set_target(grid* my_target);
 };
@@ -47,7 +48,7 @@ class not_filter : public filter
 		filter* f;
 	public:
 		not_filter(filter* f);
-		virtual ~not_filter(){ ECHO_PRINT("deleting not_filter\n"); delete f; }
+		virtual ~not_filter();
 		int is_true(vector3f angle);
 };
 

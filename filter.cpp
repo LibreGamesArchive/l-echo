@@ -28,6 +28,10 @@ filter::filter()
 {
 	target = NULL;
 }
+filter::~filter()
+{
+	ECHO_PRINT("deleting filter\n");
+}
 
 filter::filter(grid* my_target)
 {
@@ -47,6 +51,11 @@ void filter::set_target(grid* my_target)
 not_filter::not_filter(filter* my_filter)
 {
 	f = my_filter;
+}
+not_filter::~not_filter()
+{
+	ECHO_PRINT("deleting not_filter\n");
+	delete f;
 }
 int not_filter::is_true(vector3f angle)
 {

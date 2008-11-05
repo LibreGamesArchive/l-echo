@@ -20,8 +20,12 @@
 #include <cstdlib>
 #include <iostream>
 
+/*
 #define	WIN		0
 #define FAIL	-1
+// */
+
+enum STATUS { FAIL, WIN };
 
 void lderr(const char* msg);
 void ldmemerr();

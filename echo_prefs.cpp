@@ -35,78 +35,59 @@
 	#define HAND_LEFT_VALUE 	"left"
 	#define HAND_RIGHT_VALUE 	"right"
 	#define PREFS_FILE			"/apps/n-echo/prefs.xml"
-	#include <tinyxml.h>
-	int open_prefs(TiXmlDocument** document)
+	
+	STATUS open_prefs(echo_xml** document)
 	{
-		*document = new TiXmlDocument(PREFS_FILE);
-		return((*document)->LoadFile() ? WIN : FAIL);
+		return(echo_xml_load_file(document, PREFS_FILE));
 	}
-	int get_hand(TiXmlDocument* document, HAND* handedness)
+	STATUS get_hand(echo_xml* document, HAND* handedness)
 	{
-		ECHO_PRINT("at get_hand\n");
-		if(document != NULL)
+		char** attr = new(char*);
+		CHKPTR(attr);
+		echo_xml_element** root = new(echo_xml_element*);
+		CHKPTR(root);
+		if(echo_xml_get_root(document, root) == WIN &&
+			echo_xml_get_attribute(*root, HAND_ATTR_NAME, attr) == WIN)
 		{
-			ECHO_PRINT("after document != NULL\n");
-			TiXmlElement* root = document->RootElement();
-			ECHO_PRINT("after get root\n");
-			if(root != NULL)
+			if(!strcmp(*attr, HAND_LEFT_VALUE))
 			{
-				ECHO_PRINT("after root != NULL\n");
-				const char* hand_str = root->Attribute(HAND_ATTR_NAME);
-				ECHO_PRINT("after get hand_str\n");
-				if(hand_str != NULL)
-				{
-					ECHO_PRINT("after hand_str != NULL\n");
-					if(!strcmp(hand_str, HAND_LEFT_VALUE))
-					{
-						ECHO_PRINT("after hand_str == left\n");
-						*handedness = LEFT_HAND;
-						ECHO_PRINT("left hand\n");
-						return(WIN);
-					}
-					else if(!strcmp(hand_str, HAND_RIGHT_VALUE))
-					{
-						ECHO_PRINT("after hand_str == right\n");
-						*handedness = RIGHT_HAND;
-						ECHO_PRINT("right hand\n");
-						return(WIN);
-					}
-				}
-				else
-					ECHO_PRINT("hand_str is null?\n");
+				*handedness = LEFT_HAND;
+				delete root;
+				delete attr;
+				return(WIN);
 			}
-			else
-				ECHO_PRINT("Root element is null?\n");
-		}
-		else
-			ECHO_PRINT("Doc is null?\n");
-		return(FAIL);
-	}
-	int set_hand(TiXmlDocument* document, HAND handedness)
-	{
-		if(document)
-		{
-			TiXmlElement* root = document->RootElement();
-			if(root)
+			else if(!strcmp(*attr, HAND_RIGHT_VALUE))
 			{
-				root->SetAttribute(HAND_ATTR_NAME, handedness == LEFT_HAND ? HAND_LEFT_VALUE : HAND_RIGHT_VALUE);
+				*handedness = RIGHT_HAND;
+				delete root;
+				delete attr;
 				return(WIN);
 			}
 		}
+		delete root;
+		delete attr;
 		return(FAIL);
 	}
-	int close_prefs(TiXmlDocument* document)
+	STATUS set_hand(echo_xml* document, HAND handedness)
 	{
-		ECHO_PRINT("closing prefs...\n");
-		if(document->SaveFile(PREFS_FILE) == FALSE)
+		echo_xml_element** root = new(echo_xml_element*);
+		CHKPTR(root);
+		if(echo_xml_get_root(document, root) == WIN &&
+			echo_xml_set_attribute(*root, HAND_ATTR_NAME
+				, handedness == LEFT_HAND ? HAND_LEFT_VALUE : HAND_RIGHT_VALUE))
 		{
-			ECHO_PRINT("can't save file?\n");
-			delete document;
-			return(FAIL);
+			delete root;
+			return(WIN);
 		}
-		ECHO_PRINT("saved file...\n");
-		delete document;
-		return(WIN);
+		delete root;
+		return(FAIL);
+	}
+	STATUS close_prefs(echo_xml* document)
+	{
+		if(echo_xml_save_file(document) == WIN &&
+			echo_xml_delete_file(document) == WIN)
+				return(WIN);
+		return(FAIL);
 	}
 	#endif
 #endif

@@ -18,6 +18,9 @@
 */
 
 #include <set>
+#include <echo_platform.h>
+#include <echo_debug.h>
+
 #include <filter.h>
 #include <trigger.h>
 #include <grid.h>
@@ -39,7 +42,7 @@ trigger::trigger(filter* filter, grid* my_target)
 }
 trigger::~trigger()
 {
-	ECHO_PRINT("deleting trigger\n");
+	//ECHO_PRINT("deleting trigger\n");
 	delete my_filter;
 }
 void trigger::toggle(vector3f angle)

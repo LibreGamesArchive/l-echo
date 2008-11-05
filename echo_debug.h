@@ -17,9 +17,11 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <echo_platform.h>
+
 #ifdef DEBUG
 
-	#ifdef ARM9
+	#ifdef ECHO_NDS
 		#include <nds.h>
 		
 		#define ECHO_PRINT printf

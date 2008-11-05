@@ -22,6 +22,7 @@
 #include <cmath>
 
 #include <echo_platform.h>
+#include <echo_xml.h>
 #include <echo_debug.h>
 #include <echo_error.h>
 #include <echo_gfx.h>
@@ -45,8 +46,6 @@
 #define _STDCALL_SUPPORTED
 
 #ifdef ECHO_NDS
-	#include <tinyxml.h>
-	
 	#include <nds.h>
 	#include <nds/arm9/video.h>
 	#include <fat.h>
@@ -88,7 +87,6 @@
 	#define START_BG		DISPLAY_BG0_ACTIVE
 	#define DEBUG_BG		DISPLAY_BG3_ACTIVE
 #else
-	#include <tinyxml/tinyxml.h>
 	#ifdef ECHO_PC
 		#ifdef ECHO_OSX	//OS X
 			#include <OpenGL/gl.h>
@@ -226,7 +224,7 @@ static echo_files* files = NULL;
 	static void update_char_state();
 	
 	//tries to refresh the handedness
-	static void refresh_hand(TiXmlDocument* doc);
+	static void refresh_hand(echo_xml* doc);
 #elif ECHO_PC
 	//mouse event, calls pressed or handles releases.
 	static void mouse(int button, int state, int x, int y);
@@ -291,8 +289,9 @@ int main(int argc, char **argv)
 	
 	//*
 	ECHO_PRINT("trying to load prefs...\n");
-	TiXmlDocument* doc = NULL;
-	if(open_prefs(&doc) == WIN)
+	echo_xml** doc = new(echo_xml*);
+	CHKPTR(doc);
+	if(open_prefs(doc) == WIN)
 	{
 		ECHO_PRINT("loaded prefs...\n");
 		refresh_hand(doc);
@@ -384,7 +383,7 @@ int main(int argc, char **argv)
 }
 
 #ifdef ECHO_NDS
-void refresh_hand(TiXmlDocument* doc)
+void refresh_hand(echo_xml* doc)
 {
 	HAND hand = RIGHT_HAND;
 	ECHO_PRINT("get hand started\n");
@@ -418,11 +417,15 @@ void refresh_hand(TiXmlDocument* doc)
 static void load(const char* fname)
 {
 	ECHO_PRINT("start of load\n");
-	char* abs_path = echo_merge(files->current_dir, fname);
-	//load stage
-	stage* s = (fname ? load_stage(abs_path) : NULL);
-	delete[] abs_path;
-	ECHO_PRINT("after load_stage\n");
+	stage* s = NULL;
+	if(fname != NULL)
+	{
+		char* abs_path = echo_merge(files->current_dir, fname);
+		//load stage
+		s = load_stage(abs_path);
+		delete[] abs_path;
+		ECHO_PRINT("after load_stage\n");
+	}
 	//if the stage file is bad (fname != NULL && s == NULL), fuhgeddaboutit!
 	if(s || !fname)
 	{
