@@ -51,6 +51,11 @@
 	static int drawing_outline = 0;
 #endif
 
+#ifdef ECHO_NDS
+	#define SET_ID(id)		glPolyFmt(POLY_ALPHA(31) | POLY_CULL_NONE | POLY_ID(id));
+#else
+	#define SET_ID(id)
+#endif
 
 void draw_line(float x1, float y1, float z1, float x2, float y2, float z2)
 {
@@ -207,11 +212,13 @@ void draw_character(echo_char_joints* joints)
 	gfx_push_matrix();	//body
 	{
 		glTranslatef(0, 1.875f, 0);
+		SET_ID(1);
 		draw_body();
-#ifndef ECHO_NDS
+//#ifndef ECHO_NDS
 		gfx_push_matrix();	//neck, head
 		{
 			glTranslatef(0, 0.3f, 0);
+			SET_ID(12);
 			draw_sphere_pointzero75();
 			if(joints != NULL)
 			{
@@ -220,12 +227,14 @@ void draw_character(echo_char_joints* joints)
 				gfx_rotatef(joints->head_z, 0, 0, 1);
 			}
 			glTranslatef(0, 0.3f, 0);
+			SET_ID(0);
 			draw_head();
 		}
 		POP_MATRIX; //end neck, hand
 		gfx_push_matrix();	//left hand
 		{
 			glTranslatef(0.2f, 0.2f, 0);
+			SET_ID(13);
 			draw_sphere_pointzero75();
 			if(joints != NULL)
 			{
@@ -236,8 +245,10 @@ void draw_character(echo_char_joints* joints)
 			else
 				gfx_rotatef(12, 0, 0, 1);
 			glTranslatef(0, -0.05f, 0);
+			SET_ID(2);
 			draw_limb();
 			glTranslatef(0, -0.45f, 0);
+			SET_ID(15);
 			draw_sphere_pointzero75();
 			if(joints != NULL)
 			{
@@ -246,18 +257,22 @@ void draw_character(echo_char_joints* joints)
 			}
 			gfx_rotatef(-12, 0, 0, 1);
 			glTranslatef(0, -0.05f, 0);
+			SET_ID(4);
 			draw_limb();
 			glTranslatef(0, -0.45f, 0);
+			SET_ID(14);
 			draw_sphere_pointzero75();
 			if(joints != NULL)
 				gfx_rotatef(joints->lhand_x, 1, 0, 0);
 			glTranslatef(-0.03f, -0.06f, 0);
+			SET_ID(6);
 			draw_left_hand();
 		}
 		POP_MATRIX;	//end left hand
 		gfx_push_matrix();	//right hand
 		{
 			glTranslatef(-0.2f, 0.2f, 0);
+			SET_ID(13);
 			draw_sphere_pointzero75();
 			if(joints != NULL)
 			{
@@ -268,8 +283,10 @@ void draw_character(echo_char_joints* joints)
 			else
 				gfx_rotatef(-12, 0, 0, 1);
 			glTranslatef(0, -0.05f, 0);
+			SET_ID(3);
 			draw_limb();
 			glTranslatef(0, -0.45f, 0);
+			SET_ID(15);
 			draw_sphere_pointzero75();
 			if(joints != NULL)
 			{
@@ -278,17 +295,21 @@ void draw_character(echo_char_joints* joints)
 			}
 			gfx_rotatef(12, 0, 0, 1);
 			glTranslatef(0, -0.05f, 0);
+			SET_ID(5);
 			draw_limb();
 			glTranslatef(0, -0.45f, 0);
+			SET_ID(14);
 			draw_sphere_pointzero75();
 			if(joints != NULL)
 				gfx_rotatef(joints->rhand_x, 1, 0, 0);
 			glTranslatef(0.03f, -0.06f, 0);
+			SET_ID(6);
 			draw_right_hand();
 		}
 		POP_MATRIX;	//end right hand
 		gfx_push_matrix();	//waist, lower body
 		{
+			SET_ID(13);
 			glTranslatef(0, -0.32f, 0);
 			draw_sphere_point1();
 			if(joints != NULL)
@@ -297,10 +318,12 @@ void draw_character(echo_char_joints* joints)
 				gfx_rotatef(joints->waist_z, 0, 0, 1);
 			}
 			glTranslatef(0, -0.32f, 0);
+			SET_ID(1);
 			draw_lower_body();
 			gfx_push_matrix();	//left leg
 			{
 				glTranslatef(0.1f, -0.06f, 0);
+				SET_ID(12);
 				draw_sphere_pointzero75();
 				if(joints != NULL)
 				{
@@ -309,24 +332,30 @@ void draw_character(echo_char_joints* joints)
 					gfx_rotatef(joints->lthigh_z, 0, 0, 1);
 				}
 				glTranslatef(0, -0.05f, 0);
+				SET_ID(7);
 				draw_limb();
 				glTranslatef(0, -0.45f, 0);
+				SET_ID(12);
 				draw_sphere_pointzero75();
 				if(joints != NULL)
 					gfx_rotatef(joints->lleg_x, 1, 0, 0);
 				glTranslatef(0, -0.05f, 0);
+				SET_ID(9);
 				draw_limb();
 				glTranslatef(0, -0.45f, 0);
+				SET_ID(13);
 				draw_sphere_pointzero75();
 				if(joints != NULL)
 					gfx_rotatef(joints->lfoot_x, 1, 0, 0);
 				glTranslatef(0.01f, -0.15f, -0.075f);
+				SET_ID(11);
 				draw_foot();
 			}
 			POP_MATRIX;	//end left leg
 			gfx_push_matrix();	//right leg
 			{
 				glTranslatef(-0.1f, -0.06f, 0);
+				SET_ID(12);
 				draw_sphere_pointzero75();
 				if(joints != NULL)
 				{
@@ -335,24 +364,29 @@ void draw_character(echo_char_joints* joints)
 					gfx_rotatef(joints->rthigh_z, 0, 0, 1);
 				}
 				glTranslatef(0, -0.05f, 0);
+				SET_ID(8);
 				draw_limb();
 				glTranslatef(0, -0.45f, 0);
+				SET_ID(12);
 				draw_sphere_pointzero75();
 				if(joints != NULL)
 					gfx_rotatef(joints->rleg_x, 1, 0, 0);
 				glTranslatef(0, -0.05f, 0);
+				SET_ID(10);
 				draw_limb();
 				glTranslatef(0, -0.45f, 0);
+				SET_ID(13);
 				draw_sphere_pointzero75();
 				if(joints != NULL)
 					gfx_rotatef(joints->rfoot_x, 1, 0, 0);
 				glTranslatef(-0.01f, -0.15f, -0.075f);
+				SET_ID(11);
 				draw_foot();
 			}
 			POP_MATRIX;	//end right leg
 		}
 		POP_MATRIX; //end lower body
-#endif
+//#endif
 	}
 	POP_MATRIX;	//end body
 }
@@ -474,7 +508,7 @@ void gfx_outline_end()
 #else
 void gfx_set_polyID(unsigned int polyID)
 {
-	glPolyFmt(POLY_ALPHA(31) | POLY_CULL_NONE | POLY_ID(polyID));
+	SET_ID(polyID);
 }
 #endif
 

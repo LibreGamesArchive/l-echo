@@ -1657,7 +1657,8 @@ namespace pugi
 	 * \return output UTF8 string
 	 */
 	std::string as_utf8(const wchar_t* str);
-	
+
+#ifndef ARM9
 	/**
 	 * Convert utf8 to utf16
 	 *
@@ -1665,6 +1666,7 @@ namespace pugi
 	 * \return output UTF16 string
 	 */
 	std::wstring as_utf16(const char* str);
+#endif
 #endif
 }
 

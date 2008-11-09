@@ -33,7 +33,7 @@ CFLAGS	:=	-g -Wall -O2\
 			$(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM9
-CXXFLAGS	:= $(CFLAGS) -fno-exceptions -DDEBUG -DSTRICT_MEM -DUSE_PUGIXML
+CXXFLAGS	:= $(CFLAGS) -fexceptions -DDEBUG -DSTRICT_MEM -DUSE_PUGIXML
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=ds_arm9.specs -g $(ARCH) -mno-fpu -Wl,-Map,$(notdir $*.map)
