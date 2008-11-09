@@ -100,6 +100,7 @@ void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, int my_num_n
 	CHKPTR(triggers);
 	
 	ginfo = my_info;
+	//ECHO_PRINT("ginfo: %p\n", ginfo);
 	n_neighbors = my_num_neighbors;
 	delete_neighbors();
 	neighbors = new grid*[my_num_neighbors < 2 ? 2 : my_num_neighbors];
@@ -108,28 +109,30 @@ void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, int my_num_n
 	neighbors[1] = my_next;
 	delete_points();
 	points = ginfo != NULL ? generate_points(*ginfo) : NULL;
+	//ECHO_PRINT("points generated: %p\n", points);
 }
 
 void grid::delete_points()
 {
-	ECHO_PRINT("deleting points\n");
+	//ECHO_PRINT("deleting points\n");
 	if(points != NULL)
 	{
-		ECHO_PRINT("\tpoints not equal to NULL\n");
+		//ECHO_PRINT("\tpoints not equal to NULL\n");
 		delete points[0];
 		delete points[1];
 		delete points[2];
 		delete points[3];
 		delete[] points;
+		points = NULL;
 	}
 }
 
 void grid::delete_triggers()
 {
-	ECHO_PRINT("deleting triggers\n");
+	//ECHO_PRINT("deleting triggers\n");
 	if(triggers != NULL)
 	{
-		ECHO_PRINT("\ttriggers is NO NULL\n");
+		//ECHO_PRINT("\ttriggers is NO NULL\n");
 		TRIGGER_SET::iterator it = triggers->begin();
 		while(it != triggers->end())
 		{
@@ -139,26 +142,31 @@ void grid::delete_triggers()
 			it++;
 		}
 		delete triggers;
+		triggers = NULL;
 	}
 }
 
 void grid::delete_neighbors()
 {
-	ECHO_PRINT("deleting neighbors\n");
+	//ECHO_PRINT("deleting neighbors\n");
 	if(neighbors != NULL)
 	{
-		ECHO_PRINT("\tneighbors is NOT NULL\n");
+		//ECHO_PRINT("\tneighbors is NOT NULL\n");
 		delete[] neighbors;
+		neighbors = NULL;
 	}
 }
 
 grid::~grid()
 {
-	ECHO_PRINT("deallocating grid\n");
-	delete ginfo;
+	//ECHO_PRINT("deallocating grid\n");
+	if(ginfo != NULL)
+	{
+		delete ginfo;
+		ginfo = NULL;
+	}
 	//*
-	if(neighbors != NULL)
-		delete[] neighbors;
+	delete_neighbors();
 	delete_points();
 	delete_triggers();
 	// */triggers
@@ -191,6 +199,7 @@ void grid::set_real_prev(grid* g)
 
 void grid::draw(vector3f angle)	//TODO CHANGE FOR NORMALS
 {
+	//ECHO_PRINT("points generated: %p\n", points);
 	draw_rect(*(points[0]), *(points[1]), *(points[2]), *(points[3]));
 	draw_goal(angle);	
 }
@@ -208,6 +217,7 @@ vector3f** grid::generate_points(grid_info_t my_info)
 	CHKPTR(ret[2]);
 	ret[3] = new vector3f(my_info.pos.x + HALF_GRID, my_info.pos.y, my_info.pos.z - HALF_GRID);
 	CHKPTR(ret[3]);
+	//ECHO_PRINT("points generated: %p, %p\n", ret, ret[0]);
 	return(ret);
 }
 

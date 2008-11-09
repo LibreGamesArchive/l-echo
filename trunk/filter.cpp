@@ -30,7 +30,7 @@ filter::filter()
 }
 filter::~filter()
 {
-	ECHO_PRINT("deleting filter\n");
+	//ECHO_PRINT("deleting filter\n");
 }
 
 filter::filter(grid* my_target)
@@ -54,21 +54,12 @@ not_filter::not_filter(filter* my_filter)
 }
 not_filter::~not_filter()
 {
-	ECHO_PRINT("deleting not_filter\n");
+	//ECHO_PRINT("deleting not_filter\n");
 	delete f;
 }
 int not_filter::is_true(vector3f angle)
 {
 	return(!f->is_true(angle));
-}
-or_filter::or_filter()
-{
-	filters = new FILTER_SET();
-	CHKPTR(filters);
-}
-void or_filter::add_filter(filter* f)
-{
-	filters->insert(f);
 }
 int or_filter::is_true(vector3f angle)
 {
@@ -81,28 +72,6 @@ int or_filter::is_true(vector3f angle)
 	}
 	return(0);
 }
-or_filter::~or_filter()
-{
-	ECHO_PRINT("deleting and_filter\n");
-	FILTER_SET::iterator it = filters->begin(), end = filters->end();
-	while(it != end)
-	{
-		filter* del = *it;
-		if(del != NULL)
-			delete del;
-		it++;
-	}
-	delete filters;
-}
-and_filter::and_filter()
-{
-	filters = new FILTER_SET();
-	CHKPTR(filters);
-}
-void and_filter::add_filter(filter* f)
-{
-	filters->insert(f);
-}
 int and_filter::is_true(vector3f angle)
 {
 	FILTER_SET::iterator it = filters->begin(), end = filters->end();
@@ -114,9 +83,16 @@ int and_filter::is_true(vector3f angle)
 	}
 	return(1);
 }
-and_filter::~and_filter()
+
+multi_filter::multi_filter()
 {
-	ECHO_PRINT("deleting and_filter\n");
+	filters = new FILTER_SET();
+	CHKPTR(filters);
+}
+
+multi_filter::~multi_filter()
+{
+	//ECHO_PRINT("deleting multi_filter\n");
 	FILTER_SET::iterator it = filters->begin(), end = filters->end();
 	while(it != end)
 	{
@@ -126,4 +102,8 @@ and_filter::~and_filter()
 		it++;
 	}
 	delete filters;
+}
+void multi_filter::add_filter(filter* f)
+{
+	filters->insert(f);
 }

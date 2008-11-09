@@ -49,13 +49,13 @@ escgrid::escgrid(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info_t
 
 void escgrid::delete_table(int delete_every)
 {
-	ECHO_PRINT("deleting table for escgrid\n");
+	//ECHO_PRINT("deleting table for escgrid\n");
 	if(delete_at_deconstruct)
 	{
-		ECHO_PRINT("delete_at_deconstruct is true\n");
+		//ECHO_PRINT("delete_at_deconstruct is true\n");
 		if(escs)
 		{
-			ECHO_PRINT("deleting escs\n");
+			//ECHO_PRINT("deleting escs\n");
 			//std::cout << "lol1";
 			if(delete_every == 1)
 			{
@@ -71,7 +71,7 @@ void escgrid::delete_table(int delete_every)
 		}
 		if(ranges)
 		{
-			ECHO_PRINT("deleting ranges\n");
+			//ECHO_PRINT("deleting ranges\n");
 			//std::cout << "lol2";
 			if(delete_every == 1)
 			{
@@ -105,9 +105,9 @@ void escgrid::init(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info
 
 void escgrid::init(grid_info_t* my_info, grid* my_prev, grid* my_next)
 {
-	ECHO_PRINT("\nINIT ESCGRID\n\n");
+	//ECHO_PRINT("\nINIT ESCGRID\n\n");
 	grid::init(my_info, my_prev, my_next);
-	ECHO_PRINT("\nEND INIT ESCGRID: GRID\n\n");
+	//ECHO_PRINT("\nEND INIT ESCGRID: GRID\n\n");
 	delete_table(1);
 	ranges = NULL;
 	escs = NULL;

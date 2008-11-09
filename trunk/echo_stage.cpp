@@ -31,9 +31,12 @@
 stage::stage()
 {
 	farthest = 0;
+	num_goals = 0;
+	start = NULL;
 	grids = new STAGE_MAP();
 	CHKPTR(grids);
 	levels = new LEVEL_MAP();
+	name = NULL;
 	CHKPTR(levels);
 }
 
@@ -49,10 +52,10 @@ stage::stage(grid* my_start, std::string* my_name, int my_num_goals)
 	num_goals = my_num_goals;
 }
 
-
 stage::~stage()
 {
-	delete name;
+	if(name != NULL)
+		delete name;
 	
 	STAGE_MAP::iterator it = grids->begin();
 	STAGE_MAP::iterator end = grids->end();

@@ -294,11 +294,12 @@ int main(int argc, char **argv)
 	if(open_prefs(doc) == WIN)
 	{
 		ECHO_PRINT("loaded prefs...\n");
-		refresh_hand(doc);
-		close_prefs(doc);
+		refresh_hand(*doc);
+		close_prefs(*doc);
 	}
 	else
 		ECHO_PRINT("couldn't load prefs!\n");
+	delete doc;
 	// */
 	
 	//load the menu
@@ -420,8 +421,10 @@ static void load(const char* fname)
 	stage* s = NULL;
 	if(fname != NULL)
 	{
+		ECHO_PRINT("before load_stage:%s,%s\n", files->current_dir, fname);
 		char* abs_path = echo_merge(files->current_dir, fname);
 		//load stage
+		ECHO_PRINT("starting load\n");
 		s = load_stage(abs_path);
 		delete[] abs_path;
 		ECHO_PRINT("after load_stage\n");
