@@ -19,4 +19,4 @@
 
 #include <echo_stage.h>
 
-stage* load_stage(const char* file_name);
+stage* load_stage(char* file_name);

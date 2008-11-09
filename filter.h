@@ -52,25 +52,30 @@ class not_filter : public filter
 		int is_true(vector3f angle);
 };
 
-class or_filter : public filter
+class multi_filter: public filter
 {
 	protected:
 		FILTER_SET* filters;
 	public:
-		or_filter();
-		virtual ~or_filter();
+		multi_filter();
+		virtual ~multi_filter();
 		void add_filter(filter* f);
+		virtual int is_true(vector3f angle) = 0;
+};
+
+class or_filter : public multi_filter
+{
+	public:
+		or_filter(){};
+		virtual ~or_filter(){};
 		int is_true(vector3f angle);
 };
 
-class and_filter : public filter
+class and_filter : public multi_filter
 {
-	protected:
-		FILTER_SET* filters;
 	public:
-		and_filter();
-		virtual ~and_filter();
-		void add_filter(filter* f);
+		and_filter(){};
+		virtual ~and_filter(){};
 		int is_true(vector3f angle);
 };
 

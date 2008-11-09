@@ -174,12 +174,15 @@ void delete_dependencies(DEPENDENCY_MAP* map)
 	delete map;
 }
 
-stage* load_stage(const char* file_name)
+stage* load_stage(char* file_name)
 {
+	ECHO_PRINT("at loading\n");
 	echo_xml** doc = new(echo_xml*);
 	CHKPTR(doc);
+	ECHO_PRINT("loading.................\n");
 	if(echo_xml_load_file(doc, file_name) == WIN)
 	{
+		//-------------------------------------------------------------prepare stuff
 		ECHO_PRINT("loaded file\n");
 		DEPENDENCY_MAP* map = new DEPENDENCY_MAP();
 		//ECHO_PRINT("map init\n");
@@ -193,12 +196,16 @@ stage* load_stage(const char* file_name)
 		LEVEL_MAP* ffgrids = new LEVEL_MAP();
 		LD_CHKPTR(ffgrids);
 #endif
+		//(*doc)->document->print(std::cout);
+		//-------------------------------------------------------------get root
 		echo_xml_element** root = new(echo_xml_element*);
+		
 		CHKPTR(root);
 		if(echo_xml_get_root(*doc, root) == FAIL)
 		{
 			lderr("cannot find root element!");
 			delete root;
+			echo_xml_delete_file(*doc);
 			delete doc;
 			delete_dependencies(map);
 			delete ret;
@@ -208,35 +215,85 @@ stage* load_stage(const char* file_name)
 #endif
 			return(NULL);
 		}
-		TiXmlNode* child = NULL;
-		while((child = root->IterateChildren(child)) != NULL)
+		//-------------------------------------------------------------parse all grids
+		echo_xml_node** child = new(echo_xml_node*);
+		CHKPTR(child);
+		if(echo_xml_get_first_child(*root, child) == WIN)
 		{
-			if(child->Type() == TiXmlNode::ELEMENT)
+			echo_xml_element** e = new(echo_xml_element*);
+			CHKPTR(e);
+			echo_xml_type type = ECHO_XML_TYPE_UNKNOWN;
+			do
 			{
+				if(echo_xml_get_node_type(*child, &type) == WIN)
+				{
+					if(type == ECHO_XML_TYPE_ELEMENT)
+					{
 #ifdef ECHO_NDS
-				if(!parse_grid(child->ToElement(), ret, map, NULL, nonffgrids, ffgrids))
+						if(echo_xml_to_element(*child, e) != WIN || parse_grid(*e, ret, map, NULL, nonffgrids, ffgrids) == NULL)
 #else
-				if(!parse_grid(child->ToElement(), ret, map, NULL))
+						if(echo_xml_to_element(*child, e) != WIN || parse_grid(*e, ret, map, NULL) == NULL)
+#endif
+						{
+							lderr("parse not successful!");
+							delete child;
+							delete e;
+							echo_xml_delete_file(*doc);
+							delete doc;
+							delete_dependencies(map);
+							delete ret;
+#ifdef ECHO_NDS
+							delete nonffgrids;
+							delete ffgrids;
+#endif
+							return(NULL);
+						}
+					}
+					else if(type != ECHO_XML_TYPE_COMMENT)
+					{
+						
+						lderr("unknown node type!");
+						delete child;
+						delete e;
+						echo_xml_delete_file(*doc);
+						delete doc;
+						delete_dependencies(map);
+						delete ret;
+#ifdef ECHO_NDS
+						delete nonffgrids;
+						delete ffgrids;
+#endif
+						return(NULL);
+					}
+				}
+				else
+				{
+					lderr("couldn't get node type!\n");
+					delete child;
+					delete e;
+					echo_xml_delete_file(*doc);
+					delete doc;
+					delete_dependencies(map);
+					delete ret;
+#ifdef ECHO_NDS
+					delete nonffgrids;
+					delete ffgrids;
 #endif
 					return(NULL);
+				}
 			}
-			else if(child->Type() != TiXmlNode::COMMENT)
-			{
-				lderr("unknown node type!");
-				delete doc;
-				delete_dependencies(map);
-				delete ret;
-#ifdef ECHO_NDS
-				delete nonffgrids;
-				delete ffgrids;
-#endif
-				return(NULL);
-			}
+			while(echo_xml_next_sibling(*child , child));
+			delete e;
 		}
-		const char* start = root->Attribute("start");
-		if(!start)
+		delete child;
+		//-------------------------------------------------------------get starting point string
+		char** start = new(char*);
+		CHKPTR(start);
+		if(echo_xml_get_attribute(*root, "start", start) == FAIL)
 		{
-			lderr("no starting point specified!");
+			lderr("no starting point specified!\n");
+			delete start;
+			echo_xml_delete_file(*doc);
 			delete doc;
 			delete_dependencies(map);
 			delete ret;
@@ -248,10 +305,13 @@ stage* load_stage(const char* file_name)
 		}
 		else
 			LD_PRINT("start: %s\n", start);
-		grid* start_grid = ret->get(start);
-		if(!start_grid)
+		//-------------------------------------------------------------get grid, set to stage
+		grid* start_grid = ret->get(*start);
+		if(start_grid == NULL)
 		{
-			lderr("start grid not found...");
+			lderr("start grid not found...\n");
+			delete start;
+			echo_xml_delete_file(*doc);
 			delete doc;
 			delete_dependencies(map);
 			delete ret;
@@ -262,10 +322,15 @@ stage* load_stage(const char* file_name)
 			return(NULL);
 		}
 		ret->set_start(start_grid);
-		const char* name = root->Attribute("name");
-		if(!name)
+		delete start;
+		//-------------------------------------------------------------get/set name
+		char** name = new(char*);
+		CHKPTR(name);
+		if(echo_xml_get_attribute(*root, "name", name) == FAIL)
 		{
-			lderr("name of stage not specified!");
+			lderr("name of stage not specified!\n");
+			delete name;
+			echo_xml_delete_file(*doc);
 			delete doc;
 			delete_dependencies(map);
 			delete ret;
@@ -275,11 +340,14 @@ stage* load_stage(const char* file_name)
 #endif
 			return(NULL);
 		}
-		ret->set_name(new std::string(name));
+		ret->set_name(new std::string(*name));
+		delete name;
+		//-------------------------------------------------------------get num goals
 		int num_goals = 0;
-		if(root->QueryIntAttribute("goals", &num_goals) != TIXML_SUCCESS)
+		if(echo_xml_get_int_attribute(*root, "goals", &num_goals) == FAIL)
 		{
-			lderr("cannot find number of goals!");
+			lderr("cannot find number of goals!\n");
+			echo_xml_delete_file(*doc);
 			delete doc;
 			delete_dependencies(map);
 			delete ret;
@@ -290,12 +358,14 @@ stage* load_stage(const char* file_name)
 			return(NULL);
 		}
 		ret->set_num_goals(num_goals);
-		
+		//-------------------------------------------------------------delete docs and dependencies
 		if(!map->empty())
-			ldwarn("dependencies not satisfied...");
+			ldwarn("dependencies not satisfied...\n");
 		delete_dependencies(map);
+		echo_xml_delete_file(*doc);
 		delete doc;
-		
+		delete root;
+		//-------------------------------------------------------------hand out the polyIDs
 #ifdef ECHO_NDS
 #define GRID_POLYID_START	19
 		unsigned int polyID = GRID_POLYID_START;
@@ -343,7 +413,7 @@ stage* load_stage(const char* file_name)
 	else
 	{
 		lderr("cannot open file! (might not be correct xml file): ", file_name);
-		delete doc;
+		echo_xml_delete_file(*doc);
 		return(NULL);
 	}
 	return(NULL);
@@ -420,6 +490,7 @@ static void add(DEPENDENCY_MAP* map, char* id, trigger* obj, void (trigger::*fun
 #endif
 }
 
+/*
 static int get_float(TiXmlElement* element, const char* attr, float* save_to)
 {
 	int result = element->QueryFloatAttribute(attr, save_to);
@@ -436,565 +507,765 @@ static int get_float(TiXmlElement* element, const char* attr, float* save_to)
 	return(1);
 	
 }
+// */
 
-static int get_vec(TiXmlElement* txe, vector3f* vec, stage* st = NULL)
+static int get_vec(echo_xml_element* txe, vector3f* vec, stage* st = NULL)
 {
-	const int result = get_float(txe, "x", &vec->x) 
-		&& get_float(txe, "y", &vec->y) && get_float(txe, "z", &vec->z);
+	//std::cout << "get_vec: " << *txe << std::endl;
+	const int result = echo_xml_get_float_attribute(txe, "x", &vec->x) == WIN
+		&& echo_xml_get_float_attribute(txe, "y", &vec->y) == WIN
+		&& echo_xml_get_float_attribute(txe, "z", &vec->z) == WIN;
 	if(st)
 		st->set_farthest(vec->length());
 	return(result);
 }
 
-static int get_angle(TiXmlElement* txe, vector3f* vec)
+static int get_angle(echo_xml_element* txe, vector3f* vec)
 {
-	return(get_float(txe, "x", &vec->x) && get_float(txe, "y", &vec->y));
+	return(echo_xml_get_float_attribute(txe, "x", &vec->x) == WIN
+			&& echo_xml_get_float_attribute(txe, "y", &vec->y) == WIN);
 }
 
 #ifdef ECHO_NDS
-static int add_esc(TiXmlElement* child, stage* st, DEPENDENCY_MAP* map, escgrid* escroot, escgrid* egrid
+static int add_esc(echo_xml_element* child, stage* st, DEPENDENCY_MAP* map, escgrid* escroot, escgrid* egrid
 			, LEVEL_MAP* nonffgrids, LEVEL_MAP* ffgrids)
 #else
-static int add_esc(TiXmlElement* child, stage* st, DEPENDENCY_MAP* map, escgrid* escroot, escgrid* egrid)
+static int add_esc(echo_xml_element* child, stage* st, DEPENDENCY_MAP* map, escgrid* escroot, escgrid* egrid)
 #endif
 {
-	const char* type = child->Value();
-	if(!strcmp(type, "angle"))
+	char** type = new(char*);
+	CHKPTR(type);
+	if(echo_xml_get_tagname(child, type) == WIN)
 	{
-		vector3f* each_angle = new vector3f();
-		LD_CHKPTR(each_angle);
-		if(!get_angle(child, each_angle))
+		if(!strcmp(*type, "angle"))
 		{
-			delete each_angle;
-			return(0);
-		}
-#ifdef ECHO_NDS
-		grid* g = parse_grid(child->FirstChild()->ToElement(), st, map, escroot ? escroot : egrid, nonffgrids, ffgrids);
-#else
-		grid* g = parse_grid(child->FirstChild()->ToElement(), st, map, escroot ? escroot : egrid);
-#endif
-		if(!g)
-		{
-			delete each_angle;
-			return(0);
-		}
-		egrid->add(each_angle, g);
-	}
-	else if(!strcmp(type, "range"))
-	{
-		vector3f* v1 = new vector3f();
-		LD_CHKPTR(v1);
-		if(!get_float(child, "x_min", &v1->x) || !get_float(child, "y_min", &v1->y))
-		{
-			delete v1;
-			return(0);
-		}
-		vector3f* v2 = new vector3f();
-		LD_CHKPTR(v2);
-		if(!get_float(child, "x_max", &v2->x) || !get_float(child, "y_max", &v2->y))
-		{
-			delete v2;
-			return(0);
-		}
-#ifdef ECHO_NDS
-		grid* g = parse_grid(child->FirstChild()->ToElement(), st, map, escroot ? escroot : egrid, nonffgrids, ffgrids);
-#else
-		grid* g = parse_grid(child->FirstChild()->ToElement(), st, map, escroot ? escroot : egrid);
-#endif
-		if(!g)
-		{
-			delete v1;
-			delete v2;
-			return(0);
-		}
-		egrid->add(new angle_range(v1, v2), g);
-	}
-	else
-	{
-		lderr("child of escgrid, hole or launcher is not an angle or range!");
-		return(0);
-	}
-	return(1);
-}
-
-#ifdef ECHO_NDS
-static int add_escs(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot, escgrid* grid
-			, LEVEL_MAP* nonffgrids, LEVEL_MAP* ffgrids)
-#else
-static int add_escs(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot, escgrid* grid)
-#endif
-{
-	if(txe->FirstChild())
-	{
-		TiXmlNode* child = txe->FirstChild();
-		while(child)
-		{
-			if(child->Type() == TiXmlNode::ELEMENT && strcmp(child->Value(), "triggers"))
-#ifdef ECHO_NDS
-				add_esc(child->ToElement(), st, map, escroot, grid, nonffgrids, ffgrids);
-#else
-				add_esc(child->ToElement(), st, map, escroot, grid);
-#endif
-			else if(child->Type() != TiXmlNode::COMMENT)
+			vector3f* each_angle = new vector3f();
+			LD_CHKPTR(each_angle);
+			if(get_angle(child, each_angle) == WIN)
 			{
-				lderr("unknown node in escgrid!");
-				return(0);
+				echo_xml_node** first = new(echo_xml_node*);
+				CHKPTR(first);
+				if(echo_xml_get_first_child(child, first) == WIN)
+				{
+					echo_xml_element** e = new(echo_xml_element*);
+					CHKPTR(e);
+					if(echo_xml_to_element(*first, e) == WIN)
+					{
+#ifdef ECHO_NDS
+						grid* g = parse_grid(*e, st, map, escroot ? escroot : egrid, nonffgrids, ffgrids);
+#else
+						grid* g = parse_grid(*e, st, map, escroot ? escroot : egrid);
+#endif
+						if(g != NULL)
+						{
+							egrid->add(each_angle, g);
+							delete first;
+							delete e;
+							delete type;
+							return(WIN);
+						}
+						else
+							lderr("parse grid error in add_esc!");
+					}
+					else
+						lderr("couldn't convert to element error in add_esc!");
+					delete e;
+				}
+				else
+					lderr("no esc in angle!");
+				delete first;
 			}
-			child = child->NextSibling();
+			else
+				lderr("couldn't get angle in add_esc!");
+			delete each_angle;
 		}
+		else if(!strcmp(*type, "range"))
+		{
+			vector3f* v1 = new vector3f();
+			LD_CHKPTR(v1);
+			if(echo_xml_get_float_attribute(child, "x_min", &(v1->x)) == WIN
+				&& echo_xml_get_float_attribute(child, "y_min", &(v1->y)) == WIN)
+			{
+				vector3f* v2 = new vector3f();
+				LD_CHKPTR(v2);
+				if(echo_xml_get_float_attribute(child, "x_max", &(v2->x)) == WIN
+					&& echo_xml_get_float_attribute(child, "y_max", &(v2->y)) == WIN)
+				{
+					echo_xml_node** first = new(echo_xml_node*);
+					LD_CHKPTR(first);
+					if(echo_xml_get_first_child(child, first) == WIN)
+					{
+						echo_xml_element** e = new(echo_xml_element*);
+						LD_CHKPTR(e);
+						if(echo_xml_to_element(*first, e) == WIN)
+						{
+#ifdef ECHO_NDS
+							grid* g = parse_grid(*e, st, map, escroot ? escroot : egrid, nonffgrids, ffgrids);
+#else
+							grid* g = parse_grid(*e, st, map, escroot ? escroot : egrid);
+#endif
+							if(g != NULL)
+							{
+								angle_range* range = new angle_range(v1, v2);
+								//ECHO_PRINT("range added\n");
+								CHKPTR(range);
+								egrid->add(range, g);
+								delete type;
+								delete e;
+								delete first;
+								return(WIN);
+							}
+							else
+								lderr("parse grid error in add_esc!");
+						}
+						else
+							lderr("couldn't convert to element error in add_esc!");
+						delete e;
+					}
+					else
+						lderr("no esc in angle range!");
+					delete first;
+				}
+				else
+					lderr("couldn't get max for angle range!");
+				delete v2;
+			}
+			else
+				lderr("couldn't get min for angle range!");
+			delete v1;
+			
+		}
+		else
+			lderr("child of escgrid, hole or launcher is not an angle or range!");
 	}
-	return(1);
+	delete type;
+	return(FAIL);
 }
 
-static char* get_attribute(TiXmlElement* txe, const char* attr, const char* errmsg1, const char* errmsg2)
+#ifdef ECHO_NDS
+static int add_escs(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot, escgrid* grid
+			, LEVEL_MAP* nonffgrids, LEVEL_MAP* ffgrids)
+#else
+static int add_escs(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot, escgrid* grid)
+#endif
 {
-	const char* ret_const = txe->Attribute(attr);
-	if(!ret_const)
+	echo_xml_node** first = new(echo_xml_node*);
+	CHKPTR(first);
+	if(echo_xml_get_first_child(txe, first) == WIN)
+	{
+		echo_xml_type type = ECHO_XML_TYPE_UNKNOWN;
+		char** tag = new(char*);
+		CHKPTR(tag);
+		echo_xml_element** e = new(echo_xml_element*);
+		CHKPTR(e);
+		do
+		{
+			if(echo_xml_get_node_type(*first, &type) == WIN)
+			{
+				if(type == ECHO_XML_TYPE_ELEMENT)
+				{
+					if(echo_xml_to_element(*first, e) == WIN)
+					{
+						//std::cout << "Escs Element: "<< **e << std::endl;
+						if(echo_xml_get_tagname(*e, tag) == WIN && strcmp(*tag, "triggers"))
+#ifdef ECHO_NDS
+							add_esc(*e, st, map, escroot, grid, nonffgrids, ffgrids);
+#else
+							add_esc(*e, st, map, escroot, grid);
+#endif
+						else
+						{
+							lderr("couldn't get tag name in escgrid!");
+							delete first;
+							delete e;
+							delete tag;
+							return(FAIL);
+						}
+					}
+					else
+					{
+						lderr("couldn't convert to element in escgrid!");
+						delete first;
+						delete e;
+						delete tag;
+						return(FAIL);
+					}
+				}
+				else if(type != ECHO_XML_TYPE_COMMENT)
+				{
+					lderr("unknown node in escgrid!");
+					delete first;
+					delete e;
+					delete tag;
+					return(FAIL);
+				}
+			}
+			else
+			{
+				lderr("couldn't get node type in escgrid!");
+				delete first;
+				delete e;
+				delete tag;
+				return(FAIL);
+			}
+		}
+		while(echo_xml_next_sibling(*first, first) == WIN);
+		delete tag;
+		delete e;
+	}
+	delete first;
+	return(WIN);
+}
+
+static char* get_attribute(echo_xml_element* txe, const char* attr, const char* errmsg1, const char* errmsg2)
+{
+	char** retp = new(char*);
+	if(echo_xml_get_attribute(txe, attr, retp) == FAIL)
 	{
 		lderr(errmsg1, errmsg2);
 		return(NULL);
 	}
-	return(const_cast<char*>(ret_const));
+	char* ret = *retp;
+	delete retp;
+	return(ret);
 }
 
-static char* get_attribute(TiXmlElement* txe, const char* attr, const char* errmsg)
+static char* get_attribute(echo_xml_element* txe, const char* attr, const char* errmsg)
 {
-	const char* ret_const = txe->Attribute(attr);
-	if(!ret_const)
+	char** retp = new(char*);
+	if(echo_xml_get_attribute(txe, attr, retp) == FAIL)
 	{
 		lderr(errmsg);
 		return(NULL);
 	}
-	return(const_cast<char*>(ret_const));
+	char* ret = *retp;
+	delete retp;
+	return(ret);
 }
 
-static filter* get_filter(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, const char* type = NULL)
+static filter* get_filter(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, char* type = NULL)
 {
-	if(!type)
+	if(type == NULL)
 	{
-		type = txe->Value();
-		if(!type)
+		if(echo_xml_get_tagname(txe, &type) == FAIL)
 		{
 			lderr("type unknown for filter...");
 			return(NULL);
 		}
 	}
+	//std::cout << "filter:"<< *txe << std::endl;
+	ECHO_PRINT("type of filter:%s\n", type);
 	if(!strcmp(type, "goal"))
 	{
 		char* name = get_attribute(txe, "id", "no id for goal filter");
-		if(!name)
+		if(name != NULL)
 		{
-			return(NULL);
+			filter* ret = new filter();
+			LD_CHKPTR(ret);
+			grid* g = st->get(name);
+			if(g)
+				ret->set_target(g);
+			else
+			{
+				LD_PRINT("filter target (%s) is null, adding to dep map: ", name);
+				add(map, name, ret, &filter::set_target);
+			}
+			return(ret);
 		}
-		filter* ret = new filter();
-		LD_CHKPTR(ret);
-		grid* g = st->get(name);
-		if(g)
-			ret->set_target(g);
-		else
-		{
-			LD_PRINT("filter target (%s) is null, adding to dep map\n", name);
-			add(map, name, ret, &filter::set_target);
-		}
-		return(ret);
 	}
 	else if(!strcmp(type, "not"))
 	{
-		if(txe->FirstChild())
+		echo_xml_node** first = new(echo_xml_node*);
+		LD_CHKPTR(first);
+		if(echo_xml_get_first_child(txe, first) == WIN)
 		{
-			TiXmlNode* child = txe->FirstChild();
-			while(child != NULL && child->Type() != TiXmlNode::ELEMENT)
-				child = child->NextSibling();
-			if(child == NULL)
+			echo_xml_type type = ECHO_XML_TYPE_UNKNOWN;
+			//while(child != NULL && child->Type() != TiXmlNode::ELEMENT)
+			//	child = child->NextSibling();
+			while(echo_xml_get_node_type(*first, &type) == WIN 
+				&& type != ECHO_XML_TYPE_ELEMENT
+				&& echo_xml_next_sibling(*first, first) == WIN);
+			
+			if(*first != NULL)
 			{
+				echo_xml_element** e = new(echo_xml_element*);
+				LD_CHKPTR(e);
+				if(echo_xml_to_element(*first, e) == WIN)
+				{
+					not_filter* ret = new not_filter(get_filter(*e, st, map));
+					LD_CHKPTR(ret);
+					delete e;
+					delete first;
+					return(ret);
+				}
+				else
+					lderr("couldn't convert to element in \"not\" filter!");
+				delete e;
+			}
+			else
 				lderr("no filter element in \"not\" filter!");
-				return(NULL);
-			}
-			return(new not_filter(get_filter(child->ToElement(), st, map)));
 		}
 		else
-		{
 			lderr("\"not\" filter has no item inside");
-			return(NULL);
-		}
+		delete first;
 	}
-	else if(!strcmp(type, "or"))
+	else if(!strcmp(type, "or") || !strcmp(type, "and"))
 	{
-		or_filter* ret = new or_filter();
-		if(txe->FirstChild())
+		multi_filter* ret = (!strcmp(type, "or")) ?
+				dynamic_cast<multi_filter*>(new or_filter()) : 
+				dynamic_cast<multi_filter*>(new and_filter());
+		LD_CHKPTR(ret);
+		int error = false;
+		echo_xml_node** first = new(echo_xml_node*);
+		LD_CHKPTR(first);
+		if(echo_xml_get_first_child(txe, first) == WIN)
 		{
-			TiXmlNode* child = txe->FirstChild();
-			while(child)
+			echo_xml_type type = ECHO_XML_TYPE_UNKNOWN;
+			echo_xml_element** e = new(echo_xml_element*);
+			LD_CHKPTR(e);
+			do
 			{
-				if(child->Type() == TiXmlNode::ELEMENT)
-					ret->add_filter(get_filter(child->ToElement(), st, map));
-				else if(child->Type() != TiXmlNode::COMMENT)
+				if(echo_xml_get_node_type(*first, &type) == WIN)
 				{
-					lderr("unknown node in \"or\" filter!");
-					return(NULL);
+					if(type == ECHO_XML_TYPE_ELEMENT)
+					{
+						if(echo_xml_to_element(*first, e) == WIN)
+						{
+							ret->add_filter(get_filter(*e, st, map));
+						}
+						else
+						{
+							error = true;
+							lderr("couldn't convert to element in \"or\" filter\n");
+						}
+					}
+					else if(type != ECHO_XML_TYPE_COMMENT)
+					{
+						error = true;
+						lderr("unknown node in \"or\" filter\n");
+					}
 				}
-				child = child->NextSibling();
+				else
+				{
+					error = true;
+					lderr("couldn't get node type for \"or\" filter\n");
+				}
 			}
+			while(echo_xml_next_sibling(*first, first) == WIN && error == false);
+			delete e;
 		}
 		else
 		{
-			lderr("\"or\" filter has no item inside");
-			return(NULL);
+			error = true;
+			lderr("\"or\" filter has no item inside\n");
 		}
-		return(ret);
-	}
-	else if(!strcmp(type, "and"))
-	{
-		and_filter* ret = new and_filter();
-		if(txe->FirstChild())
-		{
-			TiXmlNode* child = txe->FirstChild();
-			while(child)
-			{
-				if(child->Type() == TiXmlNode::ELEMENT)
-					ret->add_filter(get_filter(child->ToElement(), st, map));
-				else if(child->Type() != TiXmlNode::COMMENT)
-				{
-					lderr("unknown node in \"and\" filter!");
-					return(NULL);
-				}
-				child = child->NextSibling();
-			}
-		}
-		else
-		{
-			lderr("\"and\" filter has no item inside");
-			return(NULL);
-		}
-		return(ret);
+		delete first;
+		if(error == true)	delete ret;
+		else				return(ret);
 	}
 	else
-		lderr("filter type unknown");
+		lderr("filter type unknown\n");
 	return(NULL);
 }
 
-static trigger* get_trigger(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map)
+static trigger* get_trigger(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map)
 {
 	filter* f = NULL;
-	if(txe->FirstChild())
+	echo_xml_node** first = new(echo_xml_node*);
+	LD_CHKPTR(first);
+	if(echo_xml_get_first_child(txe, first) == WIN)
 	{
-		f = get_filter(txe, st, map, "and");
-		if(!f)
-			return(NULL);
+		echo_xml_element** e = new(echo_xml_element*);
+		LD_CHKPTR(e);
+		if(echo_xml_to_element(*first, e) == WIN)
+		{
+			f = get_filter(*e, st, map, "and");
+			if(f == NULL)
+			{
+				delete e;
+				delete first;
+				return(NULL);
+			}
+		}
+		delete e;
 	}
+	delete first;
 	char* name = get_attribute(txe, "id", "no id for trigger");
-	if(!name)
-		return(NULL);
-	grid* g = st->get(name);
-	if(g)
-		return(new trigger(f, g));
-	else
+	if(name != NULL)
 	{
-		trigger* ret = new trigger(f);
-		LD_PRINT("trigger target (%s) is null, adding to dep map\n", name);
-		add(map, name, ret, &trigger::set_target);
-		return(ret);
+		grid* g = st->get(name);
+		if(g)
+		{
+			trigger* ret = new trigger(f, g);
+			LD_CHKPTR(ret);
+			return(ret);
+		}
+		else
+		{
+			trigger* ret = new trigger(f);
+			LD_CHKPTR(ret);
+			LD_PRINT("trigger target (%s) is null, adding to dep map\n", name);
+			add(map, name, ret, &trigger::set_target);
+			return(ret);
+		}
 	}
+	return(NULL);
 }
 
-static int add_triggers(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, grid* g)
+static int add_triggers(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, grid* g)
 {
-	if(txe->FirstChild())
+	echo_xml_node** first = new(echo_xml_node*);
+	LD_CHKPTR(first);
+	int error = false;
+	if(echo_xml_get_first_child(txe, first) == WIN)
 	{
-		TiXmlNode* child = txe->FirstChild();
-		while(child)
+		//std::cout << "add_triggers: " << *txe << std::endl;
+		echo_xml_type type = ECHO_XML_TYPE_UNKNOWN;
+		echo_xml_element** e = new(echo_xml_element*);
+		LD_CHKPTR(e);
+		do
 		{
-			if(child->Type() == TiXmlNode::ELEMENT)
-				g->add_trigger(get_trigger(child->ToElement(), st, map));
-			else if(child->Type() != TiXmlNode::COMMENT)
+			//std::cout << "add_triggers: child: " << (*first)->name() << "; " << **first << std::endl;
+			if(echo_xml_get_node_type(*first, &type) == WIN)
 			{
-				lderr("unknown node in triggers!");
-				return(0);
+				if(type == ECHO_XML_TYPE_ELEMENT)
+				{
+					if(echo_xml_to_element(*first, e) == WIN)
+					{
+						g->add_trigger(get_trigger(*e, st, map));
+					}
+					else
+					{
+						error = true;
+						lderr("couldn't convert to element in trigger\n");
+					}
+				}
+				else if(type != ECHO_XML_TYPE_COMMENT)
+				{
+					error = true;
+					lderr("unknown node in trigger\n");
+				}
 			}
-			child = child->NextSibling();
+			else
+			{
+				error = true;
+				lderr("couldn't get node type for trigger!\n");
+			}
 		}
+		while(echo_xml_next_sibling(*first, first) == WIN);
+		delete e;
 	}
 	else
 	{
 		lderr("triggers element has no triggers!");
-		return(0);
+		error = true;
 	}
-	return(1);
+	delete first;
+	return(error == true ? FAIL : WIN);
 }
 
 #ifdef ECHO_NDS
-static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot
+static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot
 			, LEVEL_MAP* nonffgrids, LEVEL_MAP* ffgrids)
 #else
-static grid* parse_grid(TiXmlElement* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot)
+static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot)
 #endif
 {
 	LD_PRINT("\n");
 	char* name = get_attribute(txe, "id", "unnamed grid!");
-	if(!name)
-		return(NULL);
-	const char* type = txe->Value();
-	if(!type)
+	if(name != NULL)
 	{
-		lderr("type not known for grid: " , name);
-		return(NULL);
+		char** type = new(char*);
+		LD_CHKPTR(type);
+		if(echo_xml_get_tagname(txe, type) == WIN)
+		{
+			grid_info_t* info = new(grid_info_t);
+			LD_CHKPTR(info);
+			if(get_vec(txe, &(info->pos), st) == WIN)
+			{
+				char* prev_id = get_attribute(txe, "prev", "no previous for grid: ", name);
+				if(prev_id != NULL)
+				{
+					grid* prev = st->get(prev_id);
+					char* next_id = get_attribute(txe, "next", "no next for grid: ", name);
+					if(next_id != NULL)
+					{
+						grid* next = st->get(next_id);
+						grid* new_grid = NULL;
+						if(!strcmp(*type, "grid"))
+						{
+							LD_PRINT("%s is a grid!\n", name);
+							new_grid = new grid(info, prev, next);
+							LD_CHKPTR(new_grid);
+						}
+						else if(!strcmp(*type, "t_grid"))
+						{
+							LD_PRINT("%s is a t_grid!\n", name);
+							char* next2_id = get_attribute(txe, "next2", "no next2 for t_grid: ", name);
+							if(next2_id != NULL)
+							{
+								grid* next2 = st->get(next2_id);
+								new_grid = new t_grid(info, prev, next, next2);
+								LD_CHKPTR(new_grid);
+								if(!next2 && strcmp(next2_id, "NONE"))
+								{
+									LD_PRINT("next2 (%s) is null, adding to dep map\n", next2_id);
+									add(map, next2_id, (t_grid*)new_grid, &t_grid::set_real_next2);
+								}
+							}							
+						}
+						else if(!strcmp(*type, "escgrid"))
+						{
+							LD_PRINT("%s is a escgrid!\n", name);
+							new_grid = new escgrid(info, prev, next);
+							LD_CHKPTR(new_grid);
+#ifdef ECHO_NDS
+							if(!add_escs(txe, st, map, escroot, (escgrid*)new_grid, nonffgrids, ffgrids))
+#else
+							if(!add_escs(txe, st, map, escroot, (escgrid*)new_grid))
+#endif
+							{
+								delete new_grid;
+								new_grid = NULL;
+							}
+						}
+						else if(!strcmp(*type, "hole"))
+						{
+							LD_PRINT("%s is an hole!\n", name);
+							new_grid = new hole(info, prev, next);
+							LD_CHKPTR(new_grid);
+#ifdef ECHO_NDS
+							if(!add_escs(txe, st, map, escroot, (escgrid*)new_grid, nonffgrids, ffgrids))
+#else
+							if(!add_escs(txe, st, map, escroot, (escgrid*)new_grid))
+#endif
+							{
+								delete new_grid;
+								new_grid = NULL;
+							}
+						}
+						else if(!strcmp(*type, "launcher"))
+						{
+							LD_PRINT("%s is a launcher!\n", name);
+							new_grid = new launcher(info, prev, next);
+							LD_CHKPTR(new_grid);
+#ifdef ECHO_NDS
+							if(!add_escs(txe, st, map, escroot, (escgrid*)new_grid, nonffgrids, ffgrids))
+#else
+							if(!add_escs(txe, st, map, escroot, (escgrid*)new_grid))
+#endif
+							{
+								delete new_grid;
+								new_grid = NULL;
+							}
+						}
+						else if(!strcmp(*type, "freeform_grid"))
+						{
+							LD_PRINT("%s is a freeform_grid!\n", name);
+							echo_xml_node** first = new(echo_xml_node*);
+							LD_CHKPTR(first);
+							if(echo_xml_get_first_child(txe, first) == WIN)
+							{
+								echo_xml_type type2 = ECHO_XML_TYPE_UNKNOWN;
+								while(echo_xml_get_node_type(*first, &type2) == WIN 
+									&& type2 != ECHO_XML_TYPE_ELEMENT
+									&& echo_xml_next_sibling(*first, first) == WIN);
+								if(*first != NULL)
+								{
+									vector3f* dir_angle = new vector3f();
+									LD_CHKPTR(dir_angle);
+									echo_xml_element** e = new(echo_xml_element*);
+									LD_CHKPTR(e);
+									if(echo_xml_to_element(*first, e) == WIN 
+										&& get_vec(*e, dir_angle) == WIN)
+									{
+										if(echo_xml_next_sibling(*first, first) == WIN)
+										{
+											while(echo_xml_get_node_type(*first, &type2) == WIN 
+												&& type2 != ECHO_XML_TYPE_ELEMENT
+												&& echo_xml_next_sibling(*first, first) == WIN);
+											if(*first != NULL)
+											{
+												vector3f* width_angle = new vector3f();
+												LD_CHKPTR(width_angle);
+												if(echo_xml_to_element(*first, e) == WIN 
+													&& get_vec(*e, width_angle) == WIN)
+												{
+													new_grid = new freeform_grid(info, prev, next, dir_angle, width_angle);
+													LD_CHKPTR(new_grid);
+												}
+												else
+												{
+													lderr("couldn't get width of freeform_grid!", name);
+													delete width_angle;
+													delete dir_angle;
+												}
+											}
+											else
+											{
+												lderr("cannot find width element of freeform_grid: " , name);
+												delete dir_angle;
+											}
+										}
+										else
+										{
+											lderr("cannot find width element of freeform_grid: " , name);
+											delete dir_angle;
+										}
+										delete e;
+									}
+									else
+									{
+										lderr("couldn't get direction of freeform grid!:", name);
+										delete dir_angle;
+									}
+								}
+								else
+									lderr("cannot find direction element of freeform_grid: " , name);
+							}
+							else
+								lderr("couldn't get first child in freeform_grid: ", name);
+							delete first;
+						}
+						else if(!strcmp(*type, "stair"))
+						{
+							float angle = 45;
+							if(echo_xml_get_float_attribute(txe, "direction", &angle) == WIN)
+							{
+								LD_PRINT("angle: %f\n", angle);
+								new_grid = new stair(info, prev, next, angle);
+								LD_CHKPTR(new_grid);
+							}
+							else
+								lderr("couldn't get start direction!");
+						}
+						else
+						{
+							lderr("grid type not known!: ", *type);
+						}
+						if(new_grid != NULL)
+						{
+#ifdef ECHO_NDS
+							if(!strcmp(*type, "freeform_grid"))
+								map_add_pos(ffgrids, info->pos, new_grid);
+							else if(strcmp(*type, "stair"))	//NOT EQUAL TO STAIRS ; no '!'
+								map_add_pos(nonffgrids, info->pos, new_grid);
+#endif
+							//previous check
+							if(!prev && strcmp(prev_id, "NONE"))
+							{
+								LD_PRINT("prev (%s) is null, adding to dep map\n", prev_id);
+								add(map, prev_id, new_grid, &grid::set_real_prev);
+							}
+							//next check
+							if(!next && strcmp(next_id, "NONE"))
+							{
+								LD_PRINT("next (%s) is null, adding to dep map\n", next_id);
+								add(map, next_id, new_grid, &grid::set_real_next);
+							}
+							//goal check
+							int is_goal = 0;
+							if(echo_xml_get_int_attribute(txe, "goal", &is_goal) == WIN)
+							{
+								if(is_goal)
+								{
+									new_grid->set_as_goal();
+									LD_PRINT("it's a goal!\n");
+								}
+							}
+							//nodraw check
+							int nodraw = 0;
+							if(echo_xml_get_int_attribute(txe, "nodraw", &nodraw) == WIN)
+							{
+								if(nodraw)
+								{
+									new_grid->set_draw(0);
+									LD_PRINT("it's invisible!\n");
+								}
+							}
+							//noland check
+							int noland = 0;
+							if(echo_xml_get_int_attribute(txe, "noland", &noland) == WIN)
+							{
+								if(noland)
+									LD_PRINT("it's not land-able!\n");
+							}
+							if(!escroot)
+							{
+								st->add(name, new_grid);
+								if(!noland)
+									st->add_pos(info->pos, new_grid);
+							}
+							else if(!noland)
+							{
+								st->add_pos(info->pos, escroot);
+							}
+							//trigger check
+							echo_xml_node** first = new(echo_xml_node*);
+							LD_CHKPTR(first);
+							if(echo_xml_get_first_child(txe, first) == WIN)
+							{
+								echo_xml_type type2 = ECHO_XML_TYPE_UNKNOWN;
+								while(echo_xml_get_node_type(*first, &type2) == WIN 
+									&& type2 != ECHO_XML_TYPE_ELEMENT
+									&& echo_xml_next_sibling(*first, first) == WIN);
+								if(*first != NULL)
+								{
+									echo_xml_element** e = new(echo_xml_element*);
+									LD_CHKPTR(e);
+									if(echo_xml_to_element(*first, e) == WIN)
+									{
+										char** tag = new(char*);
+										LD_CHKPTR(tag);
+										if(echo_xml_get_tagname(*e, tag) == WIN 
+											&& !strcmp(*tag, "triggers"))
+										{
+											LD_PRINT("adding triggers\n");
+											add_triggers(*e, st, map, new_grid);
+										}
+										delete tag;
+									}
+									delete e;
+								}
+							}
+							delete first;
+							//dep check
+							FUNCTOR_VEC* deps = dep_set(map, name);
+							if(deps)
+							{
+								LD_PRINT("deps found for: %s\n", name);
+								FUNCTOR_VEC::iterator it = deps->begin(), end = deps->end();
+								while(it != end)
+								{
+									(*it)->call(new_grid);
+									LD_PRINT("dep called for %s (%s) by %s", it->obj, typeid(*(it->obj)).name(), name);
+									it++;
+								}
+								delete_functors(deps);
+								map->erase(name);
+							}
+							else
+								LD_PRINT("deps not found for: %s\n", name);
+							return(new_grid);
+							
+						}
+						if(new_grid != NULL)
+							delete new_grid;
+					}
+					//no next specified
+				}
+				//no prev specified
+			}
+			else
+				lderr("couldn't get position!");
+			delete info;
+		}
+		else
+			lderr("type not known for grid: " , name);
+		delete type;
 	}
-	grid_info_t* info = new(grid_info_t);
-	LD_CHKPTR(info);
-	if(!get_vec(txe, &(info->pos), st))
-	{
-		delete info;
-		return(NULL);
-	}
-	char* prev_id = get_attribute(txe, "prev", "no previous for grid: ", name);
-	if(!prev_id)
-	{
-		delete info;
-		return(NULL);
-	}
-	grid* prev = st->get(prev_id);
-	char* next_id = get_attribute(txe, "next", "no next for grid: ", name);
-	if(!next_id)
-	{
-		delete info;
-		return(NULL);
-	}
-	grid* next = st->get(next_id);
+	else
+		lderr("couldn't get name of grid!\n");
+	return(NULL);
 	
-	grid* new_grid = NULL;
-	if(!strcmp(type, "grid"))
-	{
-		LD_PRINT("%s is a grid!\n", name);
-		new_grid = new grid(info, prev, next);
-		LD_CHKPTR(new_grid);
-	}
-	else if(!strcmp(type, "t_grid"))
-	{
-		LD_PRINT("%s is a t_grid!\n", name);
-		char* next2_id = get_attribute(txe, "next2", "no next2 for t_grid: ", name);
-		if(!next2_id)
-		{
-			delete info;
-			return(NULL);
-		}
-		grid* next2 = st->get(next2_id);
-		new_grid = new t_grid(info, prev, next, next2);
-		LD_CHKPTR(new_grid);
-		if(!next2 && strcmp(next2_id, "NONE"))
-		{
-			LD_PRINT("next2 (%s) is null, adding to dep map\n", next2_id);
-			add(map, next2_id, (t_grid*)new_grid, &t_grid::set_real_next2);
-		}
-	}
-	else if(!strcmp(type, "escgrid"))
-	{
-		LD_PRINT("%s is a escgrid!\n", name);
-		new_grid = new escgrid(info, prev, next);
-		LD_CHKPTR(new_grid);
-#ifdef ECHO_NDS
-		if(!add_escs(txe, st, map, escroot, (escgrid*)new_grid, nonffgrids, ffgrids))
-#else
-		if(!add_escs(txe, st, map, escroot, (escgrid*)new_grid))
-#endif
-		{
-			delete info;
-			delete new_grid;
-			return(NULL);
-		}
-	}
-	else if(!strcmp(type, "hole"))
-	{
-		LD_PRINT("%s is an hole!\n", name);
-		new_grid = new hole(info, prev, next);
-		LD_CHKPTR(new_grid);
-#ifdef ECHO_NDS
-		if(!add_escs(txe, st, map, escroot, (escgrid*)new_grid, nonffgrids, ffgrids))
-#else
-		if(!add_escs(txe, st, map, escroot, (escgrid*)new_grid))
-#endif
-		{
-			delete info;
-			delete new_grid;
-			return(NULL);
-		}
-	}
-	else if(!strcmp(type, "launcher"))
-	{
-		LD_PRINT("%s is a launcher!\n", name);
-		new_grid = new launcher(info, prev, next);
-		LD_CHKPTR(new_grid);
-#ifdef ECHO_NDS
-		if(!add_escs(txe, st, map, escroot, (escgrid*)new_grid, nonffgrids, ffgrids))
-#else
-		if(!add_escs(txe, st, map, escroot, (escgrid*)new_grid))
-#endif
-		{
-			delete info;
-			delete new_grid;
-			return(NULL);
-		}
-	}
-	else if(!strcmp(type, "freeform_grid"))
-	{
-		LD_PRINT("%s is a freeform_grid!\n", name);
-		TiXmlNode* vec_element = txe->FirstChild();
-		while(vec_element != NULL && vec_element->Type() != TiXmlNode::ELEMENT)
-			vec_element = vec_element->NextSiblingElement();
-		if(!vec_element)
-		{
-			lderr("cannot find direction element of freeform_grid: " , name);
-			delete info;
-			return(NULL);
-		}
-		vector3f* dir_angle = new vector3f();
-		LD_CHKPTR(dir_angle);
-		if(!get_vec(vec_element->ToElement(), dir_angle))
-		{
-			delete info;
-			delete dir_angle;
-			return(NULL);
-		}
-		vec_element = vec_element->NextSibling();
-		while(vec_element != NULL && vec_element->Type() != TiXmlNode::ELEMENT)
-			vec_element = vec_element->NextSiblingElement();
-		if(!vec_element)
-		{
-			lderr("cannot find width element of freeform_grid: " , name);
-			delete info;
-			delete dir_angle;
-			return(NULL);
-		}
-		vector3f* width_angle = new vector3f();
-		LD_CHKPTR(width_angle);
-		if(!get_vec(vec_element->ToElement(), width_angle))
-		{
-			delete info;
-			delete dir_angle;
-			delete width_angle;
-			return(NULL);
-		}
-		new_grid = new freeform_grid(info, prev, next, dir_angle, width_angle);
-		LD_CHKPTR(new_grid);
-	}
-	else if(!strcmp(type, "stair"))
-	{
-		float angle = 45;
-		if(!get_float(txe, "direction", &angle))
-		{
-			delete info;
-			return(NULL);
-		}
-		LD_PRINT("angle: %f\n", angle);
-		new_grid = new stair(info, prev, next, angle);
-		LD_CHKPTR(new_grid);
-	}
-	else
-	{
-		lderr("grid type not known!: ", type);
-		delete info;
-		return(NULL);
-	}
-#ifdef ECHO_NDS
-	if(!strcmp(type, "freeform_grid"))
-		map_add_pos(ffgrids, info->pos, new_grid);
-	else if(strcmp(type, "stair"))
-		map_add_pos(nonffgrids, info->pos, new_grid);
-#endif
-	//previous check
-	if(!prev && strcmp(prev_id, "NONE"))
-	{
-		LD_PRINT("prev (%s) is null, adding to dep map\n", prev_id);
-		add(map, prev_id, new_grid, &grid::set_real_prev);
-	}
-	//next check
-	if(!next && strcmp(next_id, "NONE"))
-	{
-		LD_PRINT("next (%s) is null, adding to dep map\n", next_id);
-		add(map, next_id, new_grid, &grid::set_real_next);
-	}
-	//goal check
-	if(txe->Attribute("goal"))
-	{
-		int is_goal = 0;
-		if(txe->QueryIntAttribute("goal", &is_goal) == TIXML_WRONG_TYPE)
-		{
-			lderr("goal attribute contains wrong type!: ", name);
-			delete info;
-			delete new_grid;
-			return(NULL);
-		}
-		if(is_goal)
-		{
-			new_grid->set_as_goal();
-			LD_PRINT("it's a goal!\n");
-		}
-	}
-	//nodraw check
-	if(txe->Attribute("nodraw"))
-	{
-		int nodraw = 0;
-		if(txe->QueryIntAttribute("nodraw", &nodraw) == TIXML_WRONG_TYPE)
-		{
-			lderr("nodraw attribute contains wrong type!: ", name);
-			delete info;
-			delete new_grid;
-			return(NULL);
-		}
-		if(nodraw)
-		{
-			new_grid->set_draw(0);
-			LD_PRINT("it's invisible!\n");
-		}
-	}
-	//noland check
-	int noland = 0;
-	if(txe->Attribute("noland"))
-	{
-		if(txe->QueryIntAttribute("noland", &noland) == TIXML_WRONG_TYPE)
-		{
-			lderr("noland attribute contains wrong type!: ", name);
-			delete info;
-			delete new_grid;
-			return(NULL);
-		}
-		if(noland)
-			LD_PRINT("it's not land-able!\n");
-	}
-	if(!escroot)
-	{
-		st->add(name, new_grid);
-		if(!noland)
-			st->add_pos(info->pos, new_grid);
-	}
-	else if(!noland)
-	{
-		st->add_pos(info->pos, escroot);
-	}
-	//trigger check
-	TiXmlNode* child = txe->FirstChild();
-	while(child != NULL && child->Type() != TiXmlNode::ELEMENT)
-		child = child->NextSibling();
-	if(child != NULL && !strcmp(child->Value(), "triggers"))
-	{
-		LD_PRINT("adding triggers\n");
-		add_triggers(child->ToElement(), st, map, new_grid);
-	}
-	//dep check
-	FUNCTOR_VEC* deps = dep_set(map, name);
-	if(deps)
-	{
-		LD_PRINT("deps found for: %s\n", name);
-		FUNCTOR_VEC::iterator it = deps->begin(), end = deps->end();
-		while(it != end)
-		{
-			(*it)->call(new_grid);
-			LD_PRINT("dep called for %s (%s) by %s", it->obj, typeid(*(it->obj)).name(), name);
-			it++;
-		}
-		delete_functors(deps);
-		map->erase(name);
-	}
-	else
-		LD_PRINT("deps not found for: %s\n", name);
-	return(new_grid);
 }

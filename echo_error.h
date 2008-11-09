@@ -25,7 +25,10 @@
 #define FAIL	-1
 // */
 
-enum STATUS { FAIL, WIN };
+#ifndef __ECHO_STATUS__
+	#define __ECHO_STATUS__
+	enum STATUS { FAIL = 0, WIN = 1};
+#endif
 
 void lderr(const char* msg);
 void ldmemerr();
