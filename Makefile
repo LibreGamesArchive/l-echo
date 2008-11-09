@@ -14,8 +14,8 @@ OBJFILES  := $(CPPFILES:.cpp=.OBJ)
 #DOIFILES  := $(CPPFILES:.cpp=.DOI)
 DOFILES   := $(CPPFILES:.cpp=.DO)
 
-VERSION   := 0.3.3
-REVISION  := 62
+VERSION   := 0.4.0
+REVISION  := 73
 
 PKGCOMMON := -echo-$(VERSION)_r$(REVISION)
 PKGPREFIX := ../l$(PKGCOMMON)-
@@ -92,7 +92,7 @@ setup-nds:
 	cp -r n-echo_template n-echo
 	cp -t n-echo A*.xml.real
 	cp -t n-echo/source *.cpp pugixml/*.cpp
-	cp -t n-echo/include *.h pugixml/*.h 
+	cp -t n-echo/include *.h pugixml/*.hpp
 
 nds:
 	make -C n-echo

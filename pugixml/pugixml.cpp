@@ -2668,7 +2668,7 @@ namespace pugi
 	  	
 	  	return result;
 	}
-	
+#ifndef ARM9
 	std::wstring as_utf16(const char* str)
 	{
 		std::wstring result;
@@ -2683,5 +2683,6 @@ namespace pugi
 
 		return result;
 	}
+#endif
 #endif
 }
