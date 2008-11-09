@@ -21,11 +21,7 @@
 #include <echo_error.h>
 #include <echo_debug.h>
 #include <echo_platform.h>
-#ifdef ECHO_NDS
-	#include <tinyxml.h>
-#else
-	#include <tinyxml/tinyxml.h>
-#endif
+#include <echo_xml.h>
 
 #ifdef ECHO_NDS
 	#ifndef __ECHO_NDS_PREFS__

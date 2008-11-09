@@ -42,7 +42,7 @@ lab: $(OFILES)
 w32: $(OBJFILES)
 	i586-mingw32msvc-g++ pugixml/*.OBJ *.OBJ glut32.lib -lGL -lGLU -g3 -Wall -o l-echo.exe
 
-%.DO: CXXFLAGS += -isysroot /opt/mac/SDKs/MacOSX10.5.sdk -I/opt/mac/SDKs/MacOSX10.5.sdk/usr/include  
+#%.DO: CXXFLAGS += -isysroot /opt/mac/SDKs/MacOSX10.5.sdk -I/opt/mac/SDKs/MacOSX10.5.sdk/usr/include  
 %.DO: %.cpp
 	powerpc-apple-darwin8-g++ -arch i386 -arch ppc $(CXXFLAGS) -c -o $@ $<
 
