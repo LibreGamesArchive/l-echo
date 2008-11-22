@@ -349,12 +349,15 @@ int main(int argc, char **argv)
 		//if it  is -t
 		else if(!strcmp(argv[1], "-t"))
 		{
+			const stage* st = load_stage(argv[2]);
 			//test the file
-			if(load_stage(argv[2]))
+			if(st != NULL)
 			{
 				//ok
 				ECHO_PRINT("stage file OK\n");
+				delete st;
 				std::exit(0);
+				
 			}
 			else
 			{

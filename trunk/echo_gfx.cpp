@@ -347,7 +347,7 @@ void draw_character(echo_char_joints* joints)
 				draw_sphere_pointzero75();
 				if(joints != NULL)
 					gfx_rotatef(joints->lfoot_x, 1, 0, 0);
-				glTranslatef(0.01f, -0.15f, -0.075f);
+				glTranslatef(0.01f, -0.15f, 0.025f);
 				SET_ID(11);
 				draw_foot();
 			}
@@ -379,7 +379,7 @@ void draw_character(echo_char_joints* joints)
 				draw_sphere_pointzero75();
 				if(joints != NULL)
 					gfx_rotatef(joints->rfoot_x, 1, 0, 0);
-				glTranslatef(-0.01f, -0.15f, -0.075f);
+				glTranslatef(-0.01f, -0.15f, 0.025f);
 				SET_ID(11);
 				draw_foot();
 			}

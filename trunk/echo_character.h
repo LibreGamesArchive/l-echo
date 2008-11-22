@@ -86,6 +86,8 @@ class echo_char
 		
 		void toggle_run();
 		
+		vector3f* get_direction();
+		
 		//pause or unpause
 		void toggle_pause();
 		//is this character paused?

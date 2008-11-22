@@ -37,6 +37,8 @@
 #include <hole.h>
 #include <isect_grid.h>
 
+#include <gen/gen.h>
+
 //how high aboce the start grid does the character start?
 #define STARTY		30
 
@@ -329,6 +331,25 @@ void echo_char::step()
 	}
 }
 
+vector3f* echo_char::get_direction()
+{
+	if(grid2)	//if both grids are there
+	{
+		grid_info_t* i1 = grid1->get_info(echo_ns::angle);
+		if(i1)
+		{
+			vector3f pos1 = i1->pos;
+			grid_info_t* i2 = grid2->get_info(echo_ns::angle);
+			if(i2)
+			{
+				vector3f pos2 = i2->pos;
+				return(pos2.sub_new(&pos1));
+			}
+		}
+	}
+	return(NULL);
+}
+
 void echo_char::draw(vector3f vec)
 {
 	draw(vec.x, vec.y, vec.z);
@@ -354,18 +375,92 @@ void echo_char::draw(float x, float y, float z)
 		}
 		if(main_grid)
 		{
-			y += grid2->vert_shift(main_per);
+			float vshift = main_grid->vert_shift(main_per);
+			y += vshift;
 			//gfx_translatef(0, grid2->vert_shift(main_per), 0);
-			joints.rshoulder_swing = -20 * echo_cos(dist_traveled_cyclic);
-			joints.lshoulder_swing = 20 * echo_cos(dist_traveled_cyclic);
-			joints.rarm_bend = -10 * echo_cos(dist_traveled_cyclic) - 20;
-			joints.larm_bend = 10 * echo_cos(dist_traveled_cyclic) - 20;
-			joints.rthigh_lift = -45 * echo_cos(dist_traveled_cyclic);
-			joints.lthigh_lift = 45 * echo_cos(dist_traveled_cyclic);
+			joints.rshoulder_swing = -20 * echo_sin(dist_traveled_cyclic);
+			joints.lshoulder_swing = 20 * echo_sin(dist_traveled_cyclic);
+			joints.rarm_bend = -10 * echo_sin(dist_traveled_cyclic) - 20;
+			joints.larm_bend = 10 * echo_sin(dist_traveled_cyclic) - 20;
+			joints.rthigh_lift = 35 * echo_sin(dist_traveled_cyclic) - 15;
+			joints.lthigh_lift = -35 * echo_sin(dist_traveled_cyclic) - 15;
 			
+#ifdef USE_IK
+			vector3f* foot_vec = get_direction();
+			
+			if(foot_vec != NULL)
+			{
+				vector3f* up = new vector3f(0, 1, 0);
+				CHKPTR(up);
+				
+				float left_dir_angle = 0;
+				foot_vec->scalar_angle(up, &left_dir_angle);
+				const float left_dist_foot = (vshift + 0.825f) * echo_sin(abs(joints.lthigh_lift)) 
+											/ echo_sin(left_dir_angle);
+				
+				float right_dir_angle = 0;
+				foot_vec->scalar_angle(up, &right_dir_angle);
+				float right_dist_foot = (vshift + 0.825f) * echo_sin(abs(joints.rthigh_lift)) 
+										/ echo_sin(right_dir_angle);
+				//ECHO_PRINT("rdf: %f\n", right_dist_foot);
+				float temp = joints.rleg_bend;
+				if(IK_angle(0.5f, 0.65f, right_dist_foot, &joints.rleg_bend) == WIN)
+				{
+					//ECHO_PRINT("joints.rleg_bend: %f\n", joints.rleg_bend);
+					if(joints.rleg_bend == 0 || joints.rleg_bend != joints.rleg_bend)
+						joints.rleg_bend = temp;
+					else if(joints.rleg_bend > 90)
+						joints.rleg_bend -= 90;
+					//ECHO_PRINT("joints.rleg_bend: %f\n", joints.rleg_bend);
+					temp = joints.lleg_bend;
+					if(IK_angle(0.5f, 0.65f, left_dist_foot, &joints.lleg_bend) == WIN)
+					{
+						if(joints.lleg_bend == 0 || joints.lleg_bend != joints.lleg_bend)
+							joints.lleg_bend = temp;
+						else if(joints.lleg_bend > 90)
+							joints.lleg_bend -= 90;
+					}
+					else
+						echo_error("Inverse Kinematics failed?\n");
+				}
+				else
+					echo_error("Inverse Kinematics failed?\n");
+				
+				delete up;
+				delete foot_vec;
+			}
+			else
+			{
+				float temp = joints.rleg_bend;
+				if(IK_angle(0.5f, 0.65f, (vshift + 1.175f) 
+						/ echo_cos(joints.rthigh_lift), &joints.rleg_bend) == WIN)
+				{
+					if(joints.rleg_bend == 0)
+						joints.rleg_bend = temp;
+					temp = joints.lleg_bend;
+					if(IK_angle(0.5f, 0.65f, (vshift + 1.175f) 
+							/ echo_cos(joints.lthigh_lift), &joints.lleg_bend) == WIN)
+					{
+						if(joints.lleg_bend == 0)
+							joints.lleg_bend = temp;
+					}
+					else
+						echo_error("Inverse Kinematics failed?\n");
+				}
+				else
+					echo_error("Inverse Kinematics failed?\n");
+			}
+			
+			
+			/*
+			ECHO_PRINT("joints.lthigh_lift: %f\n", joints.lthigh_lift);
+			ECHO_PRINT("echo_cos(joints.lthigh_lift): %f\n", echo_cos(joints.lthigh_lift));
+			ECHO_PRINT("dist: %f\n", (vshift + 1.837f) / echo_cos(joints.lthigh_lift));
+			ECHO_PRINT("lleg: %f\n", joints.lleg_bend);
+			// */
+#else
 			#define LEG_BEND_MAX	30
 			
-			//*
 			if(dist_traveled > 1 && dist_traveled <= 1.5f)
 				joints.rleg_bend = LEG_BEND_MAX * echo_cos(dist_traveled * 180 + 180);
 			else if(dist_traveled > 3.0f || dist_traveled <= 1)
@@ -378,7 +473,7 @@ void echo_char::draw(float x, float y, float z)
 				joints.lleg_bend = LEG_BEND_MAX * echo_sin(dist_traveled * 45 - 90);
 			else
 				joints.lleg_bend = 0;
-			// */
+#endif
 		}
 		gfx_translatef(x, y, z);
 		//direction he is facing.

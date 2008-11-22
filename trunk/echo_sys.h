@@ -21,8 +21,8 @@
 
 #define FPS	60
 
-#ifndef ARM9
-	#ifdef WIN32
+#ifndef ECHO_NDS
+	#ifdef ECHO_WIN
 		#include <windows.h>
 		#define ECHO_SLEEP(arg)	Sleep(arg)
 	#else		//Assume it's Unix

@@ -236,6 +236,8 @@ stage* load_stage(char* file_name)
 #endif
 						{
 							lderr("parse not successful!");
+							delete (*root);
+							delete root;
 							delete child;
 							delete e;
 							echo_xml_delete_file(*doc);
@@ -253,6 +255,8 @@ stage* load_stage(char* file_name)
 					{
 						
 						lderr("unknown node type!");
+						delete (*root);
+						delete root;
 						delete child;
 						delete e;
 						echo_xml_delete_file(*doc);
@@ -269,6 +273,8 @@ stage* load_stage(char* file_name)
 				else
 				{
 					lderr("couldn't get node type!\n");
+					delete (*root);
+					delete root;
 					delete child;
 					delete e;
 					echo_xml_delete_file(*doc);
@@ -282,9 +288,10 @@ stage* load_stage(char* file_name)
 					return(NULL);
 				}
 			}
-			while(echo_xml_next_sibling(*child , child));
+			while(echo_xml_next_sibling(*child, child));
 			delete e;
 		}
+		//delete *child;
 		delete child;
 		//-------------------------------------------------------------get starting point string
 		char** start = new(char*);
@@ -364,6 +371,7 @@ stage* load_stage(char* file_name)
 		delete_dependencies(map);
 		echo_xml_delete_file(*doc);
 		delete doc;
+		delete (*root);
 		delete root;
 		//-------------------------------------------------------------hand out the polyIDs
 #ifdef ECHO_NDS
@@ -559,6 +567,7 @@ static int add_esc(echo_xml_element* child, stage* st, DEPENDENCY_MAP* map, escg
 						if(g != NULL)
 						{
 							egrid->add(each_angle, g);
+							delete *first;
 							delete first;
 							delete e;
 							delete type;
@@ -573,6 +582,7 @@ static int add_esc(echo_xml_element* child, stage* st, DEPENDENCY_MAP* map, escg
 				}
 				else
 					lderr("no esc in angle!");
+				delete *first;
 				delete first;
 			}
 			else
@@ -889,6 +899,7 @@ static trigger* get_trigger(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* ma
 		}
 		delete e;
 	}
+	delete *first;
 	delete first;
 	char* name = get_attribute(txe, "id", "no id for trigger");
 	if(name != NULL)
@@ -1228,6 +1239,7 @@ static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, e
 									delete e;
 								}
 							}
+							delete *first;
 							delete first;
 							//dep check
 							FUNCTOR_VEC* deps = dep_set(map, name);
@@ -1246,6 +1258,7 @@ static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, e
 							}
 							else
 								LD_PRINT("deps not found for: %s\n", name);
+							delete type;
 							return(new_grid);
 							
 						}

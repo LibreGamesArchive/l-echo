@@ -97,6 +97,16 @@ void draw_right_hand()
 		glVertex3f(-0.000f, -0.100f, -0.000f);
 		glVertex3f(-0.000f, -0.100f, -0.000f);
 	glEnd();
+	glBegin(GL_QUAD_STRIP);
+		glVertex3f(-0.000f, 0.000f, -0.075f);
+		glVertex3f(0.037f, 0.000f, -0.065f);
+		glVertex3f(-0.000f, -0.050f, -0.065f);
+		glVertex3f(0.032f, -0.050f, -0.056f);
+		glVertex3f(-0.000f, -0.087f, -0.038f);
+		glVertex3f(0.019f, -0.087f, -0.032f);
+		glVertex3f(-0.000f, -0.100f, -0.000f);
+		glVertex3f(0.000f, -0.100f, -0.000f);
+	glEnd();
 #else
 	glBegin(GL_QUAD_STRIP);
 		glVertex3v16(0, 0, 307);

@@ -37,6 +37,7 @@ void ldwarn(const char* msg);
 
 //GENeral MEMory ERRor
 void genmemerr();
+void echo_error(const char* msg);
 
 #ifdef STRICT_MEM
 	#define CHKPTR(ptr) 	if(!(ptr)) genmemerr();

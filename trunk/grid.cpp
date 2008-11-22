@@ -319,7 +319,8 @@ int grid::is_pt_on(vector3f angle, vector3f pt)
 
 float grid::vert_shift(float percent_in)
 {
-	return(0.1f * echo_cos(60 - 60 * percent_in) - 0.15f);
+	//return(-0.05f);
+	return(0.05f * echo_cos(360 * percent_in) - 0.05f);
 }
 #ifdef ECHO_NDS
 unsigned int grid::get_polyID(vector3f angle)
