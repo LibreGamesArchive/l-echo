@@ -18,19 +18,19 @@
 */
 
 #if defined(ARM9) || defined(ARM7)
-	#define ECHO_NDS		1
+	#define 							ECHO_NDS		1
 #elif defined(HW_RVL)
-	#define ECHO_WII		1
+	#define 							ECHO_WII		1
 #elif defined(HW_DOL)
-	#define ECHO_GCN		1
+	#define 							ECHO_GCN		1
 #else
-	#define ECHO_PC			1
+	#define 							ECHO_PC			1
 	#ifdef __MACH__
-		#define ECHO_OSX	1
+		#define 						ECHO_OSX		1
 	#elif defined(WIN32)
-		#define ECHO_WIN	1
+		#define 						ECHO_WIN		1
 	#else
-		#define ECHO_UNIX	1
+		#define 						ECHO_UNIX		1
 	#endif
 #endif
 

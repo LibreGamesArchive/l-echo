@@ -1,4 +1,4 @@
-CXXFLAGS = -I./ -DSTRICT_MEM  -DDEBUG -DTIXML_USE_STL -DUSE_PUGIXML -g3 -Wall
+CXXFLAGS = -I./ -DSTRICT_MEM  -DDEBUG -DTIXML_USE_STL -DUSE_IK -DUSE_PUGIXML -g3 -Wall
 #ifeq( $() )
 #endif
 pugiXML_USE_STL := YES
@@ -26,10 +26,10 @@ UPLOAD := python googlecode_upload.py -p 'l-echo' -s
 
 
 all: $(OFILES)
-	gcc pugixml/*.o *.o -DTIXML_USE_STL -lGL -lGLU -lglut -lpthread -g3 -Wall -o l-echo
+	gcc pugixml/*.o *.o -lGL -lGLU -lglut -lpthread -g3 -Wall -o l-echo
 
 valgrind:
-	valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes --suppressions=fglrx.supp --sim-hints=lax-ioctls ./l-echo A1.xml.real 2> summary.txt
+	valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes --suppressions=fglrx.supp --sim-hints=lax-ioctls ./l-echo -t A1.xml.real 2> summary.txt
 	sed 's|.*/usr/lib.*|LOL|'  summary.txt > summary3.txt
 
 #lab: CXXFLAGS += -DLAB

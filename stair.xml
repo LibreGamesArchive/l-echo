@@ -1,5 +1,6 @@
 <?xml version="1.0" standalone="no" ?>
 <stage name="stair" start="stair" goals="0">
-    <stair id="stair" x="1" y="0.5" z="0" prev="next" next="next" direction="90" />
+    <stair id="stair" x="1" y="0.5" z="0" prev="prev" next="next" direction="90" />
     <grid id="next" x="0" y="0" z="0" prev="stair" next="stair"/>
+    <grid id="prev" x="2" y="1" z="0" prev="stair" next="stair"/>
 </stage>

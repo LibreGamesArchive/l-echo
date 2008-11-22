@@ -61,4 +61,3 @@ void stair::draw(vector3f angle)
 	
 	draw_goal(angle);
 }
-

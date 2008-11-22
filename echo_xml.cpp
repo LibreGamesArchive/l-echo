@@ -450,7 +450,10 @@
 	{
 		if(node != NULL && sibling != NULL)
 		{
+			echo_xml_node* sib_prev = *sibling;
 			*sibling = node->next_sibling_pointer();
+			if(sib_prev == node)
+				delete node;
 			if(*sibling != NULL)
 			{
 				return(WIN);
@@ -604,9 +607,11 @@
 	{
 		if(node != NULL && sibling != NULL)
 		{
-			echo_xml_node n = node->first_child();
+			echo_xml_node n = node->next_sibling();
 			if(n.empty() == false)
 			{
+				if(*sibling == node)
+					delete *sibling;
 				*sibling = &n;
 				return(WIN);
 			}

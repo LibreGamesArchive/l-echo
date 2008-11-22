@@ -43,7 +43,7 @@ void draw_head()
 		glVertex3f(0.075f, 0.130f, 0.000f);
 		glVertex3f(0.065f, 0.130f, 0.037f);
 		glVertex3f(0.130f, 0.075f, 0.000f);
-		glVertex3f(0.112f, 0.075f, 0.065f);
+		glVertex3f(0.113f, 0.075f, 0.065f);
 		glVertex3f(0.150f, 0.000f, 0.000f);
 		glVertex3f(0.130f, 0.000f, 0.075f);
 		glVertex3f(0.150f, -0.000f, 0.000f);
@@ -102,7 +102,7 @@ void draw_head()
 		glVertex3f(0.000f, 0.150f, 0.000f);
 		glVertex3f(0.065f, 0.130f, 0.037f);
 		glVertex3f(0.038f, 0.130f, 0.065f);
-		glVertex3f(0.112f, 0.075f, 0.065f);
+		glVertex3f(0.113f, 0.075f, 0.065f);
 		glVertex3f(0.065f, 0.075f, 0.112f);
 		glVertex3f(0.130f, 0.000f, 0.075f);
 		glVertex3f(0.075f, 0.000f, 0.130f);

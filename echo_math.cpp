@@ -186,23 +186,6 @@ vector3f* vector3f::neg_rotate_yx(vector3f rot)
 	ret->z = y_save * ECHO_SINF(-rot.x) + ret->z * ECHO_COSF(-rot.x);
 	return(ret);
 }
-
-angle_range::angle_range(vector3f* my_v1, vector3f* my_v2)
-{
-	v1 = my_v1;
-	v2 = my_v2;
-}
-
-//is b in between a and c?
-#define IN_BETWEEN(a,b,c) (((a) <= (b) && (b) <= (c)) || ((c) <= (b) && (b) <= (a)))
-
-int angle_range::is_vec_in(vector3f v)
-{
-	return(IN_BETWEEN(v1->x, v.x, v2->x) 
-		&& IN_BETWEEN(v1->y, v.y, v2->y)
-		&& IN_BETWEEN(v1->z, v.z, v2->z));
-}
-
 vector3f* vector3f::rotate_about_y(float angle)
 {
 #ifdef STRICT_MEM
@@ -233,11 +216,90 @@ void vector3f::add(vector3f vec)
 vector3f* vector3f::angle_to_real()
 {
 #ifdef STRICT_MEM
-	vector3f* cam_norm = new vector3f(0, 0, 10);
-	return(cam_norm->rotate_xy(*this));
+	vector3f* cam = new vector3f(0, 0, 10);
+	return(cam->rotate_xy(*this));
 #else
 	return((new vector3f(0, 0, 10))->rotate_xy(*this));
 #endif
+}
+
+STATUS vector3f::scalar_angle(vector3f* vec, float* angle)
+{
+	const float distance = dist(*vec);
+	const float length1 = length();
+	const float length2 = vec->length();
+	*angle = TO_DEG( acos( ( (length1 * length1) + (length2 * length2) 
+			- (distance * distance) ) / (2 * length1 * length2) ) );
+	return(WIN);
+}
+
+vector3f* vector3f::normalize_new(float new_length)
+{
+	const float mult = new_length / length();
+	vector3f* ret = new vector3f(x * mult, y * mult, z * mult);
+	CHKPTR(ret);
+	return(ret);
+}
+
+vector3f* vector3f::add_new(vector3f* vec)
+{
+	vector3f* ret = new vector3f(x + vec->x, y + vec->y, z + vec->z);
+	CHKPTR(ret);
+	return(ret);
+}
+
+vector3f* vector3f::sub_new(vector3f* vec)
+{
+	vector3f* ret = new vector3f(x - vec->x, y - vec->y, z - vec->z);
+	CHKPTR(ret);
+	return(ret);
+}
+
+void vector3f::normalize(float new_length)
+{
+	const float mult = new_length / length();
+	x *= mult;
+	y *= mult;
+	z *= mult;
+}
+
+STATUS IK_angle(float length1, float length2, float distance, float* angle)
+{
+	/*
+	 * Where C = distance, A = length1, B = length2
+	 * C^2 = A^2 + B^2 - 2ABcosTHETA
+	 * C^2 - A^2 - B^2 = - 2ABcosTHETA
+	 * (A^2 + B^2 - C^2) / 2AB = cosTHETA
+	 * acos((A^2 + B^2 - C^2) / 2AB) = THETA
+	 */
+	//ECHO_PRINT("l1, l2, d: %f, %f, %f\n", length1, length2, distance);
+	if(length1 + length2 < distance)
+		*angle = 0;
+	else
+	{
+		*angle = 180 - TO_DEG( acos( ( (length1 * length1) + (length2 * length2) 
+			- (distance * distance) ) / (2 * length1 * length2) ) );
+		
+	}
+	return(WIN);
+}
+
+//-----------ANGLE_RANGE----------
+
+angle_range::angle_range(vector3f* my_v1, vector3f* my_v2)
+{
+	v1 = my_v1;
+	v2 = my_v2;
+}
+
+//is b in between a and c?
+#define IN_BETWEEN(a,b,c) (((a) <= (b) && (b) <= (c)) || ((c) <= (b) && (b) <= (a)))
+
+int angle_range::is_vec_in(vector3f v)
+{
+	return(IN_BETWEEN(v1->x, v.x, v2->x) 
+		&& IN_BETWEEN(v1->y, v.y, v2->y)
+		&& IN_BETWEEN(v1->z, v.z, v2->z));
 }
 
 angle_range::~angle_range()

@@ -52,3 +52,8 @@ void genmemerr()
 	//*c = 'l';
 }
 
+void echo_error(const char* msg)
+{
+	ECHO_PRINT(msg);
+	std::exit(1);
+}

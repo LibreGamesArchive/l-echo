@@ -1,6 +1,6 @@
 #!/bin/bash
 
-gcc -I. -lm gen_$1.c -o gen_$1
+g++ -I. -I.. -lm gen_$1.c -o gen_$1
 echo -e '// echo_model_'$1'.cpp
 
 /*

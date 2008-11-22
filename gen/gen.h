@@ -1,10 +1,15 @@
 //gen.h
 
-#define PI					3.141592f
+#include "../echo_math.h"
+
+//#define PI					3.141592f
 #define LATS				6
 #define NDS_LATS			2
 #define ANGLE_INCR			PI / LATS
 #define NDS_ANGLE_INCR		PI / NDS_LATS
+
+#define LIMB_LENGTH			0.4f
+#define FOOT_HEIGHT			0.15f
 
 #define floattov16(n)       ((short int)((n) * (1 << 12)))
 

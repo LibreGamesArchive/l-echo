@@ -6,7 +6,7 @@ int print_id(int id);
 int main()
 {
 	PRINT_STATS;
-	float each = -2 * 0.166f;
+	float each = -0.5f;
 	printf("#ifdef ARM9\n");
 	printf("\t#define SET_ID(id)	gfx_set_polyID(id)\n");
 	printf("#else\n");
@@ -20,8 +20,8 @@ int main()
 	{
 		printf("\t\tglVertex3f(0.5f, %.3ff, %.3ff);\n", each, each);
 		printf("\t\tglVertex3f(-0.5f, %.3ff, %.3ff);\n", each, each);
-		printf("\t\tglVertex3f(0.5f, %.3ff, %.3ff);\n", each - 0.166f, each);
-		printf("\t\tglVertex3f(-0.5f, %.3ff, %.3ff);\n", each - 0.166f, each);
+		printf("\t\tglVertex3f(0.5f, %.3ff, %.3ff);\n", each, each + 0.166f);
+		printf("\t\tglVertex3f(-0.5f, %.3ff, %.3ff);\n", each, each + 0.166f);
 		each += 0.166f;
 	}
 	printf("\t\tglVertex3f(0.5f, 0.5f, 0.5f);\n");
