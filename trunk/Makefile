@@ -10,12 +10,12 @@ CPPFILES  := $(wildcard *.cpp) $(wildcard pugixml/*.cpp)
 
 OFILES    := $(CPPFILES:.cpp=.o)
 OBJFILES  := $(CPPFILES:.cpp=.OBJ)
-#DOPFILES  := $(CPPFILES:.cpp=.DOP)
-#DOIFILES  := $(CPPFILES:.cpp=.DOI)
 DOFILES   := $(CPPFILES:.cpp=.DO)
+#.DOA - Darwin Object ARM (iPhone, iPod Touch)
+DOAFILES   := $(CPPFILES:.cpp=.DOA)
 
-VERSION   := 0.4.0
-REVISION  := 73
+VERSION   := 0.4.1
+REVISION  := 75
 
 PKGCOMMON := -echo-$(VERSION)_r$(REVISION)
 PKGPREFIX := ../l$(PKGCOMMON)-
@@ -27,6 +27,10 @@ UPLOAD := python googlecode_upload.py -p 'l-echo' -s
 
 all: $(OFILES)
 	gcc pugixml/*.o *.o -lGL -lGLU -lglut -lpthread -g3 -Wall -o l-echo
+
+source-tarball:
+	zip -r $(PKGPREFIX)src.zip *.cpp *.h pugixml/ .svn/ gen/ *.xml* L_ECHO_README Makefile n-echo_template/
+#zip -r *.cpp *.h pugixml/ *.xml*
 
 valgrind:
 	valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes --suppressions=fglrx.supp --sim-hints=lax-ioctls ./l-echo -t A1.xml.real 2> summary.txt
@@ -49,23 +53,11 @@ w32: $(OBJFILES)
 mac: $(DOFILES)
 	powerpc-apple-darwin8-g++ -arch i386 -arch ppc pugixml/*.DO *.DO -framework OpenGL -framework GLUT -g3 -Wall -o l-echo-mac
 
-#%.DOP: %.cpp #DOP stands for "Darwin Object (PowerPC)"
-#	powerpc-apple-darwin8-g++ $(CXXFLAGS) -c -o $@ $<
-
-#%.DOI: %.cpp #DOP stands for "Darwin Object (Intel)"
-#	i686-apple-darwin8-g++ $(CXXFLAGS) -c -o $@ $<
-
-#macppc: $(DOPFILES)
-#	powerpc-apple-darwin8-g++ *.DOP pugixml/*.DOP -framework OpenGL -framework GLUT -g3 -Wall -o l-echo-macppc
-
-#macintel: $(DOIFILES)
-#	i686-apple-darwin8-g++ *.DOI pugixml/*.DOI -framework OpenGL -framework GLUT -g3 -Wall -o l-echo-macintel
-
 clean:
-	rm *.o *.OBJ l-echo.exe l-echo l-echo-mac *.DO *~ || echo
+	rm *.o *.OBJ l-echo.exe l-echo l-echo-mac *.DO *.DOA *~ || echo
 
 clean-all: clean
-	rm pugixml/*.o pugixml/*.OBJ pugixml/*.DO || echo
+	rm pugixml/*.o pugixml/*.OBJ pugixml/*.DO pugixml/*.DOA || echo
 	rm -rf n-echo || echo
 
 run: all
@@ -98,11 +90,12 @@ nds:
 	make -C n-echo
 	zip -r $(NPKG) n-echo/n-echo.nds n-echo/n-echo.ds.gba n-echo/apps n-echo/N_ECHO_README
 	
-upload: package package-mac nds
-	$(UPLOAD) 'Linux (32) binary + xml stages - $(VERSION) (revision $(REVISION))' $(PKGPREFIX)lin32.zip 
-	$(UPLOAD)  'Windows (32) binary + xml stages - $(VERSION) (revision $(REVISION))' $(PKGPREFIX)w32.zip
-	$(UPLOAD)  'Mac OS X (universal, for 10.4+) binary + xml stages - $(VERSION) (revision $(REVISION))' $(PKGPREFIX)osx.dmg
-	$(UPLOAD) 'N-Echo .nds, .ds.gba + xml stages - $(VERSION) (revision $(REVISION))' $(NPKG)
+upload: source-tarball package package-mac nds
+	$(UPLOAD) 'Source Code - $(VERSION) (revision $(REVISION))' -l Featured,Type-Source  $(PKGPREFIX)src.zip 
+	$(UPLOAD) 'Linux (32) binary + xml stages - $(VERSION) (revision $(REVISION))' -l Featured,Type-Executable,OpSys-Linux $(PKGPREFIX)lin32.zip 
+	$(UPLOAD) 'Windows (32) binary + xml stages - $(VERSION) (revision $(REVISION))' -l Featured,Type-Executable,OpSys-Windows $(PKGPREFIX)w32.zip
+	$(UPLOAD) 'Mac OS X (universal, for 10.4+) binary + xml stages - $(VERSION) (revision $(REVISION))' -l Featured,Type-Executable,OpSys-OSX $(PKGPREFIX)osx.dmg
+	$(UPLOAD) 'N-Echo .nds, .ds.gba + xml stages - $(VERSION) (revision $(REVISION))' -l Featured,Type-Executable $(NPKG)
 	
 upload-nds: nds
 	$(UPLOAD) 'N-Echo .nds, .ds.gba + xml stages - $(VERSION) (revision $(REVISION))' $(NPKG)
