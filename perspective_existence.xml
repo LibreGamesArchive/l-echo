@@ -18,9 +18,9 @@
 	<grid id="h5" x="-2" y="0" z="0" prev="h4" next="h6" />
 	<grid id="h6" x="-3" y="0" z="0" prev="h5" next="h5" goal="1"/>
 	
-	<stair id="block" x="-1" y="0.5f" z="2" prev="NONE" next="NONE">
+	<freeform_grid id="block" x="-1" y="0.5f" z="2" prev="NONE" next="NONE">
 		<angle x="0" y="0.2f" z="0" />
 		<angle x="0.5f" y="0" z="0.5f"/>
-	</stair>
+	</freeform_grid>
 </stage>
 

@@ -38,7 +38,7 @@
         </angle>
     </hole>
 
-    <stair id="stair" x="2" y="0.5f" z="-1" prev="southeast" next="southeast">
+    <stair id="stair" x="2" y="0.5f" z="-1" prev="southeast" next="southeast" direction="180">
         <angle x="0" y="0.5f" z="-0.5f" />
         <angle x="0.5f" y="0" z="0"/>
     </stair>

@@ -222,7 +222,7 @@ stage* load_stage(char* file_name)
 		{
 			echo_xml_element** e = new(echo_xml_element*);
 			CHKPTR(e);
-			echo_xml_type type = ECHO_XML_TYPE_UNKNOWN;
+			echo_xml_type type = ECHO_XML_TYPE_NULL;
 			do
 			{
 				if(echo_xml_get_node_type(*child, &type) == WIN)
@@ -661,9 +661,12 @@ static int add_escs(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, escgr
 {
 	echo_xml_node** first = new(echo_xml_node*);
 	CHKPTR(first);
+	ECHO_PRINT("first: %p\n", first);
 	if(echo_xml_get_first_child(txe, first) == WIN)
 	{
-		echo_xml_type type = ECHO_XML_TYPE_UNKNOWN;
+		echo_xml_node* first_p = *first;
+		ECHO_PRINT("*first: %p\n", first_p);
+		echo_xml_type type = ECHO_XML_TYPE_NULL;
 		char** tag = new(char*);
 		CHKPTR(tag);
 		echo_xml_element** e = new(echo_xml_element*);
@@ -701,7 +704,7 @@ static int add_escs(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, escgr
 						return(FAIL);
 					}
 				}
-				else if(type != ECHO_XML_TYPE_COMMENT)
+				else if(type != ECHO_XML_TYPE_COMMENT && type != ECHO_XML_TYPE_NULL)
 				{
 					lderr("unknown node in escgrid!");
 					delete first;
@@ -789,7 +792,7 @@ static filter* get_filter(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map,
 		LD_CHKPTR(first);
 		if(echo_xml_get_first_child(txe, first) == WIN)
 		{
-			echo_xml_type type = ECHO_XML_TYPE_UNKNOWN;
+			echo_xml_type type = ECHO_XML_TYPE_NULL;
 			//while(child != NULL && child->Type() != TiXmlNode::ELEMENT)
 			//	child = child->NextSibling();
 			while(echo_xml_get_node_type(*first, &type) == WIN 
@@ -830,7 +833,7 @@ static filter* get_filter(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map,
 		LD_CHKPTR(first);
 		if(echo_xml_get_first_child(txe, first) == WIN)
 		{
-			echo_xml_type type = ECHO_XML_TYPE_UNKNOWN;
+			echo_xml_type type = ECHO_XML_TYPE_NULL;
 			echo_xml_element** e = new(echo_xml_element*);
 			LD_CHKPTR(e);
 			do
@@ -931,7 +934,7 @@ static int add_triggers(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, g
 	if(echo_xml_get_first_child(txe, first) == WIN)
 	{
 		//std::cout << "add_triggers: " << *txe << std::endl;
-		echo_xml_type type = ECHO_XML_TYPE_UNKNOWN;
+		echo_xml_type type = ECHO_XML_TYPE_NULL;
 		echo_xml_element** e = new(echo_xml_element*);
 		LD_CHKPTR(e);
 		do
@@ -1077,7 +1080,7 @@ static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, e
 							LD_CHKPTR(first);
 							if(echo_xml_get_first_child(txe, first) == WIN)
 							{
-								echo_xml_type type2 = ECHO_XML_TYPE_UNKNOWN;
+								echo_xml_type type2 = ECHO_XML_TYPE_NULL;
 								while(echo_xml_get_node_type(*first, &type2) == WIN 
 									&& type2 != ECHO_XML_TYPE_ELEMENT
 									&& echo_xml_next_sibling(*first, first) == WIN);
@@ -1216,7 +1219,7 @@ static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, e
 							LD_CHKPTR(first);
 							if(echo_xml_get_first_child(txe, first) == WIN)
 							{
-								echo_xml_type type2 = ECHO_XML_TYPE_UNKNOWN;
+								echo_xml_type type2 = ECHO_XML_TYPE_NULL;
 								while(echo_xml_get_node_type(*first, &type2) == WIN 
 									&& type2 != ECHO_XML_TYPE_ELEMENT
 									&& echo_xml_next_sibling(*first, first) == WIN);

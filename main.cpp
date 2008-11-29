@@ -447,7 +447,7 @@ static void load(const char* fname)
 			//not in menu mode
 			menu_mode = 0;
 			//the distance to the farthest point plus 2.5 for good measure.
-			depth = echo_ns::current_stage->get_farthest() + 2.5f;
+			depth = echo_ns::current_stage->get_farthest() * 1.2f;
 			//so i don't have to call it all the time
 			name_cache = const_cast<char*>(echo_ns::current_stage->get_name()->c_str());
 		}

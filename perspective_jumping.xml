@@ -7,7 +7,7 @@
     <grid id="grid4" x="0" y="-3" z="0" prev="grid3" next="grid3" />
     
     <grid id="top1" x="0" y="0" z="1" prev="landing" next="landing" goal="1"/>
-    <escgrid id="landing" x="-1" y="1" z="1" prev="NONE" next="NONE">
+    <escgrid id="landing" x="-5" y="5" z="5" prev="NONE" next="NONE">
     	<angle x="-35" y="-45" z="0">
 		<grid id="landing_esc" x="0" y="0" z="0" prev="top1" next="top1" />
 	</angle>

@@ -6,11 +6,11 @@
     <grid id="south3" x="0" y = "0" z="1" prev="south2" next="south4"/>
     <grid id="south4" x="1" y = "0" z="1" prev="south3" next="east1"/>
 
-    <stair id="east1" x="1" y="0.5f" z="0" prev="south4" next="east2">
+    <stair id="east1" x="1" y="0.5f" z="0" prev="south4" next="east2" direction="180">
         <angle x="0" y="0.5f" z="-0.5f" />
         <angle x="0.5f" y="0" z="0"/>
     </stair>
-    <stair id="east2" x="1" y="1.5f" z="-1" prev="east1" next="north1">
+    <stair id="east2" x="1" y="1.5f" z="-1" prev="east1" next="north1" direction="180">
         <angle x="0" y="0.5f" z="-0.5f" />
         <angle x="0.5f" y="0" z="0"/>
     </stair>

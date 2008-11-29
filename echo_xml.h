@@ -41,7 +41,7 @@
 		
 		const echo_xml_type ECHO_XML_TYPE_ELEMENT = TiXmlNode::ELEMENT;
 		const echo_xml_type ECHO_XML_TYPE_COMMENT = TiXmlNode::COMMENT;
-		const echo_xml_type ECHO_XML_TYPE_UNKNOWN = TiXmlNode::UNKNOWN;
+		const echo_xml_type ECHO_XML_TYPE_NULL = TiXmlNode::UNKNOWN;
 	#elif defined(USE_RAPIDXML)
 		#ifdef ECHO_NDS
 			#include <rapidxml.hpp>
@@ -62,7 +62,7 @@
 		
 		const echo_xml_type ECHO_XML_TYPE_ELEMENT = rapidxml::node_element;
 		const echo_xml_type ECHO_XML_TYPE_COMMENT = rapidxml::node_comment;
-		const echo_xml_type ECHO_XML_TYPE_UNKNOWN = rapidxml::node_data;
+		const echo_xml_type ECHO_XML_TYPE_NULL = rapidxml::node_data;
 	#elif defined(USE_PUGIXML)
 		#ifdef ECHO_NDS
 			#include <pugixml.hpp>
@@ -79,20 +79,7 @@
 		
 		const echo_xml_type ECHO_XML_TYPE_ELEMENT = pugi::node_element;
 		const echo_xml_type ECHO_XML_TYPE_COMMENT = pugi::node_comment;
-		const echo_xml_type ECHO_XML_TYPE_UNKNOWN = pugi::node_null;
-	#else
-		#include <pugxml.h>
-		typedef struct {
-			CPugXmlParser* document;
-			char* file_name;
-		} echo_xml;
-		typedef pug::xml_node 			echo_xml_node;
-		typedef pug::xml_node			echo_xml_element;
-		typedef pug::xml_node_type	echo_xml_type;
-		
-		const echo_xml_type ECHO_XML_TYPE_ELEMENT = pug::node_element;
-		const echo_xml_type ECHO_XML_TYPE_COMMENT = pug::node_comment;
-		const echo_xml_type ECHO_XML_TYPE_UNKNOWN = pug::node_null;
+		const echo_xml_type ECHO_XML_TYPE_NULL = pugi::node_null;
 	#endif
 #endif
 
