@@ -33,7 +33,7 @@ typedef struct
 } echo_files;
 #endif
 
-int delete_echo_files(echo_files* files);
+STATUS delete_echo_files(echo_files* files);
 
 #ifndef ARM9
 int is_dir(const char* dir, const char* fname);
@@ -44,3 +44,8 @@ char* echo_merge(const char* arg1, const char* arg2);
 int is_dir(echo_files* files, int file_index);
 echo_files* get_files(const char* dirname);
 void dump_files(echo_files* files);
+
+//get the previous directory
+STATUS echo_parentdir(const char* path, char** save);
+//get the directory of the executable
+STATUS echo_execdir(char** save);

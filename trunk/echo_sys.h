@@ -17,7 +17,7 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//void echo_sleep(int millis);
+#include <echo_platform.h>
 
 #define FPS	60
 

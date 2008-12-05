@@ -17,30 +17,149 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
-#ifdef WIN32
-	#include <windows.h>
-#endif
-//POSIX
-#ifdef ARM9
-	#include <sys/dir.h>
-#else
-	#include <dirent.h>
-#endif
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-
+#include <echo_platform.h>
 #include <echo_debug.h>
 #include <echo_error.h>
 #include <echo_stage.h>
 #include <echo_loader.h>
 #include <echo_ingame_loader.h>
 
-int delete_echo_files(echo_files* files)
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <cmath>
+
+#ifdef ECHO_WIN
+	#include <windows.h>
+#endif
+//POSIX
+#ifdef ECHO_NDS
+	#include <sys/dir.h>
+#else
+	#include <dirent.h>
+#endif
+
+#ifdef ECHO_PC
+	#include <libgen.h>
+#endif
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+STATUS genroot(char** save)
+{
+	if(save != NULL)
+	{
+		*save = new char[2];
+		CHKPTR(*save);
+		(*save)[0] = '/';
+		(*save)[1] = '\0';
+		return(WIN);
+	}
+	return(FAIL);
+}
+
+STATUS echo_execdir(char** save)
+{
+	if(save != NULL)
+	{
+#ifdef 	ECHO_NDS
+		return(genroot(save));
+#elif	ECHO_WIN
+		char exe[MAX_PATH];
+		GetModuleFileName(NULL, exe, MAX_PATH);
+		return(echo_parentdir(exe, save));
+#elif	ECHO_OSX
+#else
+		//copied from l-portable
+		
+		//step 1: get the directory of this binary
+		//you can do that on the command line by: readlink /proc/$PID/exe
+		pid_t pid = getpid();
+		/*
+			print it into a string
+			since pid is an int (in gcc):
+				length = strlen("/proc//exe") (the other stuff) 
+							+ log(2^(sizeof(int) * 8)) (the number of digits)
+							+ 1 (for null char)
+				length = 10 + sizeof(int) * 8 * log(2) + 1
+				length = 11 + 2.408 * sizeof(int)
+			ceiling function it just to be sure...
+		*/
+		//just curious...
+		ECHO_PRINT("sizeof int: %i\n", sizeof(int));
+		//debug print out
+		const int pid_str_len = (int)ceil(11 + (int)ceil(2.408 * sizeof(int)));
+		ECHO_PRINT("sizeof pid_str: %i\n", pid_str_len);
+		char pid_str[pid_str_len];
+		//and finally print it into the string
+		sprintf(pid_str, "/proc/%d/exe", pid);
+		//print out your results
+		ECHO_PRINT("PID_STR: %s\n", pid_str);
+		//copied from: https://www.securecoding.cert.org/confluence/display/seccode/POS30-C.+Use+the+readlink()+function+properly
+		char buf[FILENAME_MAX];
+		//actually do the readlink, and return the length
+		ssize_t len = readlink(pid_str, buf, sizeof(buf) - 1);
+		//if it actully followed the link
+		if(len != -1)
+		{
+			//insert the null char
+			buf[len] = '\0';
+			//debug print
+			ECHO_PRINT("BINARY LOCATION: %s\n", buf);
+			//return the directory the program is in
+			return(echo_parentdir(buf, save));
+		}
+		else
+		{
+			//get the current directory anyways
+			char* pwd = getenv("PWD");
+			*save = new char[strlen(pwd) + 1];
+			CHKPTR(*save);
+			strcpy(*save, pwd);
+			return(WIN);
+		}
+#endif
+	}
+	return(FAIL);
+}
+
+STATUS echo_parentdir(const char* path, char** save)
+{
+	if(path != NULL && save != NULL)
+	{
+#ifdef ECHO_NDS
+		//if not root
+		if(strcmp(path, "/"))
+		{
+			//index of last '/' character
+			const int len =  strrchr(path, '/') - path;
+			//not root
+			if(len > 0)
+			{
+				*save = new char[len + 1];
+				CHKPTR(*save);
+				//cut off last '/' and after
+				strncpy(*save, path, len);
+				return(WIN);
+			}
+		}
+		//if going to root (len == 0), is at root (!strcmp(path, "/")), or error (len < 0), write root anyways
+		return(genroot(save));
+#else
+		const char* dir = dirname(const_cast<char*>(path));
+		*save = new char[strlen(dir) + 1];
+		CHKPTR(*save);
+		strcpy(*save, dir);
+		//ECHO_PRINT("save: %s\n", *save);
+		return(WIN);
+#endif
+	}
+	return(FAIL);
+}
+
+STATUS delete_echo_files(echo_files* files)
 {
 	if(files != NULL)
 	{
@@ -58,6 +177,8 @@ int delete_echo_files(echo_files* files)
 			}
 			delete[] files->file_names;
 		}
+		if(files->current_dir != NULL)
+			delete files->current_dir;
 		delete files;
 		return(WIN);
 	}
