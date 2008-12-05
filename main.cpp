@@ -17,10 +17,12 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+//standard libraries
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
 
+//most of the headers
 #include <echo_platform.h>
 #include <echo_xml.h>
 #include <echo_debug.h>
@@ -33,8 +35,9 @@
 #include <echo_stage.h>
 #include <echo_ingame_loader.h>
 #include <echo_prefs.h>
+#include <echo_mp3.h>
 #include <echo_char_joints.h>
-
+//various grids
 #include <hole.h>
 #include <grid.h>
 #include <escgrid.h>
@@ -46,10 +49,16 @@
 #define _STDCALL_SUPPORTED
 
 #ifdef ECHO_NDS
+	//basic nds stuff
 	#include <nds.h>
+	//the video stuff for opengl
 	#include <nds/arm9/video.h>
+	//to initialize FAT for file reading
 	#include <fat.h>
+	//aslib: Advanced Sound LIBrary, for mp3 and sfx playback
+	#include <as_lib9.h>
 	
+	//resources: the console font, topscreen display, and the menu
 	#include "font.h"
 	#include "topscreen.h"
 	#include "menu.h"
@@ -74,20 +83,25 @@
 	
 	#define CHAR2TILE(c)		((c) - 32)
 	
+	//modes for the topscreen
 	#define NDS_INFO_MODE		-2
 	#define NDS_LOAD_MODE		-1
 	#define NDS_START_MODE		0
 	#define NDS_DEBUG_MODE		1
 	
+	//the range of the modes
 	#define NDS_MODE_MIN		-2
 	#define NDS_MODE_MAX		1
 	
+	//the background values for the vaious topscreen modes
+	//load and info both use the console (BG1)
 	#define LOAD_BG			DISPLAY_BG1_ACTIVE
 	#define INFO_BG			DISPLAY_BG1_ACTIVE
 	#define START_BG		DISPLAY_BG0_ACTIVE
 	#define DEBUG_BG		DISPLAY_BG3_ACTIVE
 #else
 	#ifdef ECHO_PC
+		//opengl
 		#ifdef ECHO_OSX	//OS X
 			#include <OpenGL/gl.h>
 			#include <OpenGL/glu.h>
@@ -97,6 +111,10 @@
 			#include <GL/gl.h>
 			#include <GL/glu.h>
 		#endif
+		
+		//used to attach the signal handler
+		#include <signal.h>
+		//for directory stuff
 		#include <libgen.h>
 		
 		//Key code for keyboard 
@@ -126,7 +144,7 @@
 #define MSG_BLANK 		""
 
 //...yeah...
-#define SUCCESS         	"success"
+#define SUCCESS         "success"
 #define	NO_GOALS		"no goals"
 
 //the number of frames the name of the stage fades out after starting (no fading in n-echo)
@@ -240,9 +258,9 @@ static echo_files* files = NULL;
 	//draw the status (twice as spaced out)
 	static int draw_message_string(float x, float y, char *string);
 #endif
-//dragged
+//mouse dragged
 static void pointer(int x, int y);
-//pressed down
+//mouse pressed down
 static void pressed(int x, int y);
 //load the file
 static void load(const char* fname);
@@ -250,7 +268,7 @@ static void load(const char* fname);
 static void init(int argc, char **argv, int w, int h);
 //resize the screen
 static void resize(int w, int h);
-//view
+//display the screen
 static void display();
 //directional control
 static void up();
@@ -262,19 +280,8 @@ static void echo_pause();
 //starts or pauses (the 'p' key on pc/mac/linux, shoulder button on nds)
 static void start_or_pause();
 
-void main_deallocate()
-{
-	ECHO_PRINT("main_deallocate: deallocating echo_ns\n");
-	echo_ns::deallocate();
-	ECHO_PRINT("main_deallocate: finished deallocating echo_ns\n");
-#ifndef ECHO_NDS
-	if(counter_alloc == 1 && counter != NULL)
-		delete[] counter;
-#endif
-	ECHO_PRINT("main_deallocate: deallocating files\n");
-	delete_echo_files(files);
-	ECHO_PRINT("main_deallocate: exiting...\n");
-}
+static void main_deallocate();
+static void signal_handler(int signal);
 
 int main(int argc, char **argv)
 {
@@ -325,13 +332,14 @@ int main(int argc, char **argv)
 #elif ECHO_PC
 	//fill lookup tables
 	init_math();
-	#ifdef ECHO_WIN //goddammmit windows, adhere to POSIX!
-		TCHAR buffer[MAX_PATH] = "";
-		GetCurrentDirectory(MAX_PATH, buffer);
-		files = get_files(buffer);
-	#else
-		files = get_files(getenv("PWD"));
-	#endif
+	
+	char* dir = NULL;
+	if(echo_execdir(&dir) == FAIL)
+		echo_error("couldn't get executable directory!!!\n");
+	files = get_files(dir);
+	
+	//attach the signal handler
+	signal(SIGINT, signal_handler);
 	
 	//if there is a cli argument
 	if(argc >= 2)
@@ -384,6 +392,26 @@ int main(int argc, char **argv)
 #endif
 	//never gonna reach here
 	return(1);
+}
+
+void main_deallocate()
+{
+	ECHO_PRINT("main_deallocate: deallocating echo_ns\n");
+	echo_ns::deallocate();
+	ECHO_PRINT("main_deallocate: finished deallocating echo_ns\n");
+#ifndef ECHO_NDS
+	if(counter_alloc == 1 && counter != NULL)
+		delete[] counter;
+#endif
+	ECHO_PRINT("main_deallocate: deallocating files\n");
+	delete_echo_files(files);
+	ECHO_PRINT("main_deallocate: exiting...\n");
+}
+
+void signal_handler(int signal)
+{
+	//we have already called atexit, so we don't need to call main_deallocate again
+	std::exit(signal);
 }
 
 #ifdef ECHO_NDS
@@ -502,17 +530,18 @@ static void init(int argc, char **argv, int w, int h)
 {
 #ifdef ECHO_NDS
 	//power on
-        powerON(POWER_ALL);
+	powerON(POWER_ALL);
         
 	//initialize hardware interrupts for updating our screens
-        irqInit();
+	irqInit();
+	irqEnable(IRQ_VBLANK);
 	//yea, vblank
-        irqSet(IRQ_VBLANK, 0);
+	irqSet(IRQ_VBLANK, AS_SoundVBL);
         
 	//assign banks (H is use for ext. palette)
 	vramSetBankA(VRAM_A_MAIN_BG);
 	vramSetBankB(VRAM_B_MAIN_BG);
-        vramSetBankC(VRAM_C_SUB_BG);
+	vramSetBankC(VRAM_C_SUB_BG);
 	vramSetBankD(VRAM_D_LCD);
 	vramSetBankE(VRAM_E_LCD);
 	vramSetBankF(VRAM_F_LCD);
@@ -1089,6 +1118,17 @@ static void display()
 					//previous dir
 					if(!strcmp(files->file_names[file_index], ".."))
 					{
+						char* dir = NULL;
+						if(echo_parentdir(files->current_dir, &dir) == FAIL)
+						{
+							delete_echo_files(files);
+							files = get_files(dir);
+						}
+						else
+						{
+							echo_error("File parentdir error\n");
+						}
+						/*
 						//if not root
 						if(strcmp(files->current_dir, "/"))
 						{
@@ -1108,9 +1148,13 @@ static void display()
 							else if(len == 0)
 							{
 								delete_echo_files(files);
-								files = get_files("/");
+								char* dir = new char[2];
+								dir[0] = '/';
+								dir[1] = '\0';
+								files = get_files(dir);
 							}
 						}
+						// */
 					}
 					//normal dir
 					else
@@ -1198,19 +1242,22 @@ static void display()
 					load(file);
 				else
 				{
-					char* dir;
+					char* dir = NULL;
 					if(!strcmp(file, ".."))
 					{
-						dir = new char[strlen(files->current_dir)];
-						CHKPTR(dir);
-						strcpy(dir, dirname(files->current_dir));
+						if(echo_parentdir(files->current_dir, &dir) == FAIL)
+						{
+							dir = new char[strlen(files->current_dir) + 1];
+							CHKPTR(dir);
+							strcpy(dir, files->current_dir);
+						}
 					}
 					else
 					{
 						dir = echo_merge(files->current_dir, file);
 					}
-					delete files;
 					delete_echo_files(files);
+					files = get_files(dir);
 					file_index = 0;
 					file_start = 0;
 				}

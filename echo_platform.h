@@ -18,19 +18,26 @@
 */
 
 #if defined(ARM9) || defined(ARM7)
-	#define 							ECHO_NDS		1
+        #define                                                         ECHO_NDS                1
 #elif defined(HW_RVL)
-	#define 							ECHO_WII		1
+        #define                                                         ECHO_WII                1
 #elif defined(HW_DOL)
-	#define 							ECHO_GCN		1
+        #define                                                         ECHO_GCN                1
 #else
-	#define 							ECHO_PC			1
-	#ifdef __MACH__
-		#define 						ECHO_OSX		1
-	#elif defined(WIN32)
-		#define 						ECHO_WIN		1
-	#else
-		#define 						ECHO_UNIX		1
-	#endif
+        #define                                                         ECHO_PC                 1
+        #ifdef __MACH__
+                #define                                                 ECHO_OSX                1
+                #ifdef __POWERPC__
+                	#define												ECHO_OSX_PPC			1
+                #elif __i386__
+                	#define												ECHO_OSX_I386			1
+                #else
+                	#error "L-Echo DOES NOT compile on PPC64 or Intel 64!  Remove this line in echo_platform.h at your own risk..."
+                #endif
+        #elif defined(WIN32)
+                #define                                                 ECHO_WIN                1
+        #else
+                #define                                                 ECHO_UNIX               1
+        #endif
 #endif
 

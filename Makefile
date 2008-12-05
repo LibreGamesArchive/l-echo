@@ -1,11 +1,10 @@
 CXXFLAGS = -I./ -DSTRICT_MEM  -DDEBUG -DTIXML_USE_STL -DUSE_IK -DUSE_PUGIXML -g3 -Wall
-#ifeq( $() )
-#endif
+LINUX_LDFLAGS = -lalut -lmad -lopenal -lGL -lGLU -lglut -lpthread
+WINDOWS_LDFLAGS = -lalut -lmad -lopenal glut32.lib -lGL -lGLU
+MACOSX_LDFLAGS =  -framework OpenGL -framework GLUT -framework OpenAL -arch ppc libmadppc.a  -arch i386 libmadi386.a  
+
+
 pugiXML_USE_STL := YES
-
-DEVELOPER_SDK_DIR := /opt/mac/SDKs
-
-CFLAGS := -isysroot /opt/mac/SDKs/MacOSX10.5.sdk
 CPPFILES  := $(wildcard *.cpp) $(wildcard pugixml/*.cpp)
 
 OFILES    := $(CPPFILES:.cpp=.o)
@@ -26,7 +25,7 @@ UPLOAD := python googlecode_upload.py -p 'l-echo' -s
 
 
 all: $(OFILES)
-	gcc pugixml/*.o *.o -lGL -lGLU -lglut -lpthread -g3 -Wall -o l-echo
+	gcc pugixml/*.o *.o $(LINUX_LDFLAGS) -g3 -Wall -o l-echo
 
 source-tarball:
 	zip -r $(PKGPREFIX)src.zip *.cpp *.h pugixml/ .svn/ gen/ *.xml* L_ECHO_README Makefile n-echo_template/
@@ -44,17 +43,22 @@ lab: $(OFILES)
 	i586-mingw32msvc-g++ $(CXXFLAGS) -c -o $@ $<
 
 w32: $(OBJFILES)
-	i586-mingw32msvc-g++ pugixml/*.OBJ *.OBJ glut32.lib -lGL -lGLU -g3 -Wall -o l-echo.exe
+	i586-mingw32msvc-g++ pugixml/*.OBJ *.OBJ $(WINDOWS_LDFLAGS) -g3 -Wall -o l-echo.exe
+
+echo_mp3.DO:
+	powerpc-apple-darwin8-g++ $(CXXFLAGS) -I /opt/mac/SDKs/MacOSX10.4u.sdk/System/Library/Frameworks/OpenAL.framework/Headers/ -c echo_mp3.cpp -o macbuild/echo_mp3-macppc.DO
+	i686-apple-darwin8-g++ $(CXXFLAGS) -I /opt/mac/SDKs/MacOSX10.4u.sdk/System/Library/Frameworks/OpenAL.framework/Headers/ -c echo_mp3.cpp -o macbuild/echo_mp3-maci386.DO
+	powerpc-apple-darwin8-lipo -create -arch ppc macbuild/echo_mp3-macppc.DO -arch i386 macbuild/echo_mp3-maci386.DO -output echo_mp3-mac.DO
 
 #%.DO: CXXFLAGS += -isysroot /opt/mac/SDKs/MacOSX10.5.sdk -I/opt/mac/SDKs/MacOSX10.5.sdk/usr/include  
 %.DO: %.cpp
 	powerpc-apple-darwin8-g++ -arch i386 -arch ppc $(CXXFLAGS) -c -o $@ $<
 
 mac: $(DOFILES)
-	powerpc-apple-darwin8-g++ -arch i386 -arch ppc pugixml/*.DO *.DO -framework OpenGL -framework GLUT -g3 -Wall -o l-echo-mac
+	powerpc-apple-darwin8-g++ $(MACOSX_LDFLAGS) pugixml/*.DO *.DO -g3 -Wall -o l-echo-mac
 
 clean:
-	rm *.o *.OBJ l-echo.exe l-echo l-echo-mac *.DO *.DOA *~ || echo
+	rm *.o *.OBJ l-echo.exe l-echo l-echo-mac *.DO *.DOA macbuild/* *~ || echo
 
 clean-all: clean
 	rm pugixml/*.o pugixml/*.OBJ pugixml/*.DO pugixml/*.DOA || echo
@@ -83,8 +87,8 @@ package-mac: mac
 setup-nds:
 	cp -r n-echo_template n-echo
 	cp -t n-echo A*.xml.real
-	cp -t n-echo/source *.cpp pugixml/*.cpp
-	cp -t n-echo/include *.h pugixml/*.hpp
+	cp -t n-echo/arm9/source *.cpp pugixml/*.cpp
+	cp -t n-echo/arm9/include *.h pugixml/*.hpp 
 
 nds:
 	make -C n-echo
