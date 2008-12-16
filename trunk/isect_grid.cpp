@@ -49,17 +49,17 @@ isect_grid::~isect_grid()
 {
 }
 
-static vector3f* end_pt(vector3f prev_pos, vector3f vec, float level_y)
+static vector3f* end_pt(vector3f* prev_pos, vector3f* vec, float level_y)
 {
-	if(vec.y != 0)
+	if(vec->y != 0)
 	{
-		float delta_y = level_y - prev_pos.y;
-		if((delta_y > 0 && vec.y < 0) || (delta_y < 0 && vec.y > 0))
+		float delta_y = level_y - prev_pos->y;
+		if((delta_y > 0 && vec->y < 0) || (delta_y < 0 && vec->y > 0))
 			return(NULL);
-		vec = vec * (delta_y / vec.y);
+		vec = (*vec) * (delta_y / vec->y);
 	}
 #ifdef STRICT_MEM
-	vector3f* ret = new vector3f(prev_pos + vec);
+	vector3f* ret = *prev_pos + vec;
 	CHKPTR(ret);
 	return(ret);
 #else
@@ -83,7 +83,7 @@ static grid* check_level(GRID_PTR_SET* level, vector3f* my_end_pt, vector3f angl
 	return(NULL);
 }
 
-static grid* check_levels_above(LEVEL_MAP* levels_above, vector3f pos, vector3f vec, vector3f angle)
+static grid* check_levels_above(LEVEL_MAP* levels_above, vector3f* pos, vector3f* vec, vector3f angle)
 {
 	if(levels_above->size() < 1)
 		return(NULL);
@@ -102,11 +102,11 @@ static grid* check_levels_above(LEVEL_MAP* levels_above, vector3f pos, vector3f 
 	return(NULL);
 }
 
-static grid* check_levels_below(LEVEL_MAP* levels_above, vector3f pos, vector3f vec, vector3f angle)
+static grid* check_levels_below(LEVEL_MAP* levels_below, vector3f* pos, vector3f* vec, vector3f angle)
 {
-	if(levels_above->size() < 1)
+	if(levels_below->size() < 1)
 		return(NULL);
-	LEVEL_MAP::iterator it = levels_above->end(), end = levels_above->begin();
+	LEVEL_MAP::iterator it = levels_below->end(), end = levels_below->begin();
 	vector3f* pt = NULL;
 	grid* g = NULL;
 	do
@@ -135,7 +135,9 @@ grid* isect_grid::get_next(vector3f angle, grid* current)
 		grid_info_t* prev_info = prev->get_info(angle);
 		if(prev_info)
 		{
-			my_end_pt = end_pt(prev_info->pos, ginfo->pos - prev_info->pos, level_y);
+			vector3f* cam_vec = ginfo->pos - &(prev_info->pos);
+			my_end_pt = end_pt(&(prev_info->pos), cam_vec, level_y);
+			delete cam_vec;
 			if(!my_end_pt)
 				return(grid::get_next(angle, current));
 		}
@@ -188,23 +190,26 @@ void isect_grid::force_refresh(vector3f camera)
 	if(ABS(camera.x) >= 35 && ABS(camera.x) <= 50)
 	{
 		vector3f* cam_real = camera.angle_to_real();
-		vector3f cam_vec = ginfo->pos - (*cam_real);
+		vector3f* cam_vec = ginfo->pos - cam_real;
+		vector3f* neg_cam_vec = cam_vec->negate();
 		if(cam_real->y > 0) //viewing downwards
 		{
 			cam_grid = check_levels_above(echo_ns::current_stage->get_levels_higher_than(level_y)
-							, ginfo->pos, cam_vec.negate(), camera);
+							, &(ginfo->pos), neg_cam_vec, camera);
 			if(!cam_grid)
 				cam_grid = check_levels_below(echo_ns::current_stage->get_levels_lower_than(level_y)
-							, ginfo->pos, cam_vec.negate(), camera);
+							, &(ginfo->pos), neg_cam_vec, camera);
 		}
 		else //viewing up
 		{
 			cam_grid = check_levels_below(echo_ns::current_stage->get_levels_lower_than(level_y)
-							, ginfo->pos, cam_vec.negate(), camera);
+							, &(ginfo->pos), neg_cam_vec, camera);
 			if(!cam_grid)
 				cam_grid = check_levels_above(echo_ns::current_stage->get_levels_higher_than(level_y)
-							, ginfo->pos, cam_vec.negate(), camera);
+							, &(ginfo->pos), neg_cam_vec, camera);
 		}
+		delete cam_vec;
+		delete neg_cam_vec;
 	}
 }
 

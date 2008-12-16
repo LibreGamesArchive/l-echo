@@ -66,7 +66,7 @@ namespace echo_ns
 		current_stage = st;
 		if(st != NULL)
 		{
-			main_char = new echo_char(st->get_start());
+			main_char = new echo_char();
 			CHKPTR(main_char);
 		}
 		else

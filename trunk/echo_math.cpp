@@ -103,32 +103,32 @@ void vector3f::set(vector3f copy_from)
 	z = copy_from.z;
 }
 
-vector3f vector3f::negate()
+vector3f* vector3f::negate()
 {
 	vector3f* ret = new vector3f(-x, -y, -z);
 	CHKPTR(ret);
-	return(*ret);
+	return(ret);
 }
 
-vector3f vector3f::operator +(vector3f vec)
+vector3f* vector3f::operator +(vector3f* vec)
 {
-    vector3f* ret = new vector3f(x + vec.x, y + vec.y, z + vec.z);
+    vector3f* ret = new vector3f(x + vec->x, y + vec->y, z + vec->z);
     CHKPTR(ret);
-    return(*ret);
+    return(ret);
 }
 
-vector3f vector3f::operator -(vector3f vec)
+vector3f* vector3f::operator -(vector3f* vec)
 {
-    vector3f* ret = new vector3f(x - vec.x, y - vec.y, z - vec.z);
+    vector3f* ret = new vector3f(x - vec->x, y - vec->y, z - vec->z);
     CHKPTR(ret);
-    return(*ret);
+    return(ret);
 }
 
-vector3f vector3f::operator *(float f)
+vector3f* vector3f::operator *(float f)
 {
 	vector3f* ret = new vector3f(x * f, y * f, z * f);
 	CHKPTR(ret);
-	return(*ret);
+	return(ret);
 }
 
 vector3f* vector3f::angle_xy()
@@ -155,7 +155,11 @@ float vector3f::dist(vector3f other)
 vector3f* vector3f::rotate_xy(vector3f rot)
 {
 	if(rot.x == 0 && rot.y == 0 && rot.z == 0)
-		return(this);
+	{
+		vector3f* ret = new vector3f(x, y, z);
+		CHKPTR(ret);
+		return(ret);
+	}
 	vector3f* ret = new vector3f(x
 			, y * ECHO_COSF(rot.x) - z * ECHO_SINF(rot.x)
 			, y * ECHO_SINF(rot.x) + z * ECHO_COSF(rot.x));
@@ -177,7 +181,11 @@ vector3f* vector3f::neg_rotate_yx(vector3f rot)
 {
 	//float rad_x = -TO_RAD(rot.x), rad_y = -TO_RAD(rot.y);
 	if(rot.x == 0 && rot.y == 0 && rot.z == 0)
-		return(this);
+	{
+		vector3f* ret = new vector3f(x, y, z);
+		CHKPTR(ret);
+		return(ret);
+	}
 	vector3f* ret = new vector3f(z * ECHO_SINF(-rot.y) + x * ECHO_COSF(-rot.y), y
                                 , z * ECHO_COSF(-rot.y) - x * ECHO_SINF(-rot.y));
 	CHKPTR(ret);

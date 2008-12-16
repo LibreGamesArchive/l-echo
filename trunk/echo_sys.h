@@ -19,7 +19,8 @@
 
 #include <echo_platform.h>
 
-#define FPS	60
+#define FPS		30
+#define WAIT 	33.333f
 
 #ifndef ECHO_NDS
 	#ifdef ECHO_WIN
