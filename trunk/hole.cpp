@@ -26,7 +26,7 @@
 #include <hole.h>
 #include <echo_math.h>
 #include <grid.h>
-#include <isect_grid.h>
+//#include <isect_grid.h>
 
 hole::hole() : escgrid()
 {
@@ -107,6 +107,7 @@ grid* hole::get_real_prev()
 }
 grid* hole::get_next(vector3f angle, grid* current)
 {
+	/*
 	grid* esc = get_esc(angle);
 	if(esc)
 		return(esc->get_next(angle, current));
@@ -141,5 +142,7 @@ grid* hole::get_next(vector3f angle, grid* current)
 		}
 	}
 	return(echo_ns::hole_grid);
+	// */
+	return(NULL);
 }
 

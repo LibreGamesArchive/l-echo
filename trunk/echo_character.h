@@ -68,6 +68,7 @@ class echo_char
 		echo_char();
 		//init to that grid
 		echo_char(grid* start);
+		virtual ~echo_char();
 		//if you used the default, or reinitializing...
 		void init(grid* g1);
 		//restart from the last starting point
@@ -99,7 +100,7 @@ class echo_char
 		int num_goals_reached();
 		float get_speed();
 		
-		void draw(vector3f vec);
+		void draw(vector3f* vec);
 		void draw(float x, float y, float z);
 		
 		void initialize_falling();

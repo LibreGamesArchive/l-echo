@@ -178,7 +178,7 @@ STATUS delete_echo_files(echo_files* files)
 			delete[] files->file_names;
 		}
 		if(files->current_dir != NULL)
-			delete files->current_dir;
+			delete[] files->current_dir;
 		delete files;
 		return(WIN);
 	}

@@ -27,7 +27,7 @@
 #include <launcher.h>
 #include <echo_math.h>
 #include <grid.h>
-#include <isect_grid.h>
+//#include <isect_grid.h>
 //#include <cam_map.h>
 
 launcher::launcher() : escgrid()
@@ -108,6 +108,7 @@ grid* launcher::get_real_prev()
 	return(real_prev);
 }
 
+/*
 #define VERTEX_Z   				2
 #define VERTEX_Y				4
 #define	INTERCEPT_Z				4
@@ -120,9 +121,11 @@ grid* launcher::get_real_prev()
 #endif
 #define TRANS_TO_LAUNCH(vec, angle, pos)	vec.self_rotate_about_y(angle); vec.add(pos)
 #define TRANS_PTR_TO_LAUNCH(vec, angle, pos)	vec->self_rotate_about_y(angle)); vec->add(pos)
+// */
 
 grid* launcher::get_next(vector3f angle, grid* current)
 {
+	/*
 	grid* esc = get_esc(angle);
 	if(esc)
 		return(esc->get_next(angle, current));
@@ -221,5 +224,7 @@ grid* launcher::get_next(vector3f angle, grid* current)
 	}
 	delete direction;
 	return(begin ? begin : echo_ns::hole_grid);
+	// */
+	return(NULL);
 }
 

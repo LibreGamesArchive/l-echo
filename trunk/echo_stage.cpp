@@ -82,15 +82,15 @@ void stage::add(std::string id, grid* ptr)
     grids->insert(STAGE_MAP::value_type(id, ptr));
 }
 
-GRID_PTR_SET* map_get_level(LEVEL_MAP* levels, vector3f pos)
+GRID_PTR_SET* map_get_level(LEVEL_MAP* levels, vector3f* pos)
 {
-	LEVEL_MAP::iterator it = levels->find(pos.y);
+	LEVEL_MAP::iterator it = levels->find(pos->y);
 	if(it == levels->end())
 		return(NULL);
 	return(it->second);
 }
 
-void map_add_pos(LEVEL_MAP* levels, vector3f pos, grid* g)
+void map_add_pos(LEVEL_MAP* levels, vector3f* pos, grid* g)
 {
 	GRID_PTR_SET* set = map_get_level(levels, pos);
 	if(set)
@@ -102,16 +102,16 @@ void map_add_pos(LEVEL_MAP* levels, vector3f pos, grid* g)
 		set = new GRID_PTR_SET();
 		CHKPTR(set);
 		set->insert(g);
-		levels->insert(LEVEL_MAP::value_type(pos.y, set));
+		levels->insert(LEVEL_MAP::value_type(pos->y, set));
 	}
 }
 
-GRID_PTR_SET* stage::get_level(vector3f pos)
+GRID_PTR_SET* stage::get_level(vector3f* pos)
 {
 	return(map_get_level(levels, pos));
 }
 
-void stage::add_pos(vector3f pos, grid* g)
+void stage::add_pos(vector3f* pos, grid* g)
 {
 	map_add_pos(levels, pos, g);
 }

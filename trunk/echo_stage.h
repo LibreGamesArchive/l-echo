@@ -48,11 +48,11 @@ class stage
         stage(grid* my_start, std::string* my_name, int my_num_goals);
         ~stage();
         void add(std::string id, grid* ptr);
-	void add_pos(vector3f pos, grid* g);
-	GRID_PTR_SET* get_level(vector3f pos);
-	LEVEL_MAP* get_levels_lower_than(float y);
-	LEVEL_MAP* get_levels_higher_than(float y);
-	void dump_levels();
+		void add_pos(vector3f* pos, grid* g);
+		GRID_PTR_SET* get_level(vector3f* pos);
+		LEVEL_MAP* get_levels_lower_than(float y);
+		LEVEL_MAP* get_levels_higher_than(float y);
+		void dump_levels();
         grid* get(std::string id);
         void draw(vector3f angle);
 
@@ -64,11 +64,11 @@ class stage
         std::string* get_name();
         int get_num_goals();
 	
-	void set_farthest(float new_far);
-	float get_farthest();
+		void set_farthest(float new_far);
+		float get_farthest();
 };
 #endif
 
-GRID_PTR_SET* map_get_level(LEVEL_MAP* levels, vector3f pos);
-void map_add_pos(LEVEL_MAP* levels, vector3f pos, grid* g);
+GRID_PTR_SET* map_get_level(LEVEL_MAP* levels, vector3f* pos);
+void map_add_pos(LEVEL_MAP* levels, vector3f* pos, grid* g);
 

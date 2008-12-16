@@ -117,12 +117,60 @@ void draw_hole(vector3f pos)
 	POP_MATRIX;
 }
 
+void draw_hole(vector3f* pos)
+{
+	gfx_color3f(0, 0, 0);
+	gfx_push_matrix();
+	{
+		glTranslatef(pos->x, pos->y + 0.03, pos->z);
+		glBegin(GL_QUADS);
+		{
+			glVertex3f(0, 0, HALF_GRID);
+			glVertex3f(HALF_GRID, 0, 0);
+			glVertex3f(0, 0, -HALF_GRID);
+			glVertex3f(-HALF_GRID, 0, 0);
+		}
+		glEnd();
+	}
+	POP_MATRIX;
+}
+
+
 void draw_launcher(vector3f pos)
 {
 	gfx_color3f(0, 0, 0);
 	gfx_push_matrix();
 	{
 		glTranslatef(pos.x, pos.y + 0.03, pos.z);
+#ifdef ECHO_NDS
+		glBegin(GL_TRIANGLE_STRIP);
+		{
+			glVertex3f(0, 0, HALF_GRID);
+			glVertex3f(HALF_GRID, 0, 0);
+			glVertex3f(0, 0, -HALF_GRID);
+			glVertex3f(-HALF_GRID, 0, 0);
+		}
+		glEnd();
+#else
+		glBegin(GL_LINE_LOOP);
+		{
+			glVertex3f(0, 0, HALF_GRID);
+			glVertex3f(HALF_GRID, 0, 0);
+			glVertex3f(0, 0, -HALF_GRID);
+			glVertex3f(-HALF_GRID, 0, 0);
+		}
+		glEnd();
+#endif
+	}
+	POP_MATRIX;
+}
+
+void draw_launcher(vector3f* pos)
+{
+	gfx_color3f(0, 0, 0);
+	gfx_push_matrix();
+	{
+		glTranslatef(pos->x, pos->y + 0.03, pos->z);
 #ifdef ECHO_NDS
 		glBegin(GL_TRIANGLE_STRIP);
 		{
@@ -155,6 +203,19 @@ void draw_rect(vector3f p1, vector3f p2, vector3f p3, vector3f p4)
 		glVertex3f(p2.x, p2.y, p2.z);
 		glVertex3f(p3.x, p3.y, p3.z);
 		glVertex3f(p4.x, p4.y, p4.z);
+	}
+	glEnd();
+}
+
+void draw_rect(vector3f* p1, vector3f* p2, vector3f* p3, vector3f* p4)
+{
+	gfx_color3f(1, 1, 1);
+	glBegin(GL_QUADS);
+	{
+		glVertex3f(p1->x, p1->y, p1->z);
+		glVertex3f(p2->x, p2->y, p2->z);
+		glVertex3f(p3->x, p3->y, p3->z);
+		glVertex3f(p4->x, p4->y, p4->z);
 	}
 	glEnd();
 }

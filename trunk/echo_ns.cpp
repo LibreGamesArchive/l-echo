@@ -30,7 +30,7 @@
 
 #include <grid.h>
 #include <hole.h>
-#include <isect_grid.h>
+//#include <isect_grid.h>
 
 #define NULL_CHAR_OPACITY_MIN   0.25f
 
@@ -47,7 +47,7 @@ namespace echo_ns
 	stage* current_stage = NULL;
 	int started;
 	//CAM_MAPS* maps = new CAM_MAPS();
-	STATIC_SET* statics = new STATIC_SET();
+	//STATIC_SET* statics = new STATIC_SET();
 	
 	void deallocate()
 	{
@@ -56,7 +56,7 @@ namespace echo_ns
 		if(main_char != NULL)
 			delete main_char;
 		delete hole_grid;
-		delete statics;
+		//delete statics;
 	}
 	void init(stage* st)
 	{
@@ -81,12 +81,14 @@ namespace echo_ns
 	{
 		if(current_stage != NULL)
 		{
+			/*
 			STATIC_SET::iterator it = statics->begin(), end = statics->end();
 			while(it != end)
 			{
 				(*it)->refresh(angle);
 				it++;
 			}
+			// */
 			current_stage->draw(angle);
 			if(started)
 			{
@@ -102,7 +104,7 @@ namespace echo_ns
 					if(info)
 					{
 						gfx_push_matrix();
-						gfx_translatef(info->pos.x, info->pos.y, info->pos.z);
+						gfx_translatef(info->pos->x, info->pos->y, info->pos->z);
 #ifndef ECHO_NDS
 						gfx_outline_start();
 						draw_character(NULL);
@@ -183,6 +185,7 @@ namespace echo_ns
 		main_char->toggle_run();
 	}
 	
+	/*
 	void add_static_grid(static_grid* sg)
 	{
 		statics->insert(sg);
@@ -194,4 +197,5 @@ namespace echo_ns
 		if(it != statics->end())
 			statics->erase(it);
 	}
+	// */
 };

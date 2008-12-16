@@ -32,7 +32,7 @@ source-tarball:
 #zip -r *.cpp *.h pugixml/ *.xml*
 
 valgrind:
-	valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes --suppressions=fglrx.supp --sim-hints=lax-ioctls ./l-echo  large_hole_demo.xml 2> summary.txt
+	valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes --suppressions=fglrx.supp --sim-hints=lax-ioctls ./l-echo hole_demo.xml 2> summary.txt
 	sed 's|.*/usr/lib.*|LOL|'  summary.txt > summary3.txt
 
 #lab: CXXFLAGS += -DLAB
