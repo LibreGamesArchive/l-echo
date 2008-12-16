@@ -68,22 +68,22 @@ vector3f::vector3f(float my_x, float my_y, float my_z)
 	z = my_z;
 }
 
-int vector3f::angle_similar(vector3f v)
+int vector3f::angle_similar(vector3f* v)
 {
-	return(ABS(x - v.x) < EPSILON &&
-		ABS(y - v.y) < EPSILON);
+	return(ABS(x - v->x) < EPSILON &&
+		ABS(y - v->y) < EPSILON);
 }
 
-int vector3f::operator !=(vector3f v)
+int vector3f::operator !=(vector3f* v)
 {
     return(!(*this == v));
 }
 
-int vector3f::operator ==(vector3f v)
+int vector3f::operator ==(vector3f* v)
 {
-	return(ABS(x - v.x) < EPSILON &&
-		ABS(y - v.y) < EPSILON &&
-		ABS(z - v.z) < EPSILON);
+	return(ABS(x - v->x) < EPSILON &&
+		ABS(y - v->y) < EPSILON &&
+		ABS(z - v->z) < EPSILON);
 }
 
 float vector3f::length()
@@ -96,11 +96,11 @@ void vector3f::dump()
 	ECHO_PRINT("vector3f: [%f,%f,%f]", x, y, z);
 }
 
-void vector3f::set(vector3f copy_from)
+void vector3f::set(vector3f* copy_from)
 {
-	x = copy_from.x;
-	y = copy_from.y;
-	z = copy_from.z;
+	x = copy_from->x;
+	y = copy_from->y;
+	z = copy_from->z;
 }
 
 vector3f* vector3f::negate()
@@ -147,9 +147,9 @@ vector3f* vector3f::angle_xy()
 
 }
 
-float vector3f::dist(vector3f other)
+float vector3f::dist(vector3f* other)
 {
-	return(sqrt(pow(x - other.x, 2) + pow(y - other.y, 2) + pow(z - other.z, 2)));
+	return(sqrt(pow(x - other->x, 2) + pow(y - other->y, 2) + pow(z - other->z, 2)));
 }
 
 vector3f* vector3f::rotate_xy(vector3f rot)
@@ -214,11 +214,11 @@ void vector3f::self_rotate_about_y(float angle)
 	z = z * ECHO_COSF(angle) - x_save * ECHO_SINF(angle);
 }
 
-void vector3f::add(vector3f vec)
+void vector3f::add(vector3f* vec)
 {
-	x += vec.x;
-	y += vec.y;
-	z += vec.z;
+	x += vec->x;
+	y += vec->y;
+	z += vec->z;
 }
 
 vector3f* vector3f::angle_to_real()
@@ -233,7 +233,7 @@ vector3f* vector3f::angle_to_real()
 
 STATUS vector3f::scalar_angle(vector3f* vec, float* angle)
 {
-	const float distance = dist(*vec);
+	const float distance = dist(vec);
 	const float length1 = length();
 	const float length2 = vec->length();
 	*angle = TO_DEG( acos( ( (length1 * length1) + (length2 * length2) 

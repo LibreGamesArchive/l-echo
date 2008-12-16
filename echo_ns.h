@@ -22,12 +22,12 @@
 #include <echo_character.h>
 #include <echo_math.h>
 #include <grid.h>
-#include <static_grid.h>
+//#include <static_grid.h>
 #include <echo_stage.h>
 
 #ifndef __ECHO_NS__
 #define __ECHO_NS__
-typedef std::set<static_grid*> STATIC_SET;
+//typedef std::set<static_grid*> STATIC_SET;
 
 namespace echo_ns
 {
@@ -35,7 +35,7 @@ namespace echo_ns
 	extern vector3f angle;
 	extern stage* current_stage;
 	extern echo_char* main_char;
-	extern STATIC_SET* statics;
+	//extern STATIC_SET* statics;
 
 	void deallocate();
 	void init(stage* st);
@@ -59,8 +59,10 @@ namespace echo_ns
 	void start_step();
 	void toggle_run();
 	
+	/*
 	void add_static_grid(static_grid* sg);
 	void remove_static_grid(static_grid* sg);
+	// */
 };
 #endif
 

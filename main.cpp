@@ -41,8 +41,8 @@
 #include <hole.h>
 #include <grid.h>
 #include <escgrid.h>
-#include <static_grid.h>
-#include <isect_grid.h>
+//#include <static_grid.h>
+//#include <isect_grid.h>
 #include <t_grid.h>
 
 //for Windows, or something

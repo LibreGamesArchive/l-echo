@@ -995,7 +995,9 @@ static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, e
 		{
 			grid_info_t* info = new(grid_info_t);
 			LD_CHKPTR(info);
-			if(get_vec(txe, &(info->pos), st) == WIN)
+			info->pos = new vector3f();
+			LD_CHKPTR(info->pos);
+			if(get_vec(txe, info->pos, st) == WIN)
 			{
 				char* prev_id = get_attribute(txe, "prev", "no previous for grid: ", name);
 				if(prev_id != NULL)

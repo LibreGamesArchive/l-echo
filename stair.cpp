@@ -54,7 +54,7 @@ void stair::draw(vector3f angle)
 {
 	gfx_push_matrix();
 		gfx_color3f(1, 1, 1);
-		gfx_translatef(ginfo->pos.x, ginfo->pos.y, ginfo->pos.z);
+		gfx_translatef(ginfo->pos->x, ginfo->pos->y, ginfo->pos->z);
 		gfx_rotatef(this->angle, 0, 1, 0);
 		draw_stairs();
 	gfx_pop_matrix();

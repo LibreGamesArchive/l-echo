@@ -31,7 +31,7 @@
 void dump_grid_info(grid_info_t ginfo)
 {
 	ECHO_PRINT("grid_info_t: [");
-	ginfo.pos.dump();
+	ginfo.pos->dump();
 	ECHO_PRINT("]");
 }
 
@@ -108,7 +108,7 @@ void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, int my_num_n
 	neighbors[0] = my_prev;
 	neighbors[1] = my_next;
 	delete_points();
-	points = ginfo != NULL ? generate_points(*ginfo) : NULL;
+	points = ginfo != NULL ? generate_points(ginfo) : NULL;
 	//ECHO_PRINT("points generated: %p\n", points);
 }
 
@@ -162,6 +162,11 @@ grid::~grid()
 	//ECHO_PRINT("deallocating grid\n");
 	if(ginfo != NULL)
 	{
+		if(ginfo->pos != NULL)
+		{
+			delete ginfo->pos;
+			ginfo->pos = NULL;
+		}
 		delete ginfo;
 		ginfo = NULL;
 	}
@@ -200,22 +205,22 @@ void grid::set_real_prev(grid* g)
 void grid::draw(vector3f angle)	//TODO CHANGE FOR NORMALS
 {
 	//ECHO_PRINT("points generated: %p\n", points);
-	draw_rect(*(points[0]), *(points[1]), *(points[2]), *(points[3]));
+	draw_rect(points[0], points[1], points[2], points[3]);
 	draw_goal(angle);	
 }
 
-vector3f** grid::generate_points(grid_info_t my_info)
+vector3f** grid::generate_points(grid_info_t* my_info)
 {
 	vector3f** ret = new vector3f*[4];
 	CHKPTR(ret);
 	
-	ret[0] = new vector3f(my_info.pos.x - HALF_GRID, my_info.pos.y, my_info.pos.z - HALF_GRID);
+	ret[0] = new vector3f(my_info->pos->x - HALF_GRID, my_info->pos->y, my_info->pos->z - HALF_GRID);
 	CHKPTR(ret[0]);
-	ret[1] = new vector3f(my_info.pos.x - HALF_GRID, my_info.pos.y, my_info.pos.z + HALF_GRID);
+	ret[1] = new vector3f(my_info->pos->x - HALF_GRID, my_info->pos->y, my_info->pos->z + HALF_GRID);
 	CHKPTR(ret[1]);
-	ret[2] = new vector3f(my_info.pos.x + HALF_GRID, my_info.pos.y, my_info.pos.z + HALF_GRID);
+	ret[2] = new vector3f(my_info->pos->x + HALF_GRID, my_info->pos->y, my_info->pos->z + HALF_GRID);
 	CHKPTR(ret[2]);
-	ret[3] = new vector3f(my_info.pos.x + HALF_GRID, my_info.pos.y, my_info.pos.z - HALF_GRID);
+	ret[3] = new vector3f(my_info->pos->x + HALF_GRID, my_info->pos->y, my_info->pos->z - HALF_GRID);
 	CHKPTR(ret[3]);
 	//ECHO_PRINT("points generated: %p, %p\n", ret, ret[0]);
 	return(ret);
@@ -301,7 +306,7 @@ void grid::draw_goal(vector3f angle)
 {
 	if(is_goal(angle))
 	{
-		draw_goal_gfx(&(get_info(angle)->pos));
+		draw_goal_gfx(get_info(angle)->pos);
 		/*
 		goal_angle += 5;
 		if(goal_angle == 360)
@@ -310,11 +315,11 @@ void grid::draw_goal(vector3f angle)
 	}
 }
 
-int grid::is_pt_on(vector3f angle, vector3f pt)
+int grid::is_pt_on(vector3f angle, vector3f* pt)
 {
-	vector3f pos = get_info(angle)->pos;
-	return(ABS(pos.y - pt.y) < EPSILON && ABS(pos.x - pt.x) < HALF_GRID
-				&& ABS(pos.z - pt.z) < HALF_GRID);
+	vector3f* pos = get_info(angle)->pos;
+	return(ABS(pos->y - pt->y) < EPSILON && ABS(pos->x - pt->x) < HALF_GRID
+				&& ABS(pos->z - pt->z) < HALF_GRID);
 }
 
 float grid::vert_shift(float percent_in)

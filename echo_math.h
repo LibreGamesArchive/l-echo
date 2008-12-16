@@ -37,30 +37,30 @@ class vector3f
 		vector3f();
 		vector3f(float my_x, float my_y, float my_z);
 		~vector3f(){}
-		void set(vector3f copy_from);
-		void set(float my_x, float my_y, float my_z);
-		int operator ==(vector3f v);
-		int operator !=(vector3f v);
-		int angle_similar(vector3f v);
-		void dump();
-		float length();
+		void		set(vector3f* copy_from);
+		void		set(float my_x, float my_y, float my_z);
+		int			operator ==(vector3f* v);
+		int			operator !=(vector3f* v);
+		int			angle_similar(vector3f* v);
+		void		dump();
+		float		length();
 		
-		void normalize(float length);
-		vector3f* normalize_new(float length);
+		void		normalize(float length);
+		vector3f*	normalize_new(float length);
 		
 		//just the scalar angle between the two vectors
-		STATUS scalar_angle(vector3f* vec, float* angle);
+		STATUS		scalar_angle(vector3f* vec, float* angle);
 		
 		//angle from this vector to <0, 0, 1>
-		vector3f* angle_xy();
+		vector3f*	angle_xy();
 		//rotate from the screen to the world via the camera angle
-		vector3f* rotate_xy(vector3f rot);
+		vector3f* 	rotate_xy(vector3f rot);
 		//rotate from the world to the screen via the camera angle
-		vector3f* neg_rotate_yx(vector3f rot);
+		vector3f*	neg_rotate_yx(vector3f rot);
 		//rotate around y axis, putting it in a new vector
-		vector3f* rotate_about_y(float angle);
+		vector3f*	rotate_about_y(float angle);
 		//rotate around y axis, putting answers bak in myself
-		void self_rotate_about_y(float angle);
+		void		self_rotate_about_y(float angle);
 		/*
 		 * makes a vector <0, 0, 10> and rotate it by this vector (angle).
 			essentially, if:
@@ -68,21 +68,23 @@ class vector3f
 			then:
 			vec == angle.angle_to_real();
 		*/
-		vector3f* angle_to_real();
+		vector3f*	angle_to_real();
 		
-		vector3f normalize_angle();
-		vector3f* negate();
-		float dist(vector3f other);
+		vector3f	normalize_angle();
+		vector3f*	negate();
+		float		dist(vector3f* other);
 		
-		void add(vector3f vec);
+		void		add(vector3f* vec);
 		
-		vector3f* add_new(vector3f* vec);
-		vector3f* sub_new(vector3f* vec);
+		vector3f*	add_new(vector3f* vec);
+		vector3f*	sub_new(vector3f* vec);
 		
-		vector3f* operator *(float f);
-		vector3f* operator +(vector3f* vec);
-		vector3f* operator -(vector3f* vec);
+		vector3f*	operator *(float f);
+		vector3f*	operator +(vector3f* vec);
+		vector3f*	operator -(vector3f* vec);
 };
+vector3f*	add_new(vector3f* v1, vector3f* v2);
+vector3f*	sub_new(vector3f* v1, vector3f* v2);
 #endif
 
 #ifndef __ECHO_ANGLE_RANGE__

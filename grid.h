@@ -30,7 +30,7 @@
 #define __ECHO_GRID_INFO_T__
 typedef struct
 {
-	vector3f pos; //TODO add normal capabilities
+	vector3f* pos;
 }
 grid_info_t;
 
@@ -100,13 +100,13 @@ class grid
 		virtual int is_goal(vector3f angle);
 		virtual void set_as_goal();
 		
-		virtual vector3f** generate_points(grid_info_t my_info);
+		virtual vector3f** generate_points(grid_info_t* my_info);
 		
 		virtual int should_draw();
 		virtual void set_draw(int draw);
 		virtual void draw(vector3f angle);
 
-		virtual int is_pt_on(vector3f angle, vector3f pt);
+		virtual int is_pt_on(vector3f angle, vector3f* pt);
 		
 		virtual float vert_shift(float percent_in);
 
