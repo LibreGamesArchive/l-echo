@@ -133,7 +133,7 @@ grid* launcher::get_next(vector3f angle, grid* current)
 	if(my_prev)
 	{
 		grid_info_t* info = my_prev->get_info(angle);
-		direction = info ? &(pos - info->pos) : new vector3f(0, 0, 1);
+		direction = info ? pos - &(info->pos) : new vector3f(0, 0, 1);
 	}
 	else
 		direction = new vector3f(0, 0, 1);
@@ -219,6 +219,7 @@ grid* launcher::get_next(vector3f angle, grid* current)
 			z += STATIC_STEP;
 		}
 	}
+	delete direction;
 	return(begin ? begin : echo_ns::hole_grid);
 }
 

@@ -174,6 +174,8 @@
 		//ID of the window
 		static int window;
 	#endif
+	//the previous time "display" was called
+	static int prev_time = 0;
 	//is the loader toggled?; which frame is the loader in?
 	static int loading = 0, load_frame = 0;
 	//the temp address of the counter (holds number of goals)
@@ -328,6 +330,8 @@ int main(int argc, char **argv)
 		}
 		//otherwise we won't sync
         swiWaitForVBlank();
+        //for 30 fps, I need to skip a frame
+        swiWaitForVBlank();
 	}
 #elif ECHO_PC
 	//fill lookup tables
@@ -385,6 +389,8 @@ int main(int argc, char **argv)
 	}
 	//initialize opengl
 	init(argc, argv, 640, 480);
+	//initialize prev time
+	prev_time = glutGet(GLUT_ELAPSED_TIME);
 	//start main loop
 	glutMainLoop();
 #elif ECHO_GCN || ECHO_WII
@@ -836,16 +842,6 @@ static void resize(int w, int h)
 			return(WIN);
 		}
 		return(FAIL);
-		/*
-		char *c = string;
-		while(*c != '\0')
-		{
-			glRasterPos2f(x, y);
-			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
-			x += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c) / font_div;
-			c++;
-		}
-		// */
 	}
 	
 	static int draw_fname_string(float x, float y, char *string)
@@ -863,16 +859,6 @@ static void resize(int w, int h)
 			return(WIN);
 		}
 		return(FAIL);
-		/*
-		char *c = string;
-		while(*c != '\0')
-		{
-			glRasterPos2f(x, y);
-			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *c);
-			x += glutBitmapWidth(GLUT_BITMAP_HELVETICA_12, *c) / font_div;
-			c++;
-		}
-		// */
 	}
 	
 	static void draw_HUD()
@@ -1063,8 +1049,17 @@ static void display()
 	
 	//display
 	glutSwapBuffers();
-	//for 30fps (need real fps mechanism here)
-	ECHO_SLEEP(16);
+	
+	int elapsed = glutGet(GLUT_ELAPSED_TIME) - prev_time;
+	if(elapsed < WAIT)
+	{
+		ECHO_SLEEP(WAIT - elapsed);
+		//ECHO_PRINT("not fskip\n");
+	}
+	//frameskip =(
+	//else
+	//	ECHO_PRINT("fskip: %d\n", elapsed);
+	prev_time = glutGet(GLUT_ELAPSED_TIME);
 #endif
 }
 

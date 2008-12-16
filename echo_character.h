@@ -56,9 +56,12 @@ class echo_char
 			
 			dist_traveled is used to remember the amount of distance traveled so that I can do animations accordingly
 		*/
-		float grid1per, grid2per, startper, speed, dist, act_speed, dist_traveled, dist_traveled_cyclic;
+		float grid1per, grid2per, startper, speed, dist, actual_speed, dist_traveled, dist_traveled_cyclic;
 		//the rotations of the joints
 		echo_char_joints joints;
+		
+		//position when the character falls
+		vector3f* fall_position;
 	
 	public:
 		//default constructor
@@ -98,6 +101,8 @@ class echo_char
 		
 		void draw(vector3f vec);
 		void draw(float x, float y, float z);
+		
+		void initialize_falling();
 };
 #endif
 

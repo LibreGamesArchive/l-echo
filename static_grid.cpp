@@ -75,6 +75,8 @@ void static_grid::refresh(vector3f camera)
 static_grid::~static_grid()
 {
 	echo_ns::remove_static_grid(this);
+	if(real_vec != NULL)
+		delete real_vec;
 }
 
 void static_grid::init_to_null()
@@ -91,8 +93,11 @@ void static_grid::force_refresh(vector3f camera)
 	{
 		grid_info_t* real_info = ((static_grid*)cam_grid)->get_ginfo();
 		grid_info_t* cam_info = ((isect_grid*)cam_grid)->get_cam_grid()->get_info(camera);
-		vector3f cam_vec = real_info->pos - cam_info->pos;
-		ginfo->pos = ginfo->pos + cam_vec;
+		vector3f* cam_vec = real_info->pos - &(cam_info->pos);
+		vector3f* new_pos = ginfo->pos + cam_vec;
+		ginfo->pos = (*new_pos);
+		delete new_pos;
+		delete cam_vec;
 	}
 	prev_angle.set(camera);
 }
