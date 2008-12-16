@@ -221,14 +221,11 @@ void vector3f::add(vector3f* vec)
 	z += vec->z;
 }
 
+static vector3f cam(0, 0, 10);
+
 vector3f* vector3f::angle_to_real()
 {
-#ifdef STRICT_MEM
-	vector3f* cam = new vector3f(0, 0, 10);
-	return(cam->rotate_xy(*this));
-#else
-	return((new vector3f(0, 0, 10))->rotate_xy(*this));
-#endif
+	return(cam.rotate_xy(*this));
 }
 
 STATUS vector3f::scalar_angle(vector3f* vec, float* angle)
