@@ -17,12 +17,18 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/* Your standard libraries
+ * typeinfo is used to find if the grid is a hole, so the character can fall
+ * through the hole if the first grid is one.
+ */
 #include <cstdlib>
 #include <iostream>
 #include <typeinfo>
 #include <cmath>
 #include <cfloat>
 
+/* L-Echo libraries (not grids)
+ */
 #include <echo_platform.h>
 #include <echo_sys.h>
 #include <echo_gfx.h>
@@ -33,47 +39,43 @@
 #include <echo_char_joints.h>
 #include <echo_stage.h>
 
+/* grids; just launchers and holes are discriminated against, because
+ * the character is responsible for flying and falling
+ */
 #include <launcher.h>
 #include <grid.h>
 #include <hole.h>
-//#include <isect_grid.h>
 
+//need to measure the body sizes in order to do IK correctly
 #include <gen/gen.h>
 
 //how high aboce the start grid does the character start?
-#define STARTY		30
+#define STARTY		10
 
+//the acceleration constant
 #define ACCEL		15.0f
 
-#ifdef LAB
-	//various character speeds
-	#define SPEED_STEP 		0.24f
-	#define SPEED_RUN		0.75f
-	#define SPEED_FALL 		1.50f
-	#define SPEED_LAUNCH		0.10f
-	#define SPEED_FALL_FROM_SKY	0.15f
-#else
-	//various character speeds
-	#define SPEED_STEP 		0.07f
-	#define SPEED_RUN		0.25f
-	#define SPEED_FALL 		0.00f
-	#define SPEED_LAUNCH		0.30f
-	#define SPEED_FALL_FROM_SKY	0.05f
-#endif
+//various character speeds
+//percentage (we change the weight from grid1 to grid2 to make the character go in grid mode)
+#define SPEED_STEP 			0.07f
+#define SPEED_RUN			0.25f
+//actual speeds (in flying/falling mode)
+#define SPEED_FALL 			0.00f
+#define SPEED_LAUNCH		0.30f
+#define SPEED_FALL_FROM_SKY	0.50f
 
-echo_char::echo_char()
-{
-	num_goals = 0;
-	init(NULL);
-}
+
 echo_char::echo_char(grid* g1)
 {
+	/// num_goals is the total number of goals this character has passed; shouldn't be reset
 	num_goals = 0;
+	/// initialize
 	init(g1);
 }
 
 echo_char::~echo_char()
 {
+	/// fall_position is the only dynamically constructed member
 	if(fall_position != NULL)
 	{
 		delete fall_position;
@@ -81,20 +83,32 @@ echo_char::~echo_char()
 	}
 }
 
+/** @return If the character is paused; should actually relegate to echo_ns.
+ */
 int echo_char::is_paused()
 {
 	return(paused);
 } 
 
+/** @return How many goals (echos, in echochrome-speak) the character has reached.
+ */
 int echo_char::num_goals_reached()
 {
 	return(num_goals);
 }
 
-void echo_char::initialize_falling()
+/** Start falling from the given position, or where grid1 is.
+ * @param pos An arbitrary position to fall from.  If this is NULL, then grid1's position will be used
+ */
+void echo_char::initialize_falling(vector3f* pos)
 {
 	ECHO_PRINT("initialize falling...%p, %p\n", grid1, grid2);
-	if(grid1 != NULL)
+	if(pos != NULL)
+	{
+		///fall_position is used as the position if the camera angle is (0, 0, 0)
+		fall_position = pos->neg_rotate_yx(echo_ns::angle);
+	}
+	else if(grid1 != NULL)
 	{
 		grid_info_t* i1 = grid1->get_info(echo_ns::angle);
 		if(i1 != NULL)
@@ -105,7 +119,30 @@ void echo_char::initialize_falling()
 	else
 		echo_error("Cannot find where the character is falling from; quitting\n");
 	speed = SPEED_FALL;
-	actual_speed = SPEED_FALL;
+	if(actual_speed == 0)
+		actual_speed = SPEED_FALL;
+}
+
+/** Falling from the sky, at the start of the stage.
+ */
+void echo_char::initialize_fall_from_sky()
+{
+	ECHO_PRINT("initialize falling from sky...\n");
+	if(grid1 != NULL)
+	{
+		grid_info_t* i1 = grid1->get_info(echo_ns::angle);
+		if(i1 != NULL)
+		{
+			target_y = i1->pos->y;
+			fall_position = new vector3f();
+			fall_position->set(i1->pos);
+			fall_position->y += STARTY;
+		}
+	}
+	else
+		echo_error("Cannot find where the character is falling from; quitting\n");
+	speed = SPEED_FALL_FROM_SKY;
+	actual_speed = SPEED_FALL_FROM_SKY;
 }
 
 void echo_char::change_speed()
@@ -113,36 +150,24 @@ void echo_char::change_speed()
 	if(grid1 != NULL)
 	{
 		//first grid is an hole, and second is an isect_grid or just falling nowhere
-		/*
-		if(typeid(*grid1) == typeid(hole) && (typeid(*grid2) == typeid(isect_grid)
-			|| grid2 == echo_ns::hole_grid))
-		// */
-		if(typeid(*grid1) == typeid(hole))
+		if(typeid(*grid1) == typeid(hole) && grid2 == NULL)
 		{
 			ECHO_PRINT("falling into hole...\n");
-			initialize_falling();
+			initialize_falling(NULL);
 		}
 		//first grid is a launcher, and second is an static_grid or just falling nowhere
-		else if(typeid(*grid1) == typeid(launcher))
-		/*
-		else if(typeid(*grid1) == typeid(launcher) && (typeid(*grid2) == typeid(static_grid)
-			|| grid2 == echo_ns::hole_grid))
-		// */
+		else if(typeid(*grid1) == typeid(launcher) && grid2 == NULL)
 		{
 			ECHO_PRINT("being launched!\n");
 			speed = SPEED_LAUNCH;
 			actual_speed = SPEED_LAUNCH;
 		}
 		//if this character isn't in midair
-		else if(speed == SPEED_FALL || speed == SPEED_LAUNCH)
-		/*
-		else if(typeid(*grid1) == typeid(isect_grid)
-			&& (typeid(*grid2) != typeid(isect_grid) 
-				&& typeid(*grid2) != typeid(static_grid)))
-		// */
+		else if(speed == SPEED_FALL || speed == SPEED_LAUNCH || speed == SPEED_FALL_FROM_SKY)
 		{
 			ECHO_PRINT("normal speed\n");
 			speed = is_running ? SPEED_RUN : SPEED_STEP;
+			actual_speed = 0;
 		}
 	}
 }
@@ -173,46 +198,47 @@ void echo_char::toggle_run()
 		start_run();
 }
 
-void echo_char::init(grid * g1)
+void echo_char::init(grid* g1)
 {
-	start = grid1 = g1;
+	start = g1;
+	
+	//are or were we running?
+	is_running = 0;
+	paused = 0;
+	
+	land(g1, false);
+	initialize_fall_from_sky();
+	
+	reset_joints(&joints);
+}
+
+void echo_char::land(grid* g1, int do_change_speed)
+{
+	grid1 = g1;
 	grid2 = g1 ? grid1->get_next(echo_ns::angle, grid1) : NULL;
 	fall_position = NULL;
+	
+	//haven't started falling out of the sky
+	grid1per = 1;
+	//grid2per = 0;
+	
+	//distance between grids
+	dist = 1;
 	
 	//stuff for walking
 	dist_traveled = 0;
 	dist_traveled_cyclic = 0;
 	
-	paused = 0;
-	
-	//the speed (used as a mode)
-	speed = SPEED_STEP;
-	//the actual speed of the character
-	actual_speed = 0;
-	
-	//haven't started falling out of the sky
-	startper = 1;
-	grid1per = 1;
-	grid2per = 0;
-	//distance between grids
-	dist = 1;
-	//are we running?
-	is_running = 0;
-	reset_joints(&joints);
-	
-	if(g1 != NULL)
+	//if(g1 != NULL)
+	if(do_change_speed == true)
+	{
 		change_speed();
+	}
 }
 
 void echo_char::toggle_pause()
 {
 	paused = !paused;
-}
-
-void echo_char::kill()
-{
-	//start falling
-	startper = -0.05;
 }
 
 void echo_char::reset()
@@ -227,16 +253,11 @@ void echo_char::next_grid()
 		grid1->toggle_goal(echo_ns::angle);
 		num_goals++;
 	}
-	//falling to nowhere
-	if(grid1 == echo_ns::hole_grid)
-		kill();
-	else if(grid2 != NULL)
+	if(grid2 != NULL)
 	{
 		//replace grid1 with grid2, grid2 with the next grid
 		grid* temp = grid2;
 		grid2 = grid2->get_next(echo_ns::angle, grid1);
-		// if the  next grid is nowhere, die.
-		if(grid2 == echo_ns::hole_grid)	kill();
 		grid1 = temp;
 		change_speed();
 	}
@@ -244,7 +265,7 @@ void echo_char::next_grid()
 		grid2 = NULL;
 	//reset
 	grid1per = 1;
-	grid2per = 0;
+	//grid2per = 0;
 }
 
 static vector3f* end_pt(vector3f* prev_pos, vector3f* vec, float level_y)
@@ -326,167 +347,171 @@ static grid* check_levels_below(LEVEL_MAP* levels_below, vector3f* pos, vector3f
 void echo_char::step()
 {
 	gfx_color3f(0.5f, 0.5f, 0.5f);
-	if(startper > 0)	//falling from the sky
+	if(speed == SPEED_FALL_FROM_SKY)
 	{
-		vector3f* pos1 = start->get_info(echo_ns::angle)->pos;
-		startper -= SPEED_FALL_FROM_SKY;
-		if(startper < 0)
-			startper = 0;
-		draw(pos1->x, pos1->y + STARTY * startper, pos1->z);
-	}
-	else if(startper < 0)	//dying
-	{
-		vector3f* pos1 = grid1->get_info(echo_ns::angle)->pos;
-		startper -= SPEED_FALL_FROM_SKY;
-		if(startper < -1)
-			init(start);
-		draw(pos1->x, pos1->y + STARTY * startper, pos1->z);
+		draw(fall_position);
+		if(fall_position->y < target_y)
+		{
+			vector3f* fall_pos_ptr = fall_position;
+			if(typeid(*grid1) == typeid(hole))
+				initialize_falling(fall_position);
+			else
+				land(grid1, true);
+			delete fall_pos_ptr;
+		}
+		else
+		{
+			if(!paused)
+				///Do the falling...
+				fall_position->y -= actual_speed * WAIT / 1000;
+		}
+		if(!paused)
+			actual_speed += ACCEL * WAIT / 1000;
 	}
 	else if(speed == SPEED_FALL)
 	{
 		vector3f* relative_pos = fall_position->rotate_xy(echo_ns::angle);
 		draw(relative_pos);
-		//check for available places to fall onto
-		//if(ABS(camera.x) >= 35 && ABS(camera.x) <= 50)
-		grid* cam_grid = NULL;
-		vector3f* cam_real = echo_ns::angle.angle_to_real();
-		vector3f* cam_vec = (*relative_pos) - cam_real;
-		vector3f* neg_cam_vec = cam_vec->negate();
-		if(cam_real->y > 0) //viewing downwards
+		if(relative_pos->y < echo_ns::get_lowest_level() - 5)
 		{
-			LEVEL_MAP* levels_below = echo_ns::current_stage->get_levels_lower_than(relative_pos->y);
-			cam_grid = check_levels_below(levels_below, relative_pos, neg_cam_vec, echo_ns::angle);
-			delete levels_below;
-			if(cam_grid == NULL || typeid(*cam_grid) == typeid(hole))
-			{
-				LEVEL_MAP* levels_above = echo_ns::current_stage->get_levels_higher_than(relative_pos->y);
-				cam_grid = check_levels_above(levels_above, relative_pos, neg_cam_vec, echo_ns::angle);
-				delete levels_above;
-			}
-		}
-		else //viewing up
-		{
-			LEVEL_MAP* levels_above = echo_ns::current_stage->get_levels_higher_than(relative_pos->y);
-			cam_grid = check_levels_above(levels_above, relative_pos, neg_cam_vec, echo_ns::angle);
-			delete levels_above;
-			if(cam_grid == NULL || typeid(*cam_grid) == typeid(hole))
-			{
-				LEVEL_MAP* levels_below = echo_ns::current_stage->get_levels_lower_than(relative_pos->y);
-				cam_grid = check_levels_below(levels_below, relative_pos, neg_cam_vec, echo_ns::angle);
-				delete levels_below;
-			}
-		}
-		delete cam_real;
-		delete neg_cam_vec;
-		delete cam_vec;
-		if(cam_grid != NULL && typeid(*cam_grid) != typeid(hole))
-		{
-			delete fall_position;
-			fall_position = NULL;
-			init(cam_grid);
+			reset();
 		}
 		else
 		{
-			//do the falling...
-			relative_pos->y -= actual_speed * WAIT / 1000;
-			actual_speed += ACCEL * WAIT / 1000;
-			//renew the fall_position
-			delete fall_position;
-			fall_position = relative_pos->neg_rotate_yx(echo_ns::angle);
+			//check for available places to fall onto
+			grid* cam_grid = NULL;
+			vector3f* cam_real = echo_ns::angle.angle_to_real();
+			vector3f* cam_vec = (*relative_pos) - cam_real;
+			vector3f* neg_cam_vec = cam_vec->negate();
+			if(cam_real->y > 0) //viewing downwards
+			{
+				LEVEL_MAP* levels_below = echo_ns::current_stage->get_levels_lower_than(relative_pos->y);
+				cam_grid = check_levels_below(levels_below, relative_pos, cam_vec, echo_ns::angle);
+				delete levels_below;
+				if(cam_grid == NULL || typeid(*cam_grid) == typeid(hole))
+				{
+					LEVEL_MAP* levels_above = echo_ns::current_stage->get_levels_higher_than(relative_pos->y);
+					cam_grid = check_levels_above(levels_above, relative_pos, neg_cam_vec, echo_ns::angle);
+					delete levels_above;
+				}
+			}
+			else //viewing up
+			{
+				LEVEL_MAP* levels_above = echo_ns::current_stage->get_levels_higher_than(relative_pos->y);
+				cam_grid = check_levels_above(levels_above, relative_pos, cam_vec, echo_ns::angle);
+				delete levels_above;
+				if(cam_grid == NULL || typeid(*cam_grid) == typeid(hole))
+				{
+					LEVEL_MAP* levels_below = echo_ns::current_stage->get_levels_lower_than(relative_pos->y);
+					cam_grid = check_levels_below(levels_below, relative_pos, neg_cam_vec, echo_ns::angle);
+					delete levels_below;
+				}
+			}
+			delete cam_real;
+			delete neg_cam_vec;
+			delete cam_vec;
+			if(cam_grid != NULL && typeid(*cam_grid) != typeid(hole))
+			{
+				
+				delete fall_position;
+				fall_position = NULL;
+				land(cam_grid, true);
+			}
+			else if(!paused)
+			{
+				//do the falling...
+				relative_pos->y -= actual_speed * WAIT / 1000;
+				actual_speed += ACCEL * WAIT / 1000;
+				//renew the fall_position
+				delete fall_position;
+				fall_position = relative_pos->neg_rotate_yx(echo_ns::angle);
+			}
 		}
 		//delete the vector
 		delete relative_pos;
 	}
 	else if(grid1 != NULL)
 	{
-		if (grid2 == echo_ns::hole_grid)	//die if falling
-			kill();
-		else
+		if(grid1->is_goal(echo_ns::angle))
 		{
-			if(grid1->is_goal(echo_ns::angle))
+			start = grid1;
+			grid1->toggle_goal(echo_ns::angle);
+			num_goals++;
+		}
+		if(grid2 != NULL)	//if both grids are there
+		{
+			grid_info_t* i1 = grid1->get_info(echo_ns::angle);
+			if(i1 != NULL)
 			{
-				start = grid1;
-				grid1->toggle_goal(echo_ns::angle);
-				num_goals++;
-			}
-			if(grid2 != NULL)	//if both grids are there
-			{
-				grid_info_t* i1 = grid1->get_info(echo_ns::angle);
-				if(i1 != NULL)
+				vector3f* pos1 = i1->pos;
+				if(pos1 != NULL)
 				{
-					vector3f* pos1 = i1->pos;
-					if(pos1 != NULL)
+					grid_info_t* i2 = grid2->get_info(echo_ns::angle);
+					if(i2 != NULL)
 					{
-						grid_info_t* i2 = grid2->get_info(echo_ns::angle);
-						if(i2 != NULL)
+						vector3f* pos2 = i2->pos;
+						if(pos2 != NULL)
 						{
-							vector3f* pos2 = i2->pos;
-							if(pos2 != NULL)
+							if(!paused)
 							{
-								if(!paused)
+								dist_traveled += speed * 2;	//inflate it a little
+								dist_traveled_cyclic += speed * 180;
+								if(dist_traveled_cyclic > 360)
 								{
-									dist_traveled += speed * 2;	//inflate it a little
-									dist_traveled_cyclic += speed * 180;
-									if(dist_traveled_cyclic > 360)
+									dist_traveled -= 4;	
+									dist_traveled_cyclic -= 360;	
+								}
+								dist = pos1->dist(pos2);
+								if(dist_traveled > 0.5f && dist_traveled <= 1)
+								{
+									grid1per -= (1 + 1 * echo_cos(90 * dist_traveled - 22.5f)) * speed / dist;	//step thru it
+								}
+								else if(dist_traveled > 2.5f && dist_traveled <= 3)
+								{
+									grid1per -= (1 + 1 * echo_cos(90 * dist_traveled + 67.5f)) * speed / dist;	//step thru it
+								}
+								else
+								{
+									grid1per -= speed / dist;	//step thru it
+								}
+								
+								if(grid1per <= 0)	//if we've reached the end of this cycle
+								{
+									next_grid();	//on to the next cycle
+									pos1 = pos2;
+									if(grid2)
 									{
-										dist_traveled -= 4;	
-										dist_traveled_cyclic -= 360;	
-									}
-									dist = pos1->dist(pos2);
-									if(dist_traveled > 0.5f && dist_traveled <= 1)
-									{
-										grid1per -= (1 + 1 * echo_cos(90 * dist_traveled - 22.5f)) * speed / dist;	//step thru it
-										grid2per += (1 + 1 * echo_cos(90 * dist_traveled - 22.5f)) * speed / dist;
-									}
-									else if(dist_traveled > 2.5f && dist_traveled <= 3)
-									{
-										grid1per -= (1 + 1 * echo_cos(90 * dist_traveled + 67.5f)) * speed / dist;	//step thru it
-										grid2per += (1 + 1 * echo_cos(90 * dist_traveled + 67.5f)) * speed / dist;
-									}
-									else
-									{
-										grid1per -= speed / dist;	//step thru it
-										grid2per += speed / dist;
-									}
-									
-									if(grid1per <= 0)	//if we've reached the end of this cycle
-									{
-										next_grid();	//on to the next cycle
-										pos1 = pos2;
-										if(grid2)
+										i2 = grid2->get_info(echo_ns::angle);
+										if(i2)
 										{
-											i2 = grid2->get_info(echo_ns::angle);
-											if(i2)
-											{
-												pos2 = i2->pos;
-											}
+											pos2 = i2->pos;
 										}
 									}
 								}
-								draw(pos1->x * grid1per + pos2->x * grid2per,
-										pos1->y * grid1per + pos2->y * grid2per,
-										pos1->z * grid1per + pos2->z * grid2per);
 							}
-							else
-								echo_error("Position of the second grid is NULL!\n");
+							draw(pos1->x * grid1per + pos2->x * (1 - grid1per),
+									pos1->y * grid1per + pos2->y * (1 - grid1per),
+									pos1->z * grid1per + pos2->z * (1 - grid1per));
 						}
 						else
-							draw(i1->pos);
+							echo_error("Position of the second grid is NULL!\n");
 					}
 					else
-						echo_error("Position of the first grid is NULL!\n");
+						draw(i1->pos);
 				}
 				else
-					echo_error("Info of the first grid is NULL!\n");
+					echo_error("Position of the first grid is NULL!\n");
 			}
-			else	//if there isn't a second grid...
+			else
+				echo_error("Info of the first grid is NULL!\n");
+		}
+		else	//if there isn't a second grid...
+		{
+			grid2 = grid1->get_next(echo_ns::angle, grid1);	//try to get one
+			change_speed();
+			if(!grid2)	//if there still isn't a second grid...
 			{
-				grid2 = grid1->get_next(echo_ns::angle, grid1);	//try to get one
-				change_speed();
-				if(!grid2)	//if there still isn't a second grid...
-				{
-					draw(grid1->get_info(echo_ns::angle)->pos);	//return grid1's position
-				}
+				draw(grid1->get_info(echo_ns::angle)->pos);	//return grid1's position
 			}
 		}
 	}
@@ -525,14 +550,14 @@ void echo_char::draw(float x, float y, float z)
 		
 		float main_per = 0;
 		grid* main_grid = NULL;
-		if(grid1 && grid1per >= 0.5f)
+		if(grid1 != NULL && grid1per >= 0.5f)
 		{
 			main_per = grid1per;
 			main_grid = grid1;
 		}
-		else if(grid2 && grid2per >= 0.5f)
+		else if(grid2 != NULL)
 		{
-			main_per = grid2per;
+			main_per = 1 - grid1per;
 			main_grid = grid2;
 		}
 		if(main_grid)

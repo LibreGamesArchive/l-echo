@@ -50,12 +50,12 @@ void freeform_grid::init_to_null()
 	width = NULL;
 }
 
-vector3f** freeform_grid::generate_points(grid_info_t my_info)
+vector3f** freeform_grid::generate_points(grid_info_t* my_info)
 {
 	vector3f** ret = new vector3f*[4];
 	CHKPTR(ret);
 	
-	vector3f* pos = my_info.pos;
+	vector3f* pos = my_info->pos;
 	ret[0] = new vector3f(pos->x + dir->x + width->x
 				, pos->y + dir->y + width->y
 				, pos->z + dir->z + width->z);
@@ -72,6 +72,7 @@ vector3f** freeform_grid::generate_points(grid_info_t my_info)
 				, pos->y + dir->y - width->y
 				, pos->z + dir->z - width->z);
 	CHKPTR(ret[3]);
+	
 	return(ret);
 }
 
