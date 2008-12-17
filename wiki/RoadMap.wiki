@@ -14,7 +14,7 @@
 
  *  0.4 - walking animation
  *  0.4.1 - walking on stairs animation
- *  0.4.2 - running animation
+ *  0.4.2 - UPDATED: NEWNewHolesAndLaunchers
  *  0.4.3 - falling animation
  *  0.4.4 - landing animation
 
