@@ -20,6 +20,7 @@
 #include <iostream>
 #include <typeinfo>
 #include <string>
+#include <cfloat>
 
 #include <echo_platform.h>
 #include <echo_debug.h>
@@ -30,23 +31,23 @@
 
 stage::stage()
 {
-	farthest = 0;
-	num_goals = 0;
-	start = NULL;
-	grids = new STAGE_MAP();
-	CHKPTR(grids);
-	levels = new LEVEL_MAP();
-	name = NULL;
-	CHKPTR(levels);
+	init(NULL, NULL, 0);
 }
 
-stage::stage(grid* my_start, std::string* my_name, int my_num_goals)
+stage::stage(grid* my_start, std::string* my_name, int my_num_goals) 
+{
+	init(my_start, my_name, my_num_goals);
+}
+
+void stage::init(grid* my_start, std::string* my_name, int my_num_goals)
 {
 	farthest = 0;
+	lowest = FLT_MAX;
 	grids = new STAGE_MAP();
 	CHKPTR(grids);
 	levels = new LEVEL_MAP();
 	CHKPTR(levels);
+	
 	start = my_start;
 	name = my_name;
 	num_goals = my_num_goals;
@@ -113,7 +114,14 @@ GRID_PTR_SET* stage::get_level(vector3f* pos)
 
 void stage::add_pos(vector3f* pos, grid* g)
 {
+	if(pos->y < lowest)
+		lowest = pos->y;
 	map_add_pos(levels, pos, g);
+}
+
+float stage::get_lowest_level()
+{
+	return(lowest);
 }
 
 void stage::dump_levels()

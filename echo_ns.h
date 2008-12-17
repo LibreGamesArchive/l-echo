@@ -43,7 +43,6 @@ namespace echo_ns
 	
 	void toggle_pause();
 	int is_paused();
-	void kill_char();
 	void setup_char(grid* g1);
 	void step_char();
 	void draw();
@@ -52,17 +51,13 @@ namespace echo_ns
 	int num_goals_reached();
 	int goals_left();
 	float get_speed();
+	float get_lowest_level();
 	
 	//change speed to running if we can
 	void start_run();
 	//change speed to walking if we can
 	void start_step();
 	void toggle_run();
-	
-	/*
-	void add_static_grid(static_grid* sg);
-	void remove_static_grid(static_grid* sg);
-	// */
 };
 #endif
 

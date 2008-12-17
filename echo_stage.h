@@ -40,13 +40,16 @@ class stage
         std::string* name;
         int num_goals;
 	
-	LEVEL_MAP* levels;
-	float farthest;
-	
+		LEVEL_MAP* levels;
+		float farthest;
+		float lowest;
+		
+		void init(grid* my_start, std::string* my_name, int my_num_goals);
     public:
         stage();
         stage(grid* my_start, std::string* my_name, int my_num_goals);
         ~stage();
+        
         void add(std::string id, grid* ptr);
 		void add_pos(vector3f* pos, grid* g);
 		GRID_PTR_SET* get_level(vector3f* pos);
@@ -66,6 +69,8 @@ class stage
 	
 		void set_farthest(float new_far);
 		float get_farthest();
+		
+		float get_lowest_level();
 };
 #endif
 

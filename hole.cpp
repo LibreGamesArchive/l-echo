@@ -143,6 +143,9 @@ grid* hole::get_next(vector3f angle, grid* current)
 	}
 	return(echo_ns::hole_grid);
 	// */
+	grid* esc = get_esc(angle);
+	if(esc != NULL)
+		return(esc->get_next(angle, current));
 	return(NULL);
 }
 

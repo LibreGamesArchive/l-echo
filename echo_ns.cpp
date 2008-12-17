@@ -66,7 +66,7 @@ namespace echo_ns
 		current_stage = st;
 		if(st != NULL)
 		{
-			main_char = new echo_char();
+			main_char = new echo_char(current_stage->get_start());
 			CHKPTR(main_char);
 		}
 		else
@@ -75,7 +75,10 @@ namespace echo_ns
 	void start()
 	{
 		started = 1;
-		main_char->init(current_stage->get_start());
+	}
+	float get_lowest_level()
+	{
+		return(current_stage->get_lowest_level());
 	}
 	void draw()
 	{
@@ -133,10 +136,6 @@ namespace echo_ns
 			}
 		}
 	}
-	void kill_char()
-	{
-		main_char->kill();
-	}
 	void toggle_pause()
 	{
 		if(current_stage != NULL)
@@ -184,18 +183,4 @@ namespace echo_ns
 	{
 		main_char->toggle_run();
 	}
-	
-	/*
-	void add_static_grid(static_grid* sg)
-	{
-		statics->insert(sg);
-	}
-	
-	void remove_static_grid(static_grid* sg)
-	{
-		STATIC_SET::iterator it = statics->find(sg);
-		if(it != statics->end())
-			statics->erase(it);
-	}
-	// */
 };
