@@ -56,10 +56,10 @@
 	//to initialize FAT for file reading
 	#include <fat.h>
 	//aslib: Advanced Sound LIBrary, for mp3 and sfx playback
-	#include <as_lib9.h>
+	//#include <as_lib9.h>
 	
 	//resources: the console font, topscreen display, and the menu
-	#include "font.h"
+	//#include "font.h"
 	#include "topscreen.h"
 	#include "menu.h"
 	
@@ -83,22 +83,24 @@
 	
 	#define CHAR2TILE(c)		((c) - 32)
 	
+	//*
 	//modes for the topscreen
 	#define NDS_INFO_MODE		-2
 	#define NDS_LOAD_MODE		-1
 	#define NDS_START_MODE		0
-	#define NDS_DEBUG_MODE		1
+	//#define NDS_DEBUG_MODE		1
 	
 	//the range of the modes
 	#define NDS_MODE_MIN		-2
-	#define NDS_MODE_MAX		1
+	#define NDS_MODE_MAX		0
 	
 	//the background values for the vaious topscreen modes
 	//load and info both use the console (BG1)
-	#define LOAD_BG			DISPLAY_BG1_ACTIVE
-	#define INFO_BG			DISPLAY_BG1_ACTIVE
-	#define START_BG		DISPLAY_BG0_ACTIVE
-	#define DEBUG_BG		DISPLAY_BG3_ACTIVE
+	#define LOAD_BG			DISPLAY_BG0_ACTIVE
+	#define INFO_BG			DISPLAY_BG0_ACTIVE
+	#define START_BG		DISPLAY_BG3_ACTIVE
+	//#define DEBUG_BG		DISPLAY_BG0_ACTIVE
+	// */
 #else
 	#ifdef ECHO_PC
 		//opengl
@@ -160,11 +162,15 @@
 
 #ifdef ECHO_NDS
 	//mode of the top screen (subscreen)
-	static int sub_mode = NDS_DEBUG_MODE;
+	static int sub_mode = NDS_START_MODE;
 	//address of the "second console", used by the info and loader screens
-	static u16* string_map = NULL;
+	//static u16* string_map = NULL;
+	
+	static int controls_bg = -1;
+	static PrintConsole console, info;
+	
 	//basic flags of the top screen
-	static const uint32 basic_modes = MODE_0_2D | DISPLAY_BG_EXT_PALETTE;
+	static const uint32 basic_modes = MODE_5_2D;
 	//the temp address of the counter (holds number of goals)
 	static char counter[32];
 	//what are the directional buttons?  defaults to right-scheme
@@ -289,6 +295,7 @@ int main(int argc, char **argv)
 {
 	atexit(main_deallocate);
 #ifdef ECHO_NDS
+	srand(time(0));
 	//initialize the file system
 	fatInitDefault();
 	//get the files
@@ -476,7 +483,7 @@ static void load(const char* fname)
 			echo_ns::init(s);
 #ifdef ECHO_NDS
 			//set menu off (though the 3d buffer seems to have priority anyways)
-			videoSetMode(MODE_0_3D);
+			videoSetMode(MODE_5_3D);
 #endif
 			//not in menu mode
 			menu_mode = 0;
@@ -492,7 +499,7 @@ static void load(const char* fname)
 			echo_ns::init(NULL);
 #ifdef ECHO_NDS
 			//display the menu
-			videoSetMode(MODE_0_3D | DISPLAY_BG1_ACTIVE);
+			videoSetMode(MODE_5_3D | DISPLAY_BG3_ACTIVE);
 #endif
 			//in menu mode
 			menu_mode = 1;
@@ -522,10 +529,9 @@ static void load(const char* fname)
 		else if(sub_mode < NDS_MODE_MIN)	sub_mode = NDS_MODE_MAX;
 		switch(sub_mode)
 		{
-			case NDS_LOAD_MODE:		videoSetModeSub(basic_modes | LOAD_BG);	update_loader();	break;
-			case NDS_INFO_MODE:		videoSetModeSub(basic_modes | INFO_BG);	toggle_info();		break;
-			case NDS_START_MODE:		videoSetModeSub(basic_modes | START_BG);			break;
-			case NDS_DEBUG_MODE:		videoSetModeSub(basic_modes | DEBUG_BG);			break;
+			case NDS_LOAD_MODE:		videoSetModeSub(MODE_5_2D | DISPLAY_BG1_ACTIVE);	bgHide(controls_bg);		update_loader();	break;
+			case NDS_INFO_MODE:		videoSetModeSub(MODE_5_2D | DISPLAY_BG1_ACTIVE);	bgHide(controls_bg);		toggle_info();		break;
+			case NDS_START_MODE:	videoSetModeSub(MODE_5_2D | DISPLAY_BG3_ACTIVE);	bgShow(controls_bg);							break;
 			default:
 			break;
 		}
@@ -535,14 +541,6 @@ static void load(const char* fname)
 static void init(int argc, char **argv, int w, int h)
 {
 #ifdef ECHO_NDS
-	//power on
-	powerON(POWER_ALL);
-        
-	//initialize hardware interrupts for updating our screens
-	irqInit();
-	irqEnable(IRQ_VBLANK);
-	//yea, vblank
-	irqSet(IRQ_VBLANK, AS_SoundVBL);
         
 	//assign banks (H is use for ext. palette)
 	vramSetBankA(VRAM_A_MAIN_BG);
@@ -552,17 +550,21 @@ static void init(int argc, char **argv, int w, int h)
 	vramSetBankE(VRAM_E_LCD);
 	vramSetBankF(VRAM_F_LCD);
 	vramSetBankG(VRAM_G_LCD);
-	vramSetBankI(VRAM_I_SUB_BG);
+	vramSetBankH(VRAM_H_LCD);
+	vramSetBankI(VRAM_I_LCD);
+	
+	//otherwise the topscreen would be the mainscreen
+	lcdSwap();
 	
 	//Main Screen
 	
 	//set mode
-	videoSetMode(MODE_0_3D | DISPLAY_BG1_ACTIVE);
+	videoSetMode(MODE_5_3D | DISPLAY_BG3_ACTIVE);
 	
 	//init
 	glInit();
 	//i heard it's not good for aa + outline, but going with it anyways...
-        glEnable(GL_ANTIALIAS);
+    glEnable(GL_ANTIALIAS);
 	//hardware-based outlining
 	glEnable(GL_OUTLINE);
 	//set outline colors for all groups
@@ -574,48 +576,68 @@ static void init(int argc, char **argv, int w, int h)
 	glSetOutlineColor(5, RGB15(0, 0, 0));
 	glSetOutlineColor(6, RGB15(0, 0, 0));
 	glSetOutlineColor(7, RGB15(0, 0, 0));
-        glClearColor(31,31,31,31); 		//BG must be opaque for AA to work
-        glClearPolyID(63); 			//BG must have a unique polygon ID for AA to work
-        glClearDepth(0x7FFF);
+	glClearColor(31,31,31,31); 		//BG must be opaque for AA to work
+	glClearPolyID(63); 			//BG must have a unique polygon ID for AA to work
+	glClearDepth(0x7FFF);
 	
 	// the menu
-	BG1_CR = (0 << 14) | BG_COLOR_256 | BG_MAP_BASE(5) | BG_TILE_BASE(1) | BG_PRIORITY(0);
-	memcpy((u16*)BG_TILE_RAM(1), menuTiles, menuTilesLen);
-	memcpy((u16*)BG_MAP_RAM(5), menuMap, menuMapLen);
-	memcpy(BG_PALETTE, menuPal, menuPalLen);
+	
+	int menu_bg = bgInit(3, BgType_Bmp8, BgSize_B8_256x256, 5, 0);
+	dmaCopy(menuBitmap, bgGetGfxPtr(menu_bg), menuBitmapLen);
+	dmaCopy(menuPal, BG_PALETTE, menuPalLen);
+	bgSetPriority(menu_bg, 3);
 	
 	//Sub Screen
 	
-	//set sub screen mode first
+	videoSetModeSub(MODE_5_2D);
+	
+	controls_bg = bgInitSub(3, BgType_Bmp8, BgSize_B8_256x256, 5, 0);
+	bgSetPriority(controls_bg, 3);
+	dmaCopy(topscreenBitmap, bgGetGfxPtr(controls_bg), topscreenBitmapLen);
+	dmaCopy(topscreenPal, BG_PALETTE_SUB, topscreenPalLen);
+	
+	console = *consoleInit(NULL, 1, BgType_Text4bpp, BgSize_T_256x256, 31, 2, false);
+	info = *consoleInit(NULL, 1, BgType_Text4bpp, BgSize_T_256x256, 31, 0, false);
+	
+	consoleSetWindow(&info,		16, 0, 	16, 24);
+    consoleSetWindow(&console,	0, 0, 	16, 24);
+
+	
+    char *border = 
+	"----------------"
+	"|              |"
+	"|              |"
+	"|              |"
+	"|              |"
+	"|              |"
+	"|              |"
+	"|              |"
+	"|              |"
+	"|              |"
+	"|              |"
+	"|              |"
+	"|              |"
+	"|              |"
+	"|              |"
+	"|              |"
+	"|              |"
+	"|              |"
+	"|              |"
+	"|              |"
+	"|              |"
+	"|              |"
+	"|              |"
+	"----------------";
+	
+    consoleSelect(&info);
+    iprintf(border);
+    consoleSelect(&console);
+    iprintf(border);
+    consoleSetWindow(&info,		17, 1,	14, 22);
+    consoleSetWindow(&console,	1, 1,	14, 22);
+
 	refresh_sub_mode();
 	
-	//the bg the game starts out with; the one with all the controls
-	SUB_BG0_CR = (0 << 14) | BG_COLOR_256 | BG_MAP_BASE(5) | BG_TILE_BASE(6) | BG_PRIORITY(2);
-	memcpy((u16*)BG_TILE_RAM_SUB(6), topscreenTiles, topscreenTilesLen);
-	memcpy((u16*)BG_MAP_RAM_SUB(5), topscreenMap, topscreenMapLen);
-	
-	//console2 for info, and loader
-	SUB_BG1_CR = (0 << 14) | BG_COLOR_256 | BG_MAP_BASE(1) | BG_TILE_BASE(4) | BG_PRIORITY(0);
-	u16* text1_tile = (u16*)BG_TILE_RAM_SUB(4);
-        string_map = (u16*)BG_MAP_RAM_SUB(1);
-	memcpy(text1_tile, fontTiles, fontTilesLen);
-	
-	//the debug console
-	SUB_BG3_CR = (0 << 14) | BG_COLOR_256 | BG_MAP_BASE(3) | BG_TILE_BASE(2) | BG_PRIORITY(3);
-	u16* text_tile = (u16*)CHAR_BASE_BLOCK_SUB(2);
-        u16* text_map = (u16*)SCREEN_BASE_BLOCK_SUB(3);
-	consoleInit((u16*)fontTiles, text_tile, 95, 32, text_map, CONSOLE_USE_COLOR255, 8);
-	memcpy(text_tile, fontTiles, fontTilesLen);
-	
-	//copy the palette
-	vramSetBankH(VRAM_H_LCD);
-	memcpy(VRAM_H_EXT_PALETTE[3], fontPal, fontPalLen);
-	memcpy(VRAM_H_EXT_PALETTE[1], fontPal, fontPalLen);
-	memcpy(VRAM_H_EXT_PALETTE[0], topscreenPal, topscreenPalLen);
-	vramSetBankH(VRAM_H_SUB_BG_EXT_PALETTE);
-	
-	//otherwise the topscreen would be the mainscreen
-	lcdSwap();
 	//make sure console works
 	ECHO_PRINT("console init\n");
 	//set height to local cache (even though it's always 256x192)
@@ -671,15 +693,15 @@ static void resize(int w, int h)
 	
 	//figure out the dimensions of our projection
 	if(w <= h)
-        {
-                real_width = depth;
-                real_height = depth * w / h;
-        }
-        else
-        {
-                real_width = depth * w /  h;
-                real_height = depth;
-        }
+	{
+			real_width = depth;
+			real_height = depth * w / h;
+	}
+	else
+	{
+			real_width = depth * w /  h;
+			real_height = depth;
+	}
 	
 	//change to projection mode
 	glMatrixMode(GL_PROJECTION);
@@ -694,39 +716,40 @@ static void resize(int w, int h)
 // ----DRAW MAIN----
 
 #ifdef ECHO_NDS
+	//*
 	static void console2_draw_string(int x, int y, char* str)
 	{
-		while(*str != '\0')
-		{
-			string_map[POS2IDX(x, y)] = CHAR2TILE(*str);
-			x++;
-			str++;
-		}
+		ECHO_PRINT("\x1b[%d;%dH%s", y, x, str);
 	}
 	static void console2_draw_string(int x, int y, char* str, int num)
 	{
-		int i = 0;
-		while(*str != '\0' && i < num)
-		{
-			string_map[POS2IDX(x, y)] = CHAR2TILE(*str);
-			x++;
-			str++;
-			i++;
-		}
+		int len = strlen(str);
+		if(len > num)
+			len = num;
+		char* s_tmp = new char[len + 1];
+		memset(s_tmp, 0, sizeof(char) * (len + 1));
+		memcpy(s_tmp, str, sizeof(char) * len);
+		//ECHO_PRINT("%s\n", fmt);
+		ECHO_PRINT("\x1b[%d;%dH%s", y, x, s_tmp);
+		delete s_tmp;
 	}
 	static void console2_clear()
 	{
 		//32 rows (only 24 are displayed without shifting it) by 32 columns
-		memset((void*)string_map, '\0', 1024 * sizeof(u16));
+		//memset((void*)string_map, '\0', 1024 * sizeof(u16));
+		ECHO_PRINT("\x1b[2J");
 	}
 	static void console2_clear_row(int y)
 	{
-		memset((void*)(string_map + (y * 32)), '\0', 32 * sizeof(u16));
+		//memset((void*)(string_map + (y * 32)), '\0', 32 * sizeof(u16));
+		ECHO_PRINT("\x1b[%d;0H          ", y);
 	}
-	
+	// */
 	static void update_loader()
 	{
-		console2_clear();
+		consoleSelect(&info);
+		ECHO_PRINT("\x1b[2J");
+		//console2_clear();
 		//draw the current directory on top
 		console2_draw_string(0, 0, files->current_dir, 16);
 		
@@ -736,19 +759,21 @@ static void resize(int w, int h)
 			//display an arrow next to the currently selected file
 			if(file_start + each_file == file_index)
 				console2_draw_string(0, 2 + each_file, "->");
-			console2_draw_string(2, 2 + each_file, files->file_names[file_start + each_file], 30);
+			console2_draw_string(2, 2 + each_file, files->file_names[file_start + each_file], 10);
 			each_file++;
 		}
+		consoleSelect(&console);
 	}
 	
 	static void toggle_info()
 	{
+		consoleSelect(&info);
 		console2_clear();
 		//draw the stage name, since it's not going to change unless you switch to the loader
-		if(echo_ns::current_stage)
+		if(echo_ns::current_stage != NULL)
 		{
 			console2_draw_string(0, 0, "stage: ");
-			console2_draw_string(7, 0, name_cache, 25);
+			console2_draw_string(0, 1, name_cache, 10);
 			update_num_goals();
 			update_char_state();
 		}
@@ -756,12 +781,13 @@ static void resize(int w, int h)
 		{
 			console2_draw_string(0, 0, "no stage loaded");
 		}
+		consoleSelect(&console);
 	}
 	static void update_num_goals()
 	{
-		console2_clear_row(10);	console2_clear_row(11);
-		console2_clear_row(12);	console2_clear_row(13);
-		if(echo_ns::current_stage)
+		//console2_clear_row(10);	console2_clear_row(11);
+		//console2_clear_row(12);	console2_clear_row(13);
+		if(echo_ns::current_stage != NULL)
 		{
 			int goals_left = echo_ns::goals_left();
 			if(goals_left > 0)
@@ -771,10 +797,10 @@ static void resize(int w, int h)
 				//can that even fit in an int?
 				sprintf(counter, "%i", goals_left);
 				console2_draw_string(0, 10, COUNTER_HEAD);
-				console2_draw_string(0, 12, counter, 32);
+				console2_draw_string(0, 12, counter, 10);
 			}
 			//yay you finished!
-			else if(echo_ns::num_goals())
+			else if(echo_ns::num_goals() > 0)
 				console2_draw_string(0, 11, SUCCESS);
 			//the stage had no goals to begin with
 			else
@@ -785,11 +811,11 @@ static void resize(int w, int h)
 	}
 	static void update_char_state()
 	{
-		console2_clear_row(22);	console2_clear_row(23);
-		if(echo_ns::current_stage)
-			console2_draw_string(0, 22, message);
+		//console2_clear_row(21);	//console2_clear_row(22);
+		if(echo_ns::current_stage != NULL)
+			console2_draw_string(0, 21, message);
 		else
-			console2_draw_string(0, 22, "please load a stage");
+			console2_draw_string(0, 21, "please load a stage");
 	}
 #elif ECHO_PC
 	//copied from http://lighthouse3d.com/opengl/glut/index.php?bmpfontortho
@@ -1101,11 +1127,7 @@ static void display()
 				//load stage file
 				if(!is_dir(files, file_index))
 				{
-					sub_mode = NDS_DEBUG_MODE;
-					refresh_sub_mode();
-					ECHO_PRINT("before loading\n");
 					load(files->file_names[file_index]);
-					ECHO_PRINT("after loading\n");
 				}
 				//open the directory
 				else
@@ -1123,33 +1145,6 @@ static void display()
 						{
 							echo_error("File parentdir error\n");
 						}
-						/*
-						//if not root
-						if(strcmp(files->current_dir, "/"))
-						{
-							//index of last '/' character
-							int len =  strrchr(files->current_dir, '/') - files->current_dir;
-							//not root
-							if(len > 0)
-							{
-								char* dir = new char[len + 1];
-								CHKPTR(dir);
-								//cut off last '/' and after
-								strncpy(dir, files->current_dir, len);
-								delete_echo_files(files);
-								files = get_files(dir);
-							}
-							//going to root
-							else if(len == 0)
-							{
-								delete_echo_files(files);
-								char* dir = new char[2];
-								dir[0] = '/';
-								dir[1] = '\0';
-								files = get_files(dir);
-							}
-						}
-						// */
 					}
 					//normal dir
 					else
@@ -1196,8 +1191,11 @@ static void display()
 		}
 		if(sub_mode == NDS_INFO_MODE)
 		{
+			toggle_info();
+			/*
 			update_num_goals();
 			update_char_state();
+			*/
 		}
 		else if(sub_mode == NDS_LOAD_MODE)
 			update_loader();

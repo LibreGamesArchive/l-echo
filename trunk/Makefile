@@ -87,8 +87,8 @@ package-mac: mac
 setup-nds:
 	cp -r n-echo_template n-echo
 	cp -t n-echo A*.xml.real
-	cp -t n-echo/arm9/source *.cpp pugixml/*.cpp
-	cp -t n-echo/arm9/include *.h pugixml/*.hpp 
+	cp -t n-echo/source *.cpp pugixml/*.cpp
+	cp -t n-echo/include *.h pugixml/*.hpp 
 
 nds:
 	make -C n-echo

@@ -26,12 +26,12 @@
 
 #ifdef ECHO_NDS
 	#include <nds.h>
-	#include <nds/arm9/trig_lut.h>
+	#include <nds/ndstypes.h>
 	
-	#define ECHO_COSI(deg) (f32tofloat(COS[(int)( ( ABS((deg)) % 360 ) / 360.0f * LUT_SIZE )]))
-	#define ECHO_COSF(deg) (ECHO_COSI((int)(deg)))
-	#define ECHO_SINI(deg) (ECHO_COSI(90 - (deg)))
-	#define ECHO_SINF(deg) (ECHO_SINI((int)(deg)))
+	#define ECHO_COSI(deg) (cosLerp(degreesToAngle(deg)))
+	#define ECHO_COSF(deg) (cosLerp(degreesToAngle(deg)))
+	#define ECHO_SINI(deg) (sinLerp(degreesToAngle(deg)))
+	#define ECHO_SINF(deg) (sinLerp(degreesToAngle(deg)))
 #else
 	static float cos_table[360];
 	
@@ -40,8 +40,8 @@
 	    int deg = 0;
 	    while(deg < 360)
 	    {
-		cos_table[deg] = cosf(TO_RAD(deg));
-		deg++;
+			cos_table[deg] = cosf(TO_RAD(deg));
+			deg++;
 	    }
 	}
 	
