@@ -49,3 +49,4 @@ void dump_files(echo_files* files);
 STATUS echo_parentdir(const char* path, char** save);
 //get the directory of the executable
 STATUS echo_execdir(char** save);
+STATUS echo_genroot(char** save);

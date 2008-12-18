@@ -47,7 +47,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-STATUS genroot(char** save)
+STATUS echo_genroot(char** save)
 {
 	if(save != NULL)
 	{
@@ -65,7 +65,7 @@ STATUS echo_execdir(char** save)
 	if(save != NULL)
 	{
 #ifdef 	ECHO_NDS
-		return(genroot(save));
+		return(echo_genroot(save));
 #elif	ECHO_WIN
 		char exe[MAX_PATH];
 		GetModuleFileName(NULL, exe, MAX_PATH);
@@ -146,7 +146,7 @@ STATUS echo_parentdir(const char* path, char** save)
 			}
 		}
 		//if going to root (len == 0), is at root (!strcmp(path, "/")), or error (len < 0), write root anyways
-		return(genroot(save));
+		return(echo_genroot(save));
 #else
 		const char* dir = dirname(const_cast<char*>(path));
 		*save = new char[strlen(dir) + 1];
@@ -304,6 +304,8 @@ echo_files* get_files(const char* dirname)
                         {
                                 ret->file_names[each] = new char[strlen(each_ent->d_name) + 1];
                                 CHKPTR(ret->file_names[each]);
+                                memset(ret->file_names[each], 0
+									, strlen(each_ent->d_name) + 1);
                                 strcpy(ret->file_names[each], each_ent->d_name);
                                 each++;
                         }
@@ -374,8 +376,8 @@ echo_files* get_files(const char* dirname)
 				}
 				ret->file_names[each] = new char[strlen(filename) + 1];
 				CHKPTR(ret->file_names[each]);
-				memset(ret->file_names[each], '.'
-					, strlen(ret->file_names[each]));
+				memset(ret->file_names[each], 0
+					, strlen(filename) + 1);
 				strcpy(ret->file_names[each], filename);
 			}
 		}
