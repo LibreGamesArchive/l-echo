@@ -298,8 +298,11 @@ int main(int argc, char **argv)
 	srand(time(0));
 	//initialize the file system
 	fatInitDefault();
+	char* root = NULL;
+	if(echo_genroot(&root) == FAIL)
+		echo_error("Cannot allocate path string!");
 	//get the files
-	files = get_files("/");
+	files = get_files(root);
 	//initialize the screens
 	init(argc, argv, 255, 191);
 	
@@ -1132,11 +1135,12 @@ static void display()
 				//open the directory
 				else
 				{
+					//*
 					//previous dir
 					if(!strcmp(files->file_names[file_index], ".."))
 					{
 						char* dir = NULL;
-						if(echo_parentdir(files->current_dir, &dir) == FAIL)
+						if(echo_parentdir(files->current_dir, &dir) == WIN)
 						{
 							delete_echo_files(files);
 							files = get_files(dir);
@@ -1157,6 +1161,7 @@ static void display()
 					//if the user tries to go to parent dir from root, his file_index and file_start are both 0 anyways, so no prob
 					file_index = 0;
 					file_start = 0;
+					// */
 				}
 			}
 			if((key & down_key) && file_index < files->num_files - 1)
