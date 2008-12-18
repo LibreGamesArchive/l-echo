@@ -270,6 +270,10 @@ void draw_goal_gfx(vector3f* pos)
 
 void draw_character(echo_char_joints* joints)
 {
+	//gfx_color3f(0.5f, 0.5f, 0.5f);
+	//draw_body();
+	//*
+	//ECHO_PRINT("lol: %5d\n", rand());
 	gfx_push_matrix();	//body
 	{
 		glTranslatef(0, 1.875f, 0);
@@ -450,15 +454,12 @@ void draw_character(echo_char_joints* joints)
 //#endif
 	}
 	POP_MATRIX;	//end body
+	// */
 }
 
 void gfx_rotatef(float angle, float x, float y, float z)
 {
-#ifdef ECHO_NDS
-	glRotatef(-angle, x, y, z);
-#else
 	glRotatef(angle, x, y, z);
-#endif
 }
 
 void gfx_translatef(float x, float y, float z)

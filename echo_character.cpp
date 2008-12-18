@@ -664,7 +664,7 @@ void echo_char::draw(float x, float y, float z)
 		}
 		gfx_translatef(x, y, z);
 		//direction he is facing.
-		if(grid1 && grid2)
+		if(grid1 != NULL && grid2 != NULL)
 		{
 			grid_info_t* i1 = grid1->get_info(echo_ns::angle);
 			grid_info_t* i2 = grid2->get_info(echo_ns::angle);
@@ -683,7 +683,7 @@ void echo_char::draw(float x, float y, float z)
 		draw_character(&joints);
 		gfx_outline_end();
 #else
-		gfx_set_polyID(1);
+		//gfx_set_polyID(1);
 		draw_character(&joints);
 #endif
 	}
