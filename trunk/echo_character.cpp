@@ -583,7 +583,6 @@ void echo_char::draw(float x, float y, float z)
 				
 				float left_dir_angle = 0;
 				foot_vec->scalar_angle(up, &left_dir_angle);
-				ECHO_PRINT("lda: %f\n", left_dir_angle);
 				const float left_dist_foot = (vshift + 0.825f) * echo_sin(abs(joints.lthigh_lift)) 
 											/ echo_sin(left_dir_angle);
 				
@@ -591,26 +590,24 @@ void echo_char::draw(float x, float y, float z)
 				foot_vec->scalar_angle(up, &right_dir_angle);
 				const float right_dist_foot = (vshift + 0.825f) * echo_sin(abs(joints.rthigh_lift)) 
 										/ echo_sin(right_dir_angle);
-				//ECHO_PRINT("lrdf: %f, %f\n", left_dist_foot, right_dist_foot);
 				float temp = joints.rleg_bend;
 				if(IK_angle(0.5f, 0.65f, right_dist_foot, &joints.rleg_bend) == WIN)
 				{
-					//ECHO_PRINT("joints.rleg_bend: %f\n", joints.rleg_bend);
 					if(joints.rleg_bend == 0 || joints.rleg_bend != joints.rleg_bend)
 						joints.rleg_bend = temp;
 					else if(joints.rleg_bend > 90)
 						joints.rleg_bend -= 90;
-					//ECHO_PRINT("joints.rleg_bend: %f\n", joints.rleg_bend);
-					temp = joints.lleg_bend;
-					if(IK_angle(0.5f, 0.65f, left_dist_foot, &joints.lleg_bend) == WIN)
-					{
-						if(joints.lleg_bend == 0 || joints.lleg_bend != joints.lleg_bend)
-							joints.lleg_bend = temp;
-						else if(joints.lleg_bend > 90)
-							joints.lleg_bend -= 90;
-					}
-					else
-						echo_error("Inverse Kinematics failed?\n");
+				}
+				else
+					echo_error("Inverse Kinematics failed?\n");
+				
+				temp = joints.lleg_bend;
+				if(IK_angle(0.5f, 0.65f, left_dist_foot, &joints.lleg_bend) == WIN)
+				{
+					if(joints.lleg_bend == 0 || joints.lleg_bend != joints.lleg_bend)
+						joints.lleg_bend = temp;
+					else if(joints.lleg_bend > 90)
+						joints.lleg_bend -= 90;
 				}
 				else
 					echo_error("Inverse Kinematics failed?\n");

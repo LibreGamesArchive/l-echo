@@ -56,7 +56,9 @@
 #endif
 
 float echo_sin(int deg){ return(ECHO_SINI(deg)); }
+float echo_sin(float deg){ return(ECHO_SINF(deg)); }
 float echo_cos(int deg){ return(ECHO_COSI(deg)); }
+float echo_cos(float deg){ return(ECHO_COSF(deg)); }
 
 vector3f::vector3f()
 {
@@ -290,8 +292,8 @@ STATUS IK_angle(float length1, float length2, float distance, float* angle)
 		*angle = 0;
 	else
 	{
-		*angle = 180 - TO_DEG( acos( ( (length1 * length1) + (length2 * length2) 
-			- (distance * distance) ) / (2 * length1 * length2) ) );
+		*angle = 180 - ECHO_ACOSF_DEG( ( (length1 * length1) + (length2 * length2) 
+			- (distance * distance) ) / (2 * length1 * length2) );
 		
 	}
 	return(WIN);

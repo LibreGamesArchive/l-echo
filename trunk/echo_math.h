@@ -106,6 +106,8 @@ class angle_range
 STATUS IK_angle(float length1, float length2, float distance, float* angle);
 float echo_sin(int deg);
 float echo_cos(int deg);
+float echo_sin(float deg);
+float echo_cos(float deg);
 #ifndef ECHO_NDS
 	void init_math();
 #endif

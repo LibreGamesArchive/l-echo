@@ -751,18 +751,17 @@ static void resize(int w, int h)
 	static void update_loader()
 	{
 		consoleSelect(&info);
-		ECHO_PRINT("\x1b[2J");
-		//console2_clear();
+		console2_clear();
 		//draw the current directory on top
 		console2_draw_string(0, 0, files->current_dir, 14);
 		
 		int each_file = 0;
-		while(each_file < files->num_files)
+		while(each_file < files->num_files && each_file < 20)
 		{
 			//display an arrow next to the currently selected file
 			if(file_start + each_file == file_index)
 				console2_draw_string(0, 2 + each_file, "->");
-			console2_draw_string(2, 2 + each_file, files->file_names[file_start + each_file], 14);
+			console2_draw_string(2, 2 + each_file, files->file_names[file_start + each_file], 12);
 			each_file++;
 		}
 		consoleSelect(&console);
@@ -1168,7 +1167,7 @@ static void display()
 				file_index++;
 			if((key & up_key) && file_index > 0)
 				file_index--;
-			file_start = file_index - 21;
+			file_start = file_index - 19;
 			if(file_start < 0)
 				file_start = 0;
 		}
