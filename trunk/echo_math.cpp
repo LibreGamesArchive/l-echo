@@ -28,10 +28,12 @@
 	#include <nds.h>
 	#include <nds/ndstypes.h>
 	
-	#define ECHO_COSI(deg) (cosLerp(degreesToAngle(deg)))
-	#define ECHO_COSF(deg) (cosLerp(degreesToAngle(deg)))
-	#define ECHO_SINI(deg) (sinLerp(degreesToAngle(deg)))
-	#define ECHO_SINF(deg) (sinLerp(degreesToAngle(deg)))
+	#define ECHO_COSI(deg)			((int)f32tofloat(cosLerp(degreesToAngle(deg))))
+	#define ECHO_COSF(deg)			(f32tofloat(cosLerp(degreesToAngle(deg))))
+	#define ECHO_SINI(deg)			((int)f32tofloat(sinLerp(degreesToAngle(deg))))
+	#define ECHO_SINF(deg)			(f32tofloat(sinLerp(degreesToAngle(deg))))
+	
+	#define ECHO_ACOSF_DEG(ratio)	(angleToDegrees(acosLerp(floatToFixed((ratio), 12))))
 #else
 	static float cos_table[360];
 	
@@ -45,10 +47,12 @@
 	    }
 	}
 	
-	#define ECHO_COSI(deg) (cos_table[ABS((deg)) % 360])
-	#define ECHO_COSF(deg) (ECHO_COSI((int)(deg)))
-	#define ECHO_SINI(deg) (ECHO_COSI(90 - (deg)))
-	#define ECHO_SINF(deg) (ECHO_SINI((int)(deg)))
+	#define ECHO_COSI(deg)			(cos_table[ABS((deg)) % 360])
+	#define ECHO_COSF(deg)			(ECHO_COSI((int)(deg)))
+	#define ECHO_SINI(deg)			(ECHO_COSI(90 - (deg)))
+	#define ECHO_SINF(deg)			(ECHO_SINI((int)(deg)))
+	
+	#define	ECHO_ACOSF_DEG(ratio)	(TO_DEG(acos(ratio)))
 #endif
 
 float echo_sin(int deg){ return(ECHO_SINI(deg)); }
@@ -233,8 +237,12 @@ STATUS vector3f::scalar_angle(vector3f* vec, float* angle)
 	const float distance = dist(vec);
 	const float length1 = length();
 	const float length2 = vec->length();
+	*angle = ECHO_ACOSF_DEG( ( (length1 * length1) + (length2 * length2) 
+			- (distance * distance) ) / (2 * length1 * length2) );
+	/*
 	*angle = TO_DEG( acos( ( (length1 * length1) + (length2 * length2) 
 			- (distance * distance) ) / (2 * length1 * length2) ) );
+	// */
 	return(WIN);
 }
 

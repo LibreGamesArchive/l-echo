@@ -754,7 +754,7 @@ static void resize(int w, int h)
 		ECHO_PRINT("\x1b[2J");
 		//console2_clear();
 		//draw the current directory on top
-		console2_draw_string(0, 0, files->current_dir, 16);
+		console2_draw_string(0, 0, files->current_dir, 14);
 		
 		int each_file = 0;
 		while(each_file < files->num_files)
@@ -762,7 +762,7 @@ static void resize(int w, int h)
 			//display an arrow next to the currently selected file
 			if(file_start + each_file == file_index)
 				console2_draw_string(0, 2 + each_file, "->");
-			console2_draw_string(2, 2 + each_file, files->file_names[file_start + each_file], 10);
+			console2_draw_string(2, 2 + each_file, files->file_names[file_start + each_file], 14);
 			each_file++;
 		}
 		consoleSelect(&console);
@@ -776,7 +776,7 @@ static void resize(int w, int h)
 		if(echo_ns::current_stage != NULL)
 		{
 			console2_draw_string(0, 0, "stage: ");
-			console2_draw_string(0, 1, name_cache, 10);
+			console2_draw_string(0, 1, name_cache, 14);
 			update_num_goals();
 			update_char_state();
 		}
@@ -800,7 +800,7 @@ static void resize(int w, int h)
 				//can that even fit in an int?
 				sprintf(counter, "%i", goals_left);
 				console2_draw_string(0, 10, COUNTER_HEAD);
-				console2_draw_string(0, 12, counter, 10);
+				console2_draw_string(0, 12, counter, 14);
 			}
 			//yay you finished!
 			else if(echo_ns::num_goals() > 0)

@@ -560,9 +560,10 @@ void echo_char::draw(float x, float y, float z)
 			main_per = 1 - grid1per;
 			main_grid = grid2;
 		}
-		if(main_grid)
+		if(main_grid != NULL)
 		{
 			float vshift = main_grid->vert_shift(main_per);
+			//ECHO_PRINT("vshift: %f, %f\n", vshift, y);
 			y += vshift;
 			//gfx_translatef(0, grid2->vert_shift(main_per), 0);
 			joints.rshoulder_swing = -20 * echo_sin(dist_traveled_cyclic);
@@ -582,14 +583,15 @@ void echo_char::draw(float x, float y, float z)
 				
 				float left_dir_angle = 0;
 				foot_vec->scalar_angle(up, &left_dir_angle);
+				ECHO_PRINT("lda: %f\n", left_dir_angle);
 				const float left_dist_foot = (vshift + 0.825f) * echo_sin(abs(joints.lthigh_lift)) 
 											/ echo_sin(left_dir_angle);
 				
 				float right_dir_angle = 0;
 				foot_vec->scalar_angle(up, &right_dir_angle);
-				float right_dist_foot = (vshift + 0.825f) * echo_sin(abs(joints.rthigh_lift)) 
+				const float right_dist_foot = (vshift + 0.825f) * echo_sin(abs(joints.rthigh_lift)) 
 										/ echo_sin(right_dir_angle);
-				//ECHO_PRINT("rdf: %f\n", right_dist_foot);
+				//ECHO_PRINT("lrdf: %f, %f\n", left_dist_foot, right_dist_foot);
 				float temp = joints.rleg_bend;
 				if(IK_angle(0.5f, 0.65f, right_dist_foot, &joints.rleg_bend) == WIN)
 				{
@@ -614,7 +616,6 @@ void echo_char::draw(float x, float y, float z)
 					echo_error("Inverse Kinematics failed?\n");
 				
 				delete up;
-				delete foot_vec;
 			}
 			else
 			{
@@ -637,14 +638,7 @@ void echo_char::draw(float x, float y, float z)
 				else
 					echo_error("Inverse Kinematics failed?\n");
 			}
-			
-			
-			/*
-			ECHO_PRINT("joints.lthigh_lift: %f\n", joints.lthigh_lift);
-			ECHO_PRINT("echo_cos(joints.lthigh_lift): %f\n", echo_cos(joints.lthigh_lift));
-			ECHO_PRINT("dist: %f\n", (vshift + 1.837f) / echo_cos(joints.lthigh_lift));
-			ECHO_PRINT("lleg: %f\n", joints.lleg_bend);
-			// */
+			delete foot_vec;
 #else
 			#define LEG_BEND_MAX	30
 			
@@ -663,6 +657,7 @@ void echo_char::draw(float x, float y, float z)
 #endif
 		}
 		gfx_translatef(x, y, z);
+		//ECHO_PRINT("pos: %f, %f, %f\n", x, y, z);
 		//direction he is facing.
 		if(grid1 != NULL && grid2 != NULL)
 		{
