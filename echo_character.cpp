@@ -64,15 +64,19 @@
 #define SPEED_LAUNCH		0.30f
 #define SPEED_FALL_FROM_SKY	0.50f
 
-
+/** Initialize, and prepare to fall to that grid.
+ * @param start The initial grid on which to spawn
+ */
 echo_char::echo_char(grid* g1)
 {
 	/// num_goals is the total number of goals this character has passed; shouldn't be reset
 	num_goals = 0;
+	/// Set fall_position to NULL, or else init/land will attempt to delete it.
+	fall_position = NULL;
 	/// initialize
 	init(g1);
 }
-
+/// Destructor
 echo_char::~echo_char()
 {
 	/// fall_position is the only dynamically constructed member
@@ -102,23 +106,27 @@ int echo_char::num_goals_reached()
  */
 void echo_char::initialize_falling(vector3f* pos)
 {
-	ECHO_PRINT("initialize falling...%p, %p\n", grid1, grid2);
+	//ECHO_PRINT("initialize falling...%p, %p\n", grid1, grid2);
 	if(pos != NULL)
 	{
-		///fall_position is used as the position if the camera angle is (0, 0, 0)
+		/// fall_position is used as the position if the camera angle is (0, 0, 0)
 		fall_position = pos->neg_rotate_yx(echo_ns::angle);
 	}
 	else if(grid1 != NULL)
 	{
+		/// Get the info
 		grid_info_t* i1 = grid1->get_info(echo_ns::angle);
 		if(i1 != NULL)
 		{
+			/// fall_position is used as the position if the camera angle is (0, 0, 0)
 			fall_position = i1->pos->neg_rotate_yx(echo_ns::angle);
 		}
 	}
 	else
 		echo_error("Cannot find where the character is falling from; quitting\n");
+	/// Set the speed to fall
 	speed = SPEED_FALL;
+	/// If the character was already falling (actual_speed != 0), don't change the actual speed
 	if(actual_speed == 0)
 		actual_speed = SPEED_FALL;
 }
@@ -127,15 +135,21 @@ void echo_char::initialize_falling(vector3f* pos)
  */
 void echo_char::initialize_fall_from_sky()
 {
-	ECHO_PRINT("initialize falling from sky...\n");
 	if(grid1 != NULL)
 	{
+		/// Get the info
 		grid_info_t* i1 = grid1->get_info(echo_ns::angle);
 		if(i1 != NULL)
 		{
+			/// Set the target level to grid1's y-coordinate
 			target_y = i1->pos->y;
+			/// Clear fall_position first
+			if(fall_position != NULL)
+				delete fall_position;
+			/// Copy the position of grid1
 			fall_position = new vector3f();
 			fall_position->set(i1->pos);
+			/// But also put fall_position above grid1
 			fall_position->y += STARTY;
 		}
 	}
@@ -144,25 +158,27 @@ void echo_char::initialize_fall_from_sky()
 	speed = SPEED_FALL_FROM_SKY;
 	actual_speed = SPEED_FALL_FROM_SKY;
 }
-
+/// Changes the mode and speed of the character according to the grids it's at.
 void echo_char::change_speed()
 {
+	/// Need to have grid1 as non-null to check the type
 	if(grid1 != NULL)
 	{
-		//first grid is an hole, and second is an isect_grid or just falling nowhere
+		/// First grid is an hole, and there is no second grid (no esc) -> Fall into hole
 		if(typeid(*grid1) == typeid(hole) && grid2 == NULL)
 		{
 			ECHO_PRINT("falling into hole...\n");
 			initialize_falling(NULL);
 		}
-		//first grid is a launcher, and second is an static_grid or just falling nowhere
+		/// First grid is a launcher, and there is no second grid (no esc) -> Launched
 		else if(typeid(*grid1) == typeid(launcher) && grid2 == NULL)
 		{
 			ECHO_PRINT("being launched!\n");
+			/// @todo Actual launch code (no pun intended)
 			speed = SPEED_LAUNCH;
 			actual_speed = SPEED_LAUNCH;
 		}
-		//if this character isn't in midair
+		/// If the character isn't in Grid Mode, it should be.
 		else if(speed == SPEED_FALL || speed == SPEED_LAUNCH || speed == SPEED_FALL_FROM_SKY)
 		{
 			ECHO_PRINT("normal speed\n");
@@ -171,7 +187,7 @@ void echo_char::change_speed()
 		}
 	}
 }
-
+/// If the character is walking, start running
 void echo_char::start_run()
 {
 	if(speed == SPEED_STEP)
@@ -180,7 +196,7 @@ void echo_char::start_run()
 		speed = SPEED_RUN;
 	}
 }
-
+/// If the character is running, start walking
 void echo_char::start_step()
 {
 	if(speed == SPEED_RUN)
@@ -189,7 +205,7 @@ void echo_char::start_step()
 		speed = SPEED_STEP;
 	}
 }
-
+/// Start running if walking, or start walking if running
 void echo_char::toggle_run()
 {
 	if(speed == SPEED_RUN)
@@ -197,77 +213,105 @@ void echo_char::toggle_run()
 	else
 		start_run();
 }
-
+/** Reinitializes the grid; spawns on g1
+ * @param g1 The new initial grid on which to spawn
+ */
 void echo_char::init(grid* g1)
 {
+	/// Set our spawn position
 	start = g1;
 	
-	//are or were we running?
+	/// The character starts by walking, not running.
 	is_running = 0;
+	/// The character is unpaused when started
 	paused = 0;
 	
+	/** Prime the character to land on g1, but not actually change_speed,
+	 * because that'll result in the character walking on that grid without
+	 * landing there first.	
+	 */
 	land(g1, false);
+	/// Initialize the landing sequence
 	initialize_fall_from_sky();
 	
+	/// Initialize the joint values by setting them to zero.
 	reset_joints(&joints);
 }
-
+/** Makes the character land on the grid
+ * @param g1 Where to land on
+ * @param do_change_speed Should this grid change the 
+ */
 void echo_char::land(grid* g1, int do_change_speed)
 {
+	/// Set its first grid to g1
 	grid1 = g1;
+	/// Set its next grid to g1's next if we can, or just NULL
 	grid2 = g1 ? grid1->get_next(echo_ns::angle, grid1) : NULL;
+	/// Assume that the character is in Grid Mode, and clear fall_position
+	if(fall_position != NULL)
+		delete fall_position;
 	fall_position = NULL;
 	
-	//haven't started falling out of the sky
+	/// The character hasn't started walking yet
 	grid1per = 1;
-	//grid2per = 0;
 	
-	//distance between grids
+	/// Default distance between grids; the character will calculate this if needed.
 	dist = 1;
 	
-	//stuff for walking
+	/// Reset the walking distances
 	dist_traveled = 0;
 	dist_traveled_cyclic = 0;
 	
-	//if(g1 != NULL)
+	/// Only change the speed if this function is told so
 	if(do_change_speed == true)
 	{
 		change_speed();
 	}
 }
-
+/// Pause if running, or unpause if paused
 void echo_char::toggle_pause()
 {
 	paused = !paused;
 }
-
+/// Respawns; same as init(start); 
 void echo_char::reset()
 {
 	init(start);
 }
-
+/// Forces the character to go the next grid (and trigger the goal there, if any)
 void echo_char::next_grid()
 {
-	if(grid1->is_goal(echo_ns::angle))
-	{
-		grid1->toggle_goal(echo_ns::angle);
-		num_goals++;
-	}
+	///Only works if there is a grid2 that can tell us our next grid
 	if(grid2 != NULL)
 	{
-		//replace grid1 with grid2, grid2 with the next grid
+		/// If the grid this character just arrived at is a goal, toggle it.
+		if(grid2->is_goal(echo_ns::angle))
+		{
+			grid2->toggle_goal(echo_ns::angle);
+			/// Increment the character's goal count
+			num_goals++;
+		}
+		/// Save the pointer to grid2
 		grid* temp = grid2;
+		/// Get the next-next grid, and store that into grid2
 		grid2 = grid2->get_next(echo_ns::angle, grid1);
+		/// Store the next grid (was grid2) into grid1
 		grid1 = temp;
+		/// Adjust the speed/mode as needed
 		change_speed();
 	}
-	else
-		grid2 = NULL;
-	//reset
+	
+	/// Reset the percentage
 	grid1per = 1;
-	//grid2per = 0;
 }
 
+/** Utility method that finds the point that is the intersection between the
+ * ray that starts at "prev_pos" and is in the direction of unit vector "vec",
+ * and the plane with y-coordinate "level_y".
+ * @param prev_pos The position the ray starts from.
+ * @param vec UNIT vector that the ray points in.
+ * @param level_y The y_coordinate of the 
+ */
 static vector3f* end_pt(vector3f* prev_pos, vector3f* vec, float level_y)
 {
 	if(vec->y != 0)
@@ -277,13 +321,15 @@ static vector3f* end_pt(vector3f* prev_pos, vector3f* vec, float level_y)
 			return(NULL);
 		vec = (*vec) * (delta_y / vec->y);
 	}
+	else
+		return(NULL);
 	vector3f* ret = *prev_pos + vec;
 	delete vec;
 	CHKPTR(ret);
 	return(ret);
 }
 
-static grid* check_level(GRID_PTR_SET* level, vector3f* my_end_pt, vector3f angle)
+static grid* check_level(GRID_PTR_SET* level, vector3f* pos, vector3f* my_end_pt, vector3f angle)
 {
 	GRID_PTR_SET::iterator it = level->begin(), end = level->end();
 	grid* g = NULL;
@@ -309,11 +355,14 @@ static grid* check_levels_above(LEVEL_MAP* levels_above, vector3f* pos, vector3f
 	while(it != end)
 	{
 		pt = end_pt(pos, vec, it->first);
-		if(pt != NULL)
+		if(pt == NULL)
 		{
-			g = check_level(it->second, pt, angle);
-			delete pt;
+			pt = new vector3f();
+			CHKPTR(pt);
+			pt->set(pos);
 		}
+		g = check_level(it->second, pos, pt, angle);
+		delete pt;
 		if(g != NULL)
 			return(g);
 		it++;
@@ -332,10 +381,11 @@ static grid* check_levels_below(LEVEL_MAP* levels_below, vector3f* pos, vector3f
 	{
 		it--;
 		pt = end_pt(pos, vec, it->first);
-		if(pt != NULL)
+		if(pt == NULL)
 		{
-			g = check_level(it->second, pt, angle);
-			delete pt;
+			pt = new vector3f();
+			CHKPTR(pt);
+			pt->set(pos);
 		}
 		if(g != NULL)
 			return(g);
@@ -352,17 +402,15 @@ void echo_char::step()
 		draw(fall_position);
 		if(fall_position->y < target_y)
 		{
-			vector3f* fall_pos_ptr = fall_position;
 			if(typeid(*grid1) == typeid(hole))
 				initialize_falling(fall_position);
 			else
 				land(grid1, true);
-			delete fall_pos_ptr;
 		}
 		else
 		{
 			if(!paused)
-				///Do the falling...
+				/// Do the falling...
 				fall_position->y -= actual_speed * WAIT / 1000;
 		}
 		if(!paused)
@@ -412,7 +460,6 @@ void echo_char::step()
 			delete cam_vec;
 			if(cam_grid != NULL && typeid(*cam_grid) != typeid(hole))
 			{
-				
 				delete fall_position;
 				fall_position = NULL;
 				land(cam_grid, true);
@@ -544,7 +591,6 @@ void echo_char::draw(vector3f* vec)
 
 void echo_char::draw(float x, float y, float z)
 {
-	//*
 	gfx_push_matrix();
 	{
 		
@@ -563,9 +609,7 @@ void echo_char::draw(float x, float y, float z)
 		if(main_grid != NULL)
 		{
 			float vshift = main_grid->vert_shift(main_per);
-			//ECHO_PRINT("vshift: %f, %f\n", vshift, y);
 			y += vshift;
-			//gfx_translatef(0, grid2->vert_shift(main_per), 0);
 			joints.rshoulder_swing = -20 * echo_sin(dist_traveled_cyclic);
 			joints.lshoulder_swing = 20 * echo_sin(dist_traveled_cyclic);
 			joints.rarm_bend = -10 * echo_sin(dist_traveled_cyclic) - 20;
@@ -575,7 +619,6 @@ void echo_char::draw(float x, float y, float z)
 			
 #ifdef USE_IK
 			vector3f* foot_vec = get_direction();
-			
 			if(foot_vec != NULL)
 			{
 				vector3f* up = new vector3f(0, 1, 0);
@@ -622,15 +665,15 @@ void echo_char::draw(float x, float y, float z)
 				{
 					if(joints.rleg_bend == 0)
 						joints.rleg_bend = temp;
-					temp = joints.lleg_bend;
-					if(IK_angle(0.5f, 0.65f, (vshift + 1.175f) 
-							/ echo_cos(joints.lthigh_lift), &joints.lleg_bend) == WIN)
-					{
-						if(joints.lleg_bend == 0)
-							joints.lleg_bend = temp;
-					}
-					else
-						echo_error("Inverse Kinematics failed?\n");
+				}
+				else
+					echo_error("Inverse Kinematics failed?\n");
+				temp = joints.lleg_bend;
+				if(IK_angle(0.5f, 0.65f, (vshift + 1.175f) 
+						/ echo_cos(joints.lthigh_lift), &joints.lleg_bend) == WIN)
+				{
+					if(joints.lleg_bend == 0)
+						joints.lleg_bend = temp;
 				}
 				else
 					echo_error("Inverse Kinematics failed?\n");
@@ -654,8 +697,6 @@ void echo_char::draw(float x, float y, float z)
 #endif
 		}
 		gfx_translatef(x, y, z);
-		//ECHO_PRINT("pos: %f, %f, %f\n", x, y, z);
-		//direction he is facing.
 		if(grid1 != NULL && grid2 != NULL)
 		{
 			grid_info_t* i1 = grid1->get_info(echo_ns::angle);
@@ -666,21 +707,17 @@ void echo_char::draw(float x, float y, float z)
 					, 0, 1, 0);
 			}
 		}
-		//gfx_translatef(x, y, z);
 #ifndef ECHO_NDS
 		gfx_outline_start();
 		draw_character(&joints);
-		//gfx_identity();
 		gfx_outline_mid();
 		draw_character(&joints);
 		gfx_outline_end();
 #else
-		//gfx_set_polyID(1);
 		draw_character(&joints);
 #endif
 	}
 	gfx_pop_matrix();
-	// */
 }
 
 float echo_char::get_speed()
