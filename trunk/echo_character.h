@@ -137,34 +137,52 @@ class echo_char
 		/// Changes the mode and speed of the character according to the grids it's at.
 		void change_speed();
 		
-		//change speed to running if we can
+		/// If the character is walking, start running
 		void start_run();
-		//change speed to walking if we can
+		/// If the character is running, start walking
 		void start_step();
 		
+		/// Start running if walking, or start walking if running
 		void toggle_run();
 		
+		/** Get the current direction of the character.
+		 * @return The current direction of the character, or grid2's position - grid1's
+		 */
 		vector3f* get_direction();
 		
-		//pause or unpause
+		/// Pause if running, or unpause if paused
 		void toggle_pause();
-		/** @return If the character is paused; should actually relegate to echo_ns.
+		/** Returns if the character is paused or not 
+		 * @return If the character is paused or not
 		 */
 		int is_paused();
-		/** @return How many goals (echos, in echochrome-speak) the character has reached.
+		/** Returns how many echos the character has reached. 
+		 * @return How many goals (echos, in echochrome-speak) the character has reached.
 		 */
 		int num_goals_reached();
+		/** Returns the "speed" variable (see speed attribute)
+		 * @return "speed" (see speed attribute)
+		 */
 		float get_speed();
-		
+	
+	protected:
+		/** Draws the character at vec
+		 * @param vec Where to draw the character
+		 */
 		void draw(vector3f* vec);
+		/** Draws the character at (x,y,z)
+		 * @param x X-coordinate of the character
+		 * @param y Y-coordinate of the character
+		 * @param z Z-coordinate of the character
+		 */
 		void draw(float x, float y, float z);
 		
 		/** Start falling from the given position, or where grid1 is.
-		 * \param pos An arbitrary position to fall from.  If this is NULL, then grid1's position will be used
+		 * @param pos An arbitrary position to fall from.  If this is NULL, then grid1's position will be used
 		 */
 		void initialize_falling(vector3f* pos);
 		/** Falling from the sky, at the start of the stage.
- */
+		*/
 		void initialize_fall_from_sky();
 };
 #endif

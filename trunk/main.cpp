@@ -35,7 +35,7 @@
 #include <echo_stage.h>
 #include <echo_ingame_loader.h>
 #include <echo_prefs.h>
-#include <echo_mp3.h>
+//#include <echo_mp3.h>
 #include <echo_char_joints.h>
 //various grids
 #include <hole.h>

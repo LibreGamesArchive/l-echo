@@ -61,12 +61,13 @@ class vector3f
 		vector3f*	rotate_about_y(float angle);
 		//rotate around y axis, putting answers bak in myself
 		void		self_rotate_about_y(float angle);
-		/*
-		 * makes a vector <0, 0, 10> and rotate it by this vector (angle).
-			essentially, if:
+		/** Makes a vector <0, 0, 1> and rotate it by this vector (angle).
+			Essentially, if:
 			vector* angle = vec->angle_xy();
 			then:
 			vec == angle.angle_to_real();
+			
+			@return A normal vector <0, 0, 1> rotated by this vector.
 		*/
 		vector3f*	angle_to_real();
 		

@@ -1,7 +1,8 @@
 CXXFLAGS = -I./ -DSTRICT_MEM  -DDEBUG -DTIXML_USE_STL -DUSE_IK -DUSE_PUGIXML -g3 -Wall
-LINUX_LDFLAGS = -lalut -lmad -lopenal -lGL -lGLU -lglut -lpthread
-WINDOWS_LDFLAGS = -lalut -lmad -lopenal glut32.lib -lGL -lGLU
-MACOSX_LDFLAGS =  -framework OpenGL -framework GLUT -framework OpenAL -arch ppc libmadppc.a  -arch i386 libmadi386.a  
+LINUX_LDFLAGS = -lalut -lopenal -lGL -lGLU -lglut -lpthread
+WINDOWS_LDFLAGS = -lalut -lopenal glut32.lib -lGL -lGLU
+MACOSX_LDFLAGS =  -framework OpenGL -framework GLUT -framework OpenAL 
+#-arch ppc libmadppc.a  -arch i386 libmadi386.a  
 
 
 pugiXML_USE_STL := YES
@@ -32,7 +33,7 @@ source-tarball:
 #zip -r *.cpp *.h pugixml/ *.xml*
 
 valgrind:
-	valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes --suppressions=fglrx.supp --sim-hints=lax-ioctls ./l-echo hole_demo.xml 2> summary.txt
+	valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes --suppressions=fglrx.supp --sim-hints=lax-ioctls ./l-echo A1.xml.real 2> summary.txt
 	sed 's|.*/usr/lib.*|LOL|'  summary.txt > summary3.txt
 
 #lab: CXXFLAGS += -DLAB
