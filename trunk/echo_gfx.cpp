@@ -270,16 +270,11 @@ void draw_goal_gfx(vector3f* pos)
 
 void draw_character(echo_char_joints* joints)
 {
-	//gfx_color3f(0.5f, 0.5f, 0.5f);
-	//draw_body();
-	//*
-	//ECHO_PRINT("lol: %5d\n", rand());
 	gfx_push_matrix();	//body
 	{
 		glTranslatef(0, 1.875f, 0);
 		SET_ID(1);
 		draw_body();
-//#ifndef ECHO_NDS
 		gfx_push_matrix();	//neck, head
 		{
 			glTranslatef(0, 0.3f, 0);
@@ -451,10 +446,8 @@ void draw_character(echo_char_joints* joints)
 			POP_MATRIX;	//end right leg
 		}
 		POP_MATRIX; //end lower body
-//#endif
 	}
 	POP_MATRIX;	//end body
-	// */
 }
 
 void gfx_rotatef(float angle, float x, float y, float z)
@@ -470,7 +463,6 @@ void gfx_translatef(float x, float y, float z)
 void gfx_push_matrix()
 {
 	glPushMatrix();
-	//glLoadIdentity();
 }
 
 void gfx_pop_matrix()

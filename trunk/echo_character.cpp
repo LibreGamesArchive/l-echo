@@ -246,6 +246,8 @@ void echo_char::init(grid* g1)
  */
 void echo_char::land(grid* g1, int do_change_speed)
 {
+	/// Is the place this character has just landed on a goal?
+	check_goal(g1);
 	/// Set its first grid to g1
 	grid1 = g1;
 	/// Set its next grid to g1's next if we can, or just NULL
@@ -281,22 +283,32 @@ void echo_char::reset()
 {
 	init(start);
 }
+/** Checks if the grid given is a goal, and if it is, the character
+ * will toggle the goal, set it as its new spawn spot, and add to the goal count
+ * @param g Grid to check
+ */
+void echo_char::check_goal(grid* g)
+{
+	/// Is the grid given a goal?
+	if(g->is_goal(echo_ns::angle))
+	{
+		/// Set our next spawn spot at that goal
+		start = g;
+		/// Toggle the goal
+		g->toggle_goal(echo_ns::angle);
+		/// Increment the character's goal count
+		num_goals++;
+	}
+}
+
 /// Forces the character to go the next grid (and trigger the goal there, if any)
 void echo_char::next_grid()
 {
 	///Only works if there is a grid2 that can tell us our next grid
 	if(grid2 != NULL)
 	{
-		/// If the grid this character just arrived at is a goal...
-		if(grid2->is_goal(echo_ns::angle))
-		{
-			/// Set our next spawn spot at that goal
-			start = grid2;
-			/// Toggle the goal
-			grid2->toggle_goal(echo_ns::angle);
-			/// Increment the character's goal count
-			num_goals++;
-		}
+		/// Check if the grid this character just arrived at is a goal
+		check_goal(grid2);
 		/// Save the pointer to grid2
 		grid* temp = grid2;
 		/// Get the next-next grid, and store that into grid2
@@ -524,97 +536,87 @@ vector3f* echo_char::get_direction()
  */
 void echo_char::draw(float x, float y, float z)
 {
+	/// Push a matrix so the following operations won't screw up the rotation matrix
 	gfx_push_matrix();
 	{
+		/// Shift the joints (should probably LERP these suckers)
+		joints.rshoulder_swing = -20 * echo_sin(dist_traveled_cyclic);
+		joints.lshoulder_swing = 20 * echo_sin(dist_traveled_cyclic);
+		joints.rarm_bend = -10 * echo_sin(dist_traveled_cyclic) - 20;
+		joints.larm_bend = 10 * echo_sin(dist_traveled_cyclic) - 20;
+		joints.rthigh_lift = 35 * echo_sin(dist_traveled_cyclic) - 15;
+		joints.lthigh_lift = -35 * echo_sin(dist_traveled_cyclic) - 15;
 		
-		float main_per = 0;
+		/// main_grid is the grid the character is on right now (if it's just two normal grids) 
 		grid* main_grid = NULL;
+		/// main_per is the percentage into the grid on the interval of [0.5, 1)
+		float main_per = 0;
 		if(grid1 != NULL && grid1per >= 0.5f)
 		{
 			main_per = grid1per;
 			main_grid = grid1;
 		}
-		else if(grid2 != NULL)
+		else if(grid2 != NULL && grid1per <= 0.5f)
 		{
 			main_per = 1 - grid1per;
 			main_grid = grid2;
 		}
+		/// If there is a main_grid...
 		if(main_grid != NULL)
 		{
+			/// ...then there is a vertical shift, which is defined by the grid
 			float vshift = main_grid->vert_shift(main_per);
+			/// Shift y up
 			y += vshift;
-			joints.rshoulder_swing = -20 * echo_sin(dist_traveled_cyclic);
-			joints.lshoulder_swing = 20 * echo_sin(dist_traveled_cyclic);
-			joints.rarm_bend = -10 * echo_sin(dist_traveled_cyclic) - 20;
-			joints.larm_bend = 10 * echo_sin(dist_traveled_cyclic) - 20;
-			joints.rthigh_lift = 35 * echo_sin(dist_traveled_cyclic) - 15;
-			joints.lthigh_lift = -35 * echo_sin(dist_traveled_cyclic) - 15;
-			
 #ifdef USE_IK
+			/// rdf is the distance from hip to right leg
+			float right_dist_foot = 0;
+			/// ldf is the distance from hip to left leg
+			float left_dist_foot = 0;
+			/// Need to know which direction the character is moving in...
 			vector3f* foot_vec = get_direction();
 			if(foot_vec != NULL)
 			{
-				vector3f* up = new vector3f(0, 1, 0);
-				CHKPTR(up);
-				
-				float left_dir_angle = 0;
-				foot_vec->scalar_angle(up, &left_dir_angle);
-				const float left_dist_foot = (vshift + 0.825f) * echo_sin(abs(joints.lthigh_lift)) 
-											/ echo_sin(left_dir_angle);
-				
-				float right_dir_angle = 0;
-				foot_vec->scalar_angle(up, &right_dir_angle);
-				const float right_dist_foot = (vshift + 0.825f) * echo_sin(abs(joints.rthigh_lift)) 
-										/ echo_sin(right_dir_angle);
-				float temp = joints.rleg_bend;
-				if(IK_angle(0.5f, 0.65f, right_dist_foot, &joints.rleg_bend) == WIN)
-				{
-					if(joints.rleg_bend == 0 || joints.rleg_bend != joints.rleg_bend)
-						joints.rleg_bend = temp;
-					else if(joints.rleg_bend > 90)
-						joints.rleg_bend -= 90;
-				}
-				else
-					echo_error("Inverse Kinematics failed?\n");
-				
-				temp = joints.lleg_bend;
-				if(IK_angle(0.5f, 0.65f, left_dist_foot, &joints.lleg_bend) == WIN)
-				{
-					if(joints.lleg_bend == 0 || joints.lleg_bend != joints.lleg_bend)
-						joints.lleg_bend = temp;
-					else if(joints.lleg_bend > 90)
-						joints.lleg_bend -= 90;
-				}
-				else
-					echo_error("Inverse Kinematics failed?\n");
-				
-				delete up;
+				/// Get the angle the direction vector has with the up vector <0, 1, 0>
+				float dir_angle = 0;
+				foot_vec->scalar_angle_with_up(&dir_angle);
+				/// Get the approximate distance the right leg has with the ground (0.825f is arbitrary)
+				right_dist_foot = (vshift + 0.825f) * echo_sin(abs(joints.rthigh_lift)) 
+											/ echo_sin(dir_angle);
+				/// Do the same things with the right leg
+				left_dist_foot = (vshift + 0.825f) * echo_sin(abs(joints.lthigh_lift)) 
+											/ echo_sin(dir_angle);
 			}
+			/// If the character can't figure out the direction it's going, just use assume that the ground is flat
 			else
 			{
-				float temp = joints.rleg_bend;
-				if(IK_angle(0.5f, 0.65f, (vshift + 1.175f) 
-						/ echo_cos(joints.rthigh_lift), &joints.rleg_bend) == WIN)
-				{
-					if(joints.rleg_bend == 0)
-						joints.rleg_bend = temp;
-				}
-				else
-					echo_error("Inverse Kinematics failed?\n");
-				temp = joints.lleg_bend;
-				if(IK_angle(0.5f, 0.65f, (vshift + 1.175f) 
-						/ echo_cos(joints.lthigh_lift), &joints.lleg_bend) == WIN)
-				{
-					if(joints.lleg_bend == 0)
-						joints.lleg_bend = temp;
-				}
-				else
-					echo_error("Inverse Kinematics failed?\n");
+				right_dist_foot = (vshift + 1.175f) / echo_cos(joints.rthigh_lift);
+				left_dist_foot = (vshift + 1.175f) / echo_cos(joints.lthigh_lift);
 			}
+			
+			/// Save the previous joint value
+			float temp = joints.rleg_bend;
+			/// Do the IK (0.5f is the length of the thigh, and 0.65f is the length of the leg and foot)
+			IK_angle(0.5f, 0.65f, right_dist_foot, &joints.rleg_bend);
+			/// If the joint value turns into 0 or NaN, restore it to its previous value
+			if(joints.rleg_bend == 0 || joints.rleg_bend != joints.rleg_bend)
+				joints.rleg_bend = temp;
+			/// If the right leg is bending over 90, get it under, so it doesn't look so ridiculous
+			else if(joints.rleg_bend > 90)
+				joints.rleg_bend = fmod(joints.rleg_bend, 90);
+			
+			/// Do the same thing with left leg
+			temp = joints.lleg_bend;
+			IK_angle(0.5f, 0.65f, left_dist_foot, &joints.lleg_bend);
+			if(joints.lleg_bend == 0 || joints.lleg_bend != joints.lleg_bend)
+				joints.lleg_bend = temp;
+			else if(joints.lleg_bend > 90)
+				joints.lleg_bend = fmod(joints.lleg_bend, 90);
 			delete foot_vec;
 #else
 			#define LEG_BEND_MAX	30
 			
+			/// Pre-programmed cycles, similar to: http://www.idleworm.com/how/anm/02w/walk1.shtml
 			if(dist_traveled > 1 && dist_traveled <= 1.5f)
 				joints.rleg_bend = LEG_BEND_MAX * echo_cos(dist_traveled * 180 + 180);
 			else if(dist_traveled > 3.0f || dist_traveled <= 1)
@@ -629,27 +631,35 @@ void echo_char::draw(float x, float y, float z)
 				joints.lleg_bend = 0;
 #endif
 		}
+		/// Actually translate the character to the position...
 		gfx_translatef(x, y, z);
+		/// But before actually drawing the character, rotate the character so that it faces where it goes
 		if(grid1 != NULL && grid2 != NULL)
 		{
 			grid_info_t* i1 = grid1->get_info(echo_ns::angle);
-			grid_info_t* i2 = grid2->get_info(echo_ns::angle);
-			if(i1 && i2)
+			if(i1 != NULL)
 			{
-				gfx_rotatef(90 - TO_DEG(atan2(i2->pos->z - i1->pos->z, i2->pos->x - i1->pos->x))
-					, 0, 1, 0);
+				grid_info_t* i2 = grid2->get_info(echo_ns::angle);
+				if(i2 != NULL)
+				{
+					gfx_rotatef(90 - TO_DEG(atan2(i2->pos->z - i1->pos->z, i2->pos->x - i1->pos->x))
+						, 0, 1, 0);
+				}
 			}
 		}
 #ifndef ECHO_NDS
+		/// Need to draw the character twice for the outline
 		gfx_outline_start();
 		draw_character(&joints);
 		gfx_outline_mid();
 		draw_character(&joints);
 		gfx_outline_end();
 #else
+		/// draw_character already sets the polyIDs, so no need to draw twice
 		draw_character(&joints);
 #endif
 	}
+	/// Pop the "tainted" matrix
 	gfx_pop_matrix();
 }
 /** Returns the "speed" variable (see speed attribute)

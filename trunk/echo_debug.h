@@ -20,18 +20,16 @@
 #include <echo_platform.h>
 
 #ifdef DEBUG
-
 	#ifdef ECHO_NDS
 		#include <nds.h>
-		
+		/// It used to be that ints can't be printed onto the NDS console, so n-echo used iprintf
 		#define ECHO_PRINT printf
 	#else
 		#include <cstdio>
-		
-		//#warning "lol"
+		/// Good old printf
 		#define ECHO_PRINT printf
 	#endif
-
 #else
+	/// If there is no debug, just swallow the args
 	#define ECHO_PRINT(...)
 #endif

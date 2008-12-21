@@ -157,6 +157,10 @@ float vector3f::dist(vector3f* other)
 {
 	return(sqrt(pow(x - other->x, 2) + pow(y - other->y, 2) + pow(z - other->z, 2)));
 }
+float vector3f::dist_with_up()
+{
+	return(sqrt(x * x + pow(y - 1, 2) + z * z));
+}
 
 vector3f* vector3f::rotate_xy(vector3f rot)
 {
@@ -202,7 +206,6 @@ void vector3f::set(float my_x, float my_y, float my_z)
 }
 vector3f* vector3f::rotate_yx(vector3f rot)
 {
-	//float rad_x = -TO_RAD(rot.x), rad_y = -TO_RAD(rot.y);
 	if(rot.x == 0 && rot.y == 0 && rot.z == 0)
 	{
 		vector3f* ret = new vector3f(x, y, z);
@@ -219,7 +222,6 @@ vector3f* vector3f::rotate_yx(vector3f rot)
 }
 vector3f* vector3f::neg_rotate_yx(vector3f rot)
 {
-	//float rad_x = -TO_RAD(rot.x), rad_y = -TO_RAD(rot.y);
 	if(rot.x == 0 && rot.y == 0 && rot.z == 0)
 	{
 		vector3f* ret = new vector3f(x, y, z);
@@ -275,10 +277,16 @@ STATUS vector3f::scalar_angle(vector3f* vec, float* angle)
 	const float length2 = vec->length();
 	*angle = ECHO_ACOSF_DEG( ( (length1 * length1) + (length2 * length2) 
 			- (distance * distance) ) / (2 * length1 * length2) );
-	/*
-	*angle = TO_DEG( acos( ( (length1 * length1) + (length2 * length2) 
-			- (distance * distance) ) / (2 * length1 * length2) ) );
-	// */
+	return(WIN);
+}
+
+STATUS vector3f::scalar_angle_with_up(float* angle)
+{
+	const float distance = dist_with_up();
+	const float length1 = length();
+	//const float length2 = vec->length();
+	*angle = ECHO_ACOSF_DEG( ( (length1 * length1) + 1
+			- (distance * distance) ) / (2 * length1) );
 	return(WIN);
 }
 
@@ -328,7 +336,6 @@ STATUS IK_angle(float length1, float length2, float distance, float* angle)
 	{
 		*angle = 180 - ECHO_ACOSF_DEG( ( (length1 * length1) + (length2 * length2) 
 			- (distance * distance) ) / (2 * length1 * length2) );
-		
 	}
 	return(WIN);
 }

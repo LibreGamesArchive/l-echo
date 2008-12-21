@@ -50,6 +50,7 @@ class vector3f
 		
 		//just the scalar angle between the two vectors
 		STATUS		scalar_angle(vector3f* vec, float* angle);
+		STATUS		scalar_angle_with_up(float* angle);
 		
 		//angle from this vector to <0, 0, 1>
 		vector3f*	angle_xy();
@@ -76,6 +77,7 @@ class vector3f
 		vector3f	normalize_angle();
 		vector3f*	negate();
 		float		dist(vector3f* other);
+		float		dist_with_up();
 		
 		void		add(vector3f* vec);
 		

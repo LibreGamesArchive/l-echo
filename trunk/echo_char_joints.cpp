@@ -21,12 +21,16 @@
 #include <echo_debug.h>
 #include <echo_error.h>
 
+/** Set all joints to zero
+ * @param joints Joints to set to zero
+ */
 int reset_joints(echo_char_joints* joints)
 {
-	if(!joints)
+	/// Have to have the joints as non-null, eh?
+	if(joints == NULL)
 		return(FAIL);
-	for(int each = 0; each < NUM_VALUES; each++)
+	/// Optimized reverse loop
+	for(int each = NUM_VALUES; --each >= 0;)
 		joints->value[each] = 0;
-	//joints->waist_turn = 60;
 	return(WIN);
 }
