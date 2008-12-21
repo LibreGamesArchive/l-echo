@@ -209,6 +209,34 @@ int stage::get_num_goals()
     return(num_goals);
 }
 
+grid* stage::get_grid_intersection(vector3f* p1, vector3f* p2, vector3f angle)
+{
+	grid* ret = NULL;
+	float shortest_dist = FLT_MAX;
+	STAGE_MAP::iterator it = grids->begin();
+	STAGE_MAP::iterator end = grids->end();
+	while(it != end)
+	{
+		if(it->second->should_land(angle) && it->second->projected_line_intersect(p1, p2, angle))
+		{
+			grid_info_t* info = it->second->get_info(angle);
+			if(info != NULL)
+			{
+				vector3f* rot = info->pos->rotate_xy(angle);
+				float dist = p1->dist(rot);
+				if(dist < shortest_dist)
+				{
+					ret = it->second;
+					shortest_dist = dist;
+				}
+				delete rot;
+			}
+		}
+		it++;
+	}
+	return(ret);
+}
+
 LEVEL_MAP* stage::get_levels_lower_than(float y)
 {
 	LEVEL_MAP::iterator it = levels->begin(), end = levels->end();

@@ -266,3 +266,14 @@ int escgrid::is_goal(vector3f angle)
 	grid* esc = get_esc(angle);
 	return(esc ? esc->is_goal(angle) : grid::is_goal(angle));
 }
+int escgrid::should_land(vector3f angle)
+{
+	grid* esc = get_esc(angle);
+	return(esc ? esc->should_land(angle) : grid::should_land(angle));
+}
+
+int escgrid::projected_line_intersect(vector3f* p1, vector3f* p2, vector3f angle)
+{
+	grid* esc = get_esc(angle);
+	return(esc ? esc->projected_line_intersect(p1, p2, angle) : grid::projected_line_intersect(p1, p2, angle));
+}

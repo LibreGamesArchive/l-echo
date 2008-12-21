@@ -57,6 +57,7 @@ class grid
 		int am_goal;
 		//int goal_angle;
 		int draw_me;
+		int landable;
 		int already_init;
 		
 		TRIGGER_SET* triggers;
@@ -105,8 +106,13 @@ class grid
 		virtual int should_draw();
 		virtual void set_draw(int draw);
 		virtual void draw(vector3f angle);
+		
+		virtual void set_land(int land);
+		virtual int should_land(vector3f angle);
 
 		virtual int is_pt_on(vector3f angle, vector3f* pt);
+		
+		virtual int projected_line_intersect(vector3f* p1, vector3f* p2, vector3f angle);
 		
 		virtual float vert_shift(float percent_in);
 

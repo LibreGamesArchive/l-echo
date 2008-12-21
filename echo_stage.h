@@ -63,6 +63,8 @@ class stage
         void set_name(std::string* name);
         void set_num_goals(int num_goals);
 
+		grid* get_grid_intersection(vector3f* p1, vector3f* p2, vector3f angle);
+		
         grid* get_start();
         std::string* get_name();
         int get_num_goals();

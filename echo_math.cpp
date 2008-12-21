@@ -176,13 +176,47 @@ vector3f* vector3f::rotate_xy(vector3f rot)
 	return(ret);
 }
 
+vector3f* vector3f::neg_rotate_xy(vector3f rot)
+{
+	if(rot.x == 0 && rot.y == 0 && rot.z == 0)
+	{
+		vector3f* ret = new vector3f(x, y, z);
+		CHKPTR(ret);
+		return(ret);
+	}
+	vector3f* ret = new vector3f(x
+			, y * ECHO_COSF(-rot.x) - z * ECHO_SINF(-rot.x)
+			, y * ECHO_SINF(-rot.x) + z * ECHO_COSF(-rot.x));
+	CHKPTR(ret);
+	float z_save = ret->z;
+	ret->z = ret->z * ECHO_COSF(-rot.y) - ret->x * ECHO_SINF(-rot.y);
+	ret->x = z_save * ECHO_SINF(-rot.y) + ret->x * ECHO_COSF(-rot.y);
+	return(ret);
+}
+
 void vector3f::set(float my_x, float my_y, float my_z)
 {
 	x = my_x;
 	y = my_y;
 	z = my_z;
 }
-
+vector3f* vector3f::rotate_yx(vector3f rot)
+{
+	//float rad_x = -TO_RAD(rot.x), rad_y = -TO_RAD(rot.y);
+	if(rot.x == 0 && rot.y == 0 && rot.z == 0)
+	{
+		vector3f* ret = new vector3f(x, y, z);
+		CHKPTR(ret);
+		return(ret);
+	}
+	vector3f* ret = new vector3f(z * ECHO_SINF(rot.y) + x * ECHO_COSF(rot.y), y
+                                , z * ECHO_COSF(rot.y) - x * ECHO_SINF(rot.y));
+	CHKPTR(ret);
+	float y_save = ret->y;
+	ret->y = ret->y * ECHO_COSF(rot.x) - ret->z * ECHO_SINF(rot.x);
+	ret->z = y_save * ECHO_SINF(rot.x) + ret->z * ECHO_COSF(rot.x);
+	return(ret);
+}
 vector3f* vector3f::neg_rotate_yx(vector3f rot)
 {
 	//float rad_x = -TO_RAD(rot.x), rad_y = -TO_RAD(rot.y);
@@ -297,6 +331,37 @@ STATUS IK_angle(float length1, float length2, float distance, float* angle)
 		
 	}
 	return(WIN);
+}
+
+/// Adapted from http://www.idevgames.com/forum/showthread.php?t=7458
+int lineSeg_intersect(vector3f* a1, vector3f* a2, vector3f* b1, vector3f* b2)
+{
+    float a1yb1y = a1->y - b1->y;
+    float a1xb1x = a1->x - b1->x;
+    float a2xa1x = a2->x - a1->x;
+    float a2ya1y = a2->y - a1->y;
+	
+    //----------------------------------------------------------------------
+	
+    float crossa = a1yb1y * (b2->x - b1->x) - a1xb1x * (b2->y - b1->y);
+    float crossb = a2xa1x * (b2->y - b1->y) - a2ya1y * (b2->x - b1->x);
+	
+    //----------------------------------------------------------------------
+    
+    if(crossb == 0)
+		return(false);
+    else if(fabs(crossa) > fabs(crossb) || crossa * crossb < 0)
+		return(false);
+    else
+    {
+		crossa = a1yb1y * a2xa1x - a1xb1x * a2ya1y;
+		if(fabs(crossa) > fabs(crossb) || crossa * crossb < 0)
+			return(false);
+    }
+    
+    //----------------------------------------------------------------------
+    
+    return(true);
 }
 
 //-----------ANGLE_RANGE----------

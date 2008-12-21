@@ -49,8 +49,12 @@ class escgrid : public grid
 		//virtual line3f* get_lines(vector3f angle);
 		virtual void draw(vector3f angle);
 		virtual int equals(grid* g, vector3f angle);
-
+		
+		virtual int should_land(vector3f angle);
+		
 		virtual void set_as_goal();
+		
+		virtual int projected_line_intersect(vector3f* p1, vector3f* p2, vector3f angle);
 		
 		virtual void toggle_goal(vector3f angle);
 		virtual int is_goal(vector3f angle);

@@ -1204,7 +1204,10 @@ static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, e
 							if(echo_xml_get_int_attribute(txe, "noland", &noland) == WIN)
 							{
 								if(noland)
+								{
+									new_grid->set_land(0);
 									LD_PRINT("it's not land-able!\n");
+								}
 							}
 							if(!escroot)
 							{
