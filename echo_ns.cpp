@@ -30,14 +30,12 @@
 
 #include <grid.h>
 #include <hole.h>
-//#include <isect_grid.h>
 
 #define NULL_CHAR_OPACITY_MIN   0.25f
 
 namespace echo_ns
 {
 	grid* hole_grid = new grid();
-	//CHKPTR(hole_grid);
 	
 	float null_char_opacity = NULL_CHAR_OPACITY_MIN;
 	int opacity_incr = 1;
@@ -46,8 +44,6 @@ namespace echo_ns
 	echo_char* main_char = NULL;
 	stage* current_stage = NULL;
 	int started;
-	//CAM_MAPS* maps = new CAM_MAPS();
-	//STATIC_SET* statics = new STATIC_SET();
 	
 	void deallocate()
 	{
@@ -56,7 +52,6 @@ namespace echo_ns
 		if(main_char != NULL)
 			delete main_char;
 		delete hole_grid;
-		//delete statics;
 	}
 	void init(stage* st)
 	{
@@ -84,18 +79,9 @@ namespace echo_ns
 	{
 		if(current_stage != NULL)
 		{
-			/*
-			STATIC_SET::iterator it = statics->begin(), end = statics->end();
-			while(it != end)
-			{
-				(*it)->refresh(angle);
-				it++;
-			}
-			// */
 			current_stage->draw(angle);
 			if(started)
 			{
-				//gfx_color3f(0.5f, 0.5f, 0.5f);
 				main_char->step();
 			}
 			else

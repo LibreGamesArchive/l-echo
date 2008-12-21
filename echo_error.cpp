@@ -47,9 +47,6 @@ void genmemerr()
 {
 	ECHO_PRINT("Cannot allocate memory!\n");
 	std::exit(1);
-	// to force a trace
-	//char* c = NULL;
-	//*c = 'l';
 }
 
 void echo_error(const char* msg)

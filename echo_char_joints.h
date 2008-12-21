@@ -21,7 +21,9 @@
 
 #ifndef __ECHO_CHAR_JOINTS__
 #define __ECHO_CHAR_JOINTS__
-#define NUM_VALUES	27	//just count them
+/// Number of values in echo_char_joints...Just count them
+#define NUM_VALUES	27
+
 /** This union represents the joints and possible ways of bending them (at least, based on my body)
  * This is setup so that there are two ways to access a value:
  * 1) joints->[joint/body part]_[axis of rotation] (front is negative z, up is positive y, right is negative x)
@@ -31,7 +33,7 @@
  **/
 typedef union
 {
-	float value[27];
+	float value[NUM_VALUES];
 	struct
 	{
 		float head_x; 	//nodding
@@ -110,5 +112,8 @@ typedef union
 	};
 } echo_char_joints;
 
+/** Set all joints to zero
+ * @param joints Joints to set to zero
+ */
 int reset_joints(echo_char_joints* joints);
 #endif

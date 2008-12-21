@@ -166,6 +166,11 @@ class echo_char
 		float get_speed();
 	
 	protected:
+		/** Checks if the grid given is a goal, and if it is, the character
+		 * will toggle the goal, set it as its new spawn spot, and add to the goal count
+		 * @param g Grid to check
+		 */
+		void check_goal(grid* g);
 		/** Draws the character at (x,y,z)
 		 * @param x X-coordinate of the character
 		 * @param y Y-coordinate of the character

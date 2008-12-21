@@ -20,29 +20,47 @@
 #include <cstdlib>
 #include <iostream>
 
-/*
-#define	WIN		0
-#define FAIL	-1
-// */
-
 #ifndef __ECHO_STATUS__
 	#define __ECHO_STATUS__
+	/** The Internet is serious business! And so is statuses */
 	enum STATUS { FAIL = 0, WIN = 1};
 #endif
 
+/// All of these functions are used by the loader
+/** Report an error while loading
+ * @param msg The error message
+ */
 void lderr(const char* msg);
-void ldmemerr();
+/** Report an error while loading
+ * @param msg1 The first error message
+ * @param msg2 The second error message, concatenated onto this first.
+ */
 void lderr(const char* msg1, const char* msg2);
+/** Reports a memory error (usually the inability to allocate memory), and quits
+ * Used by the loader
+ */
+void ldmemerr();
+/** Report a warning while loading
+ * @param msg The warning message
+ */
 void ldwarn(const char* msg);
 
-//GENeral MEMory ERRor
+/** Stands for GENeral MEMory ERRor;
+ * Reports a memory error (usually the inability to allocate memory), and quits
+ */
 void genmemerr();
+/** Report a generic error, and quits
+ * @param msg The error message
+ */
 void echo_error(const char* msg);
 
 #ifdef STRICT_MEM
-	#define CHKPTR(ptr) 	if(!(ptr)) genmemerr();
-	#define LD_CHKPTR(ptr)	if(!(ptr)) ldmemerr();
+	/// Check the pointer, and if it's NULL, just quit
+	#define CHKPTR(ptr) 	if((ptr) == NULL) genmemerr();
+	/// Same as LD_CHKPTR, but used by the loader
+	#define LD_CHKPTR(ptr)	if((ptr) == NULL) ldmemerr();
 #else
+	/// Eat the line
 	#define CHKPTR(ptr)
 	#define LD_CHKPTR(ptr)
 #endif
