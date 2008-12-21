@@ -305,177 +305,71 @@ void echo_char::next_grid()
 	grid1per = 1;
 }
 
-/** Utility method that finds the point that is the intersection between the
- * ray that starts at "prev_pos" and is in the direction of unit vector "vec",
- * and the plane with y-coordinate "level_y".
- * @param prev_pos The position the ray starts from.
- * @param vec UNIT vector that the ray points in.
- * @param level_y The y_coordinate of the 
- */
-static vector3f* end_pt(vector3f* prev_pos, vector3f* vec, float level_y)
-{
-	if(vec->y != 0)
-	{
-		float delta_y = level_y - prev_pos->y;
-		if((delta_y > 0 && vec->y < 0) || (delta_y < 0 && vec->y > 0))
-			return(NULL);
-		vec = (*vec) * (delta_y / vec->y);
-	}
-	else
-		return(NULL);
-	vector3f* ret = *prev_pos + vec;
-	delete vec;
-	CHKPTR(ret);
-	return(ret);
-}
-
-static grid* check_level(GRID_PTR_SET* level, vector3f* pos, vector3f* my_end_pt, vector3f angle)
-{
-	GRID_PTR_SET::iterator it = level->begin(), end = level->end();
-	grid* g = NULL;
-	while(it != end)
-	{
-		g = *it;
-		if(g->is_pt_on(angle, my_end_pt))
-		{
-			return(g);
-		}
-		it++;
-	}
-	return(NULL);
-}
-
-static grid* check_levels_above(LEVEL_MAP* levels_above, vector3f* pos, vector3f* vec, vector3f angle)
-{
-	if(levels_above->size() < 1)
-		return(NULL);
-	LEVEL_MAP::iterator it = levels_above->begin(), end = levels_above->end();
-	vector3f* pt = NULL;
-	grid* g = NULL;
-	while(it != end)
-	{
-		pt = end_pt(pos, vec, it->first);
-		if(pt == NULL)
-		{
-			pt = new vector3f();
-			CHKPTR(pt);
-			pt->set(pos);
-		}
-		g = check_level(it->second, pos, pt, angle);
-		delete pt;
-		if(g != NULL)
-			return(g);
-		it++;
-	}
-	return(NULL);
-}
-
-static grid* check_levels_below(LEVEL_MAP* levels_below, vector3f* pos, vector3f* vec, vector3f angle)
-{
-	if(levels_below->size() < 1)
-		return(NULL);
-	LEVEL_MAP::iterator it = levels_below->end(), end = levels_below->begin();
-	vector3f* pt = NULL;
-	grid* g = NULL;
-	do
-	{
-		it--;
-		pt = end_pt(pos, vec, it->first);
-		if(pt == NULL)
-		{
-			pt = new vector3f();
-			CHKPTR(pt);
-			pt->set(pos);
-		}
-		if(g != NULL)
-			return(g);
-	}
-	while(it != end);
-	return(NULL);
-}
-
 void echo_char::step()
 {
 	gfx_color3f(0.5f, 0.5f, 0.5f);
 	if(speed == SPEED_FALL_FROM_SKY)
 	{
 		draw(fall_position);
-		if(fall_position->y < target_y)
+		if(!paused)
 		{
-			if(typeid(*grid1) == typeid(hole))
-				initialize_falling(fall_position);
+			if(fall_position->y < target_y)
+			{
+				if(typeid(*grid1) == typeid(hole))
+					initialize_falling(fall_position);
+				else
+					land(grid1, true);
+			}
 			else
-				land(grid1, true);
-		}
-		else
-		{
-			if(!paused)
+			{
 				/// Do the falling...
 				fall_position->y -= actual_speed * WAIT / 1000;
-		}
-		if(!paused)
+			}
 			actual_speed += ACCEL * WAIT / 1000;
+		}
 	}
 	else if(speed == SPEED_FALL)
 	{
-		vector3f* relative_pos = fall_position->rotate_xy(echo_ns::angle);
-		draw(relative_pos);
-		if(relative_pos->y < echo_ns::get_lowest_level() - 5)
+		vector3f* absolute_pos = fall_position->rotate_xy(echo_ns::angle);
+		draw(absolute_pos);
+		if(!paused)
 		{
-			reset();
-		}
-		else
-		{
-			//check for available places to fall onto
-			grid* cam_grid = NULL;
-			vector3f* cam_real = echo_ns::angle.angle_to_real();
-			vector3f* cam_vec = (*relative_pos) - cam_real;
-			vector3f* neg_cam_vec = cam_vec->negate();
-			if(cam_real->y > 0) //viewing downwards
+			if(absolute_pos->y < echo_ns::get_lowest_level() - 5)
 			{
-				LEVEL_MAP* levels_below = echo_ns::current_stage->get_levels_lower_than(relative_pos->y);
-				cam_grid = check_levels_below(levels_below, relative_pos, cam_vec, echo_ns::angle);
-				delete levels_below;
-				if(cam_grid == NULL || typeid(*cam_grid) == typeid(hole))
+				reset();
+			}
+			else
+			{
+				//check for available places to fall onto
+				grid* cam_grid = NULL;
+				vector3f* next_absolute_pos = new vector3f();
+				CHKPTR(next_absolute_pos);
+				next_absolute_pos->set(absolute_pos);
+				next_absolute_pos->y -= actual_speed * WAIT / 1000;
+				
+				vector3f* p1 = absolute_pos->neg_rotate_xy(echo_ns::angle);
+				vector3f* p2 = next_absolute_pos->neg_rotate_xy(echo_ns::angle);
+				cam_grid = echo_ns::current_stage->get_grid_intersection(p1, p2, echo_ns::angle);
+				
+				if(cam_grid != NULL && typeid(*cam_grid) != typeid(hole))
 				{
-					LEVEL_MAP* levels_above = echo_ns::current_stage->get_levels_higher_than(relative_pos->y);
-					cam_grid = check_levels_above(levels_above, relative_pos, neg_cam_vec, echo_ns::angle);
-					delete levels_above;
+					delete fall_position;
+					fall_position = NULL;
+					land(cam_grid, true);
 				}
-			}
-			else //viewing up
-			{
-				LEVEL_MAP* levels_above = echo_ns::current_stage->get_levels_higher_than(relative_pos->y);
-				cam_grid = check_levels_above(levels_above, relative_pos, cam_vec, echo_ns::angle);
-				delete levels_above;
-				if(cam_grid == NULL || typeid(*cam_grid) == typeid(hole))
+				else 
 				{
-					LEVEL_MAP* levels_below = echo_ns::current_stage->get_levels_lower_than(relative_pos->y);
-					cam_grid = check_levels_below(levels_below, relative_pos, neg_cam_vec, echo_ns::angle);
-					delete levels_below;
+					//do the falling...
+					actual_speed += ACCEL * WAIT / 1000;
+					//renew the fall_position
+					delete fall_position;
+					fall_position = next_absolute_pos->neg_rotate_yx(echo_ns::angle);
 				}
-			}
-			delete cam_real;
-			delete neg_cam_vec;
-			delete cam_vec;
-			if(cam_grid != NULL && typeid(*cam_grid) != typeid(hole))
-			{
-				delete fall_position;
-				fall_position = NULL;
-				land(cam_grid, true);
-			}
-			else if(!paused)
-			{
-				//do the falling...
-				relative_pos->y -= actual_speed * WAIT / 1000;
-				actual_speed += ACCEL * WAIT / 1000;
-				//renew the fall_position
-				delete fall_position;
-				fall_position = relative_pos->neg_rotate_yx(echo_ns::angle);
+				delete next_absolute_pos;
 			}
 		}
 		//delete the vector
-		delete relative_pos;
+		delete absolute_pos;
 	}
 	else if(grid1 != NULL)
 	{

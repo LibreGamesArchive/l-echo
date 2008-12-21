@@ -55,8 +55,10 @@ class vector3f
 		vector3f*	angle_xy();
 		//rotate from the screen to the world via the camera angle
 		vector3f* 	rotate_xy(vector3f rot);
+		vector3f* 	neg_rotate_xy(vector3f rot);
 		//rotate from the world to the screen via the camera angle
 		vector3f*	neg_rotate_yx(vector3f rot);
+		vector3f*	rotate_yx(vector3f rot);
 		//rotate around y axis, putting it in a new vector
 		vector3f*	rotate_about_y(float angle);
 		//rotate around y axis, putting answers bak in myself
@@ -105,6 +107,8 @@ class angle_range
 #define VECPTR_TO_RANGE(v)    (new angle_range(v, v))
 
 STATUS IK_angle(float length1, float length2, float distance, float* angle);
+int lineSeg_intersect(vector3f* a1, vector3f* a2, vector3f* b1, vector3f* b2);
+
 float echo_sin(int deg);
 float echo_cos(int deg);
 float echo_sin(float deg);

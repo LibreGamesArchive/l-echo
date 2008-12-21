@@ -87,6 +87,7 @@ void grid::init_to_null()
 	polyID = 0;
 #endif
 	already_init = 1;
+	landable = 1;
 }
 
 void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, int my_num_neighbors)
@@ -327,6 +328,51 @@ float grid::vert_shift(float percent_in)
 	//return(-0.05f);
 	return(0.05f * echo_cos(360 * percent_in) - 0.05f);
 }
+
+int grid::projected_line_intersect(vector3f* p1, vector3f* p2, vector3f angle)
+{
+	vector3f* proj_pt0 = points[0]->neg_rotate_xy(angle);
+	vector3f* proj_pt1 = points[1]->neg_rotate_xy(angle);
+	vector3f* proj_pt2 = points[2]->neg_rotate_xy(angle);
+	vector3f* proj_pt3 = points[3]->neg_rotate_xy(angle);
+	
+	/*
+	ECHO_PRINT("points of grid: ");
+	ginfo->pos->dump();
+	ECHO_PRINT("\n");
+	points[0]->dump();
+	proj_pt0->dump();
+	ECHO_PRINT("\n");
+	proj_pt1->dump();
+	ECHO_PRINT("\n");
+	proj_pt2->dump();
+	ECHO_PRINT("\n");
+	proj_pt3->dump();
+	ECHO_PRINT("\n");
+	ECHO_PRINT("\npoints: ");
+	p1->dump();
+	ECHO_PRINT("\n");
+	p2->dump();
+	ECHO_PRINT("\n");
+	ECHO_PRINT("\n");
+	// */
+	int ret = lineSeg_intersect(p1, p2, proj_pt0, proj_pt1) 
+		|| lineSeg_intersect(p1, p2, proj_pt1, proj_pt2)
+		|| lineSeg_intersect(p1, p2, proj_pt2, proj_pt3)
+		|| lineSeg_intersect(p1, p2, proj_pt3, proj_pt0);
+	delete proj_pt0, proj_pt1, proj_pt2, proj_pt3;
+	return(ret);
+}
+
+void grid::set_land(int land)
+{
+	landable = land;
+}
+int grid::should_land(vector3f angle)
+{
+	return(landable);
+}
+
 #ifdef ECHO_NDS
 unsigned int grid::get_polyID(vector3f angle)
 {

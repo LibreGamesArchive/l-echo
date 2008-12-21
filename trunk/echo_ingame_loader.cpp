@@ -43,6 +43,7 @@
 	#include <libgen.h>
 #endif
 #include <fcntl.h>
+#include <errno.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -71,7 +72,27 @@ STATUS echo_execdir(char** save)
 		GetModuleFileName(NULL, exe, MAX_PATH);
 		return(echo_parentdir(exe, save));
 #elif	ECHO_OSX
+		/// Just use cwd
+		*save = NULL;
+		int size = 0;
+		char* result = 0;
+		do
+		{
+			size += PATH_MAX;
+			if(*save != NULL)
+				delete *save;
+			*save = new char[size];
+			CHKPTR(*save);
+			result = getcwd(*save, size * sizeof(char));
+		}
+		while(result == NULL && errno == ERANGE);
+		if(result == NULL)
+			return(FAIL);
+		else
+			return(WIN);
 #else
+		
+		//*
 		//copied from l-portable
 		
 		//step 1: get the directory of this binary
@@ -120,6 +141,7 @@ STATUS echo_execdir(char** save)
 			strcpy(*save, pwd);
 			return(WIN);
 		}
+		// */
 #endif
 	}
 	return(FAIL);
