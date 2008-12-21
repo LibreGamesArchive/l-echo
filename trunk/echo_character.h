@@ -166,10 +166,6 @@ class echo_char
 		float get_speed();
 	
 	protected:
-		/** Draws the character at vec
-		 * @param vec Where to draw the character
-		 */
-		void draw(vector3f* vec);
 		/** Draws the character at (x,y,z)
 		 * @param x X-coordinate of the character
 		 * @param y Y-coordinate of the character

@@ -17,7 +17,7 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/* Your standard libraries
+/** Your standard libraries
  * typeinfo is used to find if the grid is a hole, so the character can fall
  * through the hole if the first grid is one.
  */
@@ -27,7 +27,7 @@
 #include <cmath>
 #include <cfloat>
 
-/* L-Echo libraries (not grids)
+/** L-Echo libraries (not grids)
  */
 #include <echo_platform.h>
 #include <echo_sys.h>
@@ -39,30 +39,33 @@
 #include <echo_char_joints.h>
 #include <echo_stage.h>
 
-/* grids; just launchers and holes are discriminated against, because
+/** Grids; just launchers and holes are discriminated against, because
  * the character is responsible for flying and falling
  */
 #include <launcher.h>
 #include <grid.h>
 #include <hole.h>
 
-//need to measure the body sizes in order to do IK correctly
+/// Need to measure the body sizes in order to do IK correctly
 #include <gen/gen.h>
 
-//how high aboce the start grid does the character start?
+/// How high above the start grid does the character start?
 #define STARTY		10
 
-//the acceleration constant
+/// The acceleration constant
 #define ACCEL		15.0f
 
-//various character speeds
-//percentage (we change the weight from grid1 to grid2 to make the character go in grid mode)
+/// Various character speeds
+/// Percentage (we change the weight from grid1 to grid2 to make the character go in grid mode)
 #define SPEED_STEP 			0.07f
 #define SPEED_RUN			0.25f
-//actual speeds (in flying/falling mode)
+/// Actual speeds (in flying/falling mode) in Units/Sec
 #define SPEED_FALL 			0.00f
 #define SPEED_LAUNCH		0.30f
 #define SPEED_FALL_FROM_SKY	0.50f
+
+/// Convenience macro to draw at a particular vector3f
+#define DRAW_VEC(vec)		draw((vec)->x, (vec)->y, (vec)->z)
 
 /** Initialize, and prepare to fall to that grid.
  * @param start The initial grid on which to spawn
@@ -284,9 +287,12 @@ void echo_char::next_grid()
 	///Only works if there is a grid2 that can tell us our next grid
 	if(grid2 != NULL)
 	{
-		/// If the grid this character just arrived at is a goal, toggle it.
+		/// If the grid this character just arrived at is a goal...
 		if(grid2->is_goal(echo_ns::angle))
 		{
+			/// Set our next spawn spot at that goal
+			start = grid2;
+			/// Toggle the goal
 			grid2->toggle_goal(echo_ns::angle);
 			/// Increment the character's goal count
 			num_goals++;
@@ -305,184 +311,217 @@ void echo_char::next_grid()
 	grid1per = 1;
 }
 
+/// Take one step in animation and movement; call each frame
 void echo_char::step()
 {
-	gfx_color3f(0.5f, 0.5f, 0.5f);
+	/// If the character is (re)spawning...
 	if(speed == SPEED_FALL_FROM_SKY)
 	{
-		draw(fall_position);
+		/// Draw the fall_position (which is absolute in this case), even if the character is paused
+		DRAW_VEC(fall_position);
 		if(!paused)
 		{
+			/// Fall by decreasing the y
+			fall_position->y -= actual_speed * WAIT / 1000;
+			/// The character is accelerating
+			actual_speed += ACCEL * WAIT / 1000;
+			/// If the character is below the target...
 			if(fall_position->y < target_y)
 			{
+				/// ...and if the character's target is a hole...
 				if(typeid(*grid1) == typeid(hole))
+					/// ...fall into the hole so that there isn't an weird and unnecessary shift between fall_position and grid1's position.
 					initialize_falling(fall_position);
+				
+				/// ...and if the character's target is not a hole...
 				else
+					/// ...just land on it.
 					land(grid1, true);
 			}
-			else
-			{
-				/// Do the falling...
-				fall_position->y -= actual_speed * WAIT / 1000;
-			}
-			actual_speed += ACCEL * WAIT / 1000;
 		}
 	}
+	/// If the character fell through a hole...
 	else if(speed == SPEED_FALL)
 	{
+		/// Get the abolute position from the relative position stored inside fall_position
 		vector3f* absolute_pos = fall_position->rotate_xy(echo_ns::angle);
-		draw(absolute_pos);
+		/// Draw it
+		DRAW_VEC(absolute_pos);
 		if(!paused)
 		{
+			/// If the character fell off the stage (defined as 5 units lower than the lowest level)...
 			if(absolute_pos->y < echo_ns::get_lowest_level() - 5)
 			{
+				/// Reset
 				reset();
 			}
+			/// If not...
 			else
 			{
-				//check for available places to fall onto
-				grid* cam_grid = NULL;
-				vector3f* next_absolute_pos = new vector3f();
+				/// Get the character's next position; same as the current absolute position, but moved downwards
+				vector3f* next_absolute_pos = new vector3f(absolute_pos->x,
+									absolute_pos->y - actual_speed * WAIT / 1000,
+									absolute_pos->z);
 				CHKPTR(next_absolute_pos);
-				next_absolute_pos->set(absolute_pos);
-				next_absolute_pos->y -= actual_speed * WAIT / 1000;
 				
+				/// Checking for grids to fall on
+				
+				/** Get the projected equivalents of the absolute grids;
+				 * it's neg_rotate_xy because that's what the display function in main does
+				 */
 				vector3f* p1 = absolute_pos->neg_rotate_xy(echo_ns::angle);
 				vector3f* p2 = next_absolute_pos->neg_rotate_xy(echo_ns::angle);
-				cam_grid = echo_ns::current_stage->get_grid_intersection(p1, p2, echo_ns::angle);
+				/// Get the fall_grid, if any
+				grid* fall_grid = echo_ns::current_stage->get_grid_intersection(p1, p2, echo_ns::angle);
+				/// Clean up
+				delete p1;
+				delete p2;
 				
-				if(cam_grid != NULL && typeid(*cam_grid) != typeid(hole))
+				/** If there is a grid to fall on and it isn't a hole
+				 * (otherwise, the character will keep falling through the same hole)
+				 */
+				if(fall_grid != NULL && typeid(*fall_grid) != typeid(hole))
 				{
+					/// Clear fall_position (don't need to check for NULL, because it'll be too slow, and it won't happen)
 					delete fall_position;
 					fall_position = NULL;
-					land(cam_grid, true);
+					/// Land on that grid
+					land(fall_grid, true);
 				}
 				else 
 				{
-					//do the falling...
+					/// Accelerate
 					actual_speed += ACCEL * WAIT / 1000;
-					//renew the fall_position
+					/// Clear fall_position (don't need to check for NULL, because it'll be too slow, and it won't happen)
 					delete fall_position;
+					/// Get the next fall_position by rotating the next absolute position back
 					fall_position = next_absolute_pos->neg_rotate_yx(echo_ns::angle);
 				}
+				/// Clean up
 				delete next_absolute_pos;
 			}
 		}
-		//delete the vector
+		/// Clean up
 		delete absolute_pos;
 	}
+	/// Else, it's just Grid Mode (requires both grids)
 	else if(grid1 != NULL)
 	{
-		if(grid1->is_goal(echo_ns::angle))
+		/// If we also have a second grid to walk/run across...
+		if(grid2 != NULL)
 		{
-			start = grid1;
-			grid1->toggle_goal(echo_ns::angle);
-			num_goals++;
-		}
-		if(grid2 != NULL)	//if both grids are there
-		{
+			/// Get the positions of the grids...
 			grid_info_t* i1 = grid1->get_info(echo_ns::angle);
 			if(i1 != NULL)
 			{
 				vector3f* pos1 = i1->pos;
-				if(pos1 != NULL)
+				grid_info_t* i2 = grid2->get_info(echo_ns::angle);
+				if(i2 != NULL)
 				{
-					grid_info_t* i2 = grid2->get_info(echo_ns::angle);
-					if(i2 != NULL)
+					vector3f* pos2 = i2->pos;
+					/// If the character is not paused...
+					if(!paused)
 					{
-						vector3f* pos2 = i2->pos;
-						if(pos2 != NULL)
+						/// Step through the animation cycle
+						dist_traveled += speed * 2;		/// Slightly inflated
+						dist_traveled_cyclic += speed * 180;
+						/// Cycle back if the variables have reached the end
+						if(dist_traveled_cyclic > 360)
 						{
-							if(!paused)
+							dist_traveled -= 4;	
+							dist_traveled_cyclic -= 360;
+						}
+						/// Cache the distance between grids
+						dist = pos1->dist(pos2);
+						/** Make the walking slightly more realistic by having the character accelerate/decelerate 
+						 * This particular walk cycle is similar to one here:
+						 * http://www.idleworm.com/how/anm/02w/walk1.shtml
+						 */
+						if(dist_traveled > 0.5f && dist_traveled <= 1)
+							grid1per -= (1 + 1 * echo_cos(90 * dist_traveled - 22.5f)) * speed / dist;
+						else if(dist_traveled > 2.5f && dist_traveled <= 3)
+							grid1per -= (1 + 1 * echo_cos(90 * dist_traveled + 67.5f)) * speed / dist;
+						else
+							grid1per -= speed / dist;
+						
+						/// If the character reached the end of its walk cycle
+						if(grid1per <= 0)
+						{
+							/// Go on to the next grid
+							next_grid();
+							/// Shift the positions over
+							pos1 = pos2;
+							/// Get the new grid2's position
+							if(grid2 != NULL)
 							{
-								dist_traveled += speed * 2;	//inflate it a little
-								dist_traveled_cyclic += speed * 180;
-								if(dist_traveled_cyclic > 360)
+								i2 = grid2->get_info(echo_ns::angle);
+								if(i2 != NULL)
 								{
-									dist_traveled -= 4;	
-									dist_traveled_cyclic -= 360;	
-								}
-								dist = pos1->dist(pos2);
-								if(dist_traveled > 0.5f && dist_traveled <= 1)
-								{
-									grid1per -= (1 + 1 * echo_cos(90 * dist_traveled - 22.5f)) * speed / dist;	//step thru it
-								}
-								else if(dist_traveled > 2.5f && dist_traveled <= 3)
-								{
-									grid1per -= (1 + 1 * echo_cos(90 * dist_traveled + 67.5f)) * speed / dist;	//step thru it
-								}
-								else
-								{
-									grid1per -= speed / dist;	//step thru it
-								}
-								
-								if(grid1per <= 0)	//if we've reached the end of this cycle
-								{
-									next_grid();	//on to the next cycle
-									pos1 = pos2;
-									if(grid2)
-									{
-										i2 = grid2->get_info(echo_ns::angle);
-										if(i2)
-										{
-											pos2 = i2->pos;
-										}
-									}
+									pos2 = i2->pos;
 								}
 							}
-							draw(pos1->x * grid1per + pos2->x * (1 - grid1per),
-									pos1->y * grid1per + pos2->y * (1 - grid1per),
-									pos1->z * grid1per + pos2->z * (1 - grid1per));
 						}
-						else
-							echo_error("Position of the second grid is NULL!\n");
 					}
-					else
-						draw(i1->pos);
+					/// Draw the character at a weighted average of the positions
+					draw(pos1->x * grid1per + pos2->x * (1 - grid1per),
+							pos1->y * grid1per + pos2->y * (1 - grid1per),
+							pos1->z * grid1per + pos2->z * (1 - grid1per));
 				}
+				/// If grid2's position could not be acquired...
 				else
-					echo_error("Position of the first grid is NULL!\n");
+					/// Just draw the character at grid1
+					DRAW_VEC(i1->pos);
 			}
-			else
-				echo_error("Info of the first grid is NULL!\n");
 		}
-		else	//if there isn't a second grid...
+		/// If there isn't a second grid...
+		else
 		{
-			grid2 = grid1->get_next(echo_ns::angle, grid1);	//try to get one
-			change_speed();
-			if(!grid2)	//if there still isn't a second grid...
+			/// Attempt to acquired one (perhaps grid1 shifted an esc over?)
+			grid2 = grid1->get_next(echo_ns::angle, grid1);
+			/// If there still isn't a second grid...
+			if(grid2 == NULL)
 			{
-				draw(grid1->get_info(echo_ns::angle)->pos);	//return grid1's position
+				/// Just draw the character at grid1
+				grid_info_t* i1 = grid1->get_info(echo_ns::angle);
+				if(i1 != NULL)
+					DRAW_VEC(i1->pos);
+			}
+			/// Else, we need to change speed and step again (hopefully no recursion stuff...?)
+			else
+			{
+				change_speed();
+				step();
 			}
 		}
 	}
 }
-
+/** Get the current direction of the character.
+ * @return The current direction of the character, or grid2's position - grid1's
+ */
 vector3f* echo_char::get_direction()
 {
-	if(grid2 != NULL)	//if both grids are there
+	/// If the character has both grids...
+	if(grid1 != NULL && grid2 != NULL)
 	{
+		/// Get grid1's position
 		grid_info_t* i1 = grid1->get_info(echo_ns::angle);
 		if(i1 != NULL)
 		{
+			/// Get grid2's position
 			grid_info_t* i2 = grid2->get_info(echo_ns::angle);
 			if(i2 != NULL)
+				/// Return their subtraction
 				return(i2->pos->sub_new(i1->pos));
-			else
-				echo_error("Info of the second grid is NULL!\n");
-			
 		}
-		else
-			echo_error("Info of the first grid is NULL!\n");
 	}
+	/// Failed
 	return(NULL);
 }
-
-void echo_char::draw(vector3f* vec)
-{
-	draw(vec->x, vec->y, vec->z);
-}
-
+/** Draws the character at (x,y,z)
+ * @param x X-coordinate of the character
+ * @param y Y-coordinate of the character
+ * @param z Z-coordinate of the character
+ */
 void echo_char::draw(float x, float y, float z)
 {
 	gfx_push_matrix();
@@ -613,7 +652,9 @@ void echo_char::draw(float x, float y, float z)
 	}
 	gfx_pop_matrix();
 }
-
+/** Returns the "speed" variable (see speed attribute)
+ * @return "speed" (see speed attribute)
+ */
 float echo_char::get_speed()
 {
 	return(speed);
