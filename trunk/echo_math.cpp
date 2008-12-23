@@ -33,7 +33,7 @@
 	#define ECHO_SINI(deg)			((int)f32tofloat(sinLerp(degreesToAngle(deg))))
 	#define ECHO_SINF(deg)			(f32tofloat(sinLerp(degreesToAngle(deg))))
 	
-	#define ECHO_ACOSF_DEG(ratio)	(angleToDegrees(acosLerp(floatToFixed((ratio), 12))))
+	#define ECHO_ACOSF_DEG(ratio)	(angleToDegrees(acosLerp(floattof32(ratio))))
 #else
 	static float cos_table[360];
 	

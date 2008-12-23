@@ -17,27 +17,39 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <echo_platform.h>
 #include <echo_stage.h>
 #include <echo_loader.h>
 
 #ifndef __ECHO_INTERNAL_FILES__
 #define __ECHO_INTERNAL_FILES__
-typedef struct
+/** @brief A list of files;\n
+ * Used for menus and loading.
+ */
+struct echo_files
 {
+	/// The current directory; ALWAYS dynamically allocated
 	char* current_dir;
+	/// Array of files names; this array and file names are always ALWAYS dynamically allocated
 	char** file_names;
+	/// The number of file names contained in file_names.
 	int num_files;
-#ifdef ARM9
+#ifdef ECHO_NDS
+	/** The NDS can't use stat for some reason (at loeast, when I wrote this 
+	 * loader), so the directories are placed at the top when loading.
+	 * num_dir is the number of directories there are, and thus the index
+	 * to the first file.
+	 */
 	int num_dir;
 #endif
-} echo_files;
+};
 #endif
 
 STATUS delete_echo_files(echo_files* files);
 
-#ifndef ARM9
-int is_dir(const char* dir, const char* fname);
-int is_dir(const char* fname);
+#ifndef ECHO_NDS
+	int is_dir(const char* dir, const char* fname);
+	int is_dir(const char* fname);
 #endif
 
 char* echo_merge(const char* arg1, const char* arg2);

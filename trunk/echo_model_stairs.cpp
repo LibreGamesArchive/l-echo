@@ -34,7 +34,7 @@
 
 
 //stats: LATS: 6, ANGLE_INCR: 0.523599, NDS_LATS: 2, NDS_ANGLE_INCR: 1.570796
-#ifdef ARM9
+#ifdef ECHO_NDS
 	#define SET_ID(id)	gfx_set_polyID(id)
 #else
 	#define SET_ID(id)
