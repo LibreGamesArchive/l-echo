@@ -68,7 +68,7 @@
 #define DRAW_VEC(vec)		draw((vec)->x, (vec)->y, (vec)->z)
 
 /** Initialize, and prepare to fall to that grid.
- * @param start The initial grid on which to spawn
+ * @param g1 The initial grid on which to spawn
  */
 echo_char::echo_char(grid* g1)
 {
@@ -326,6 +326,8 @@ void echo_char::next_grid()
 /// Take one step in animation and movement; call each frame
 void echo_char::step()
 {
+	/// Set the color to white
+	gfx_color3f(1, 1, 1);
 	/// If the character is (re)spawning...
 	if(speed == SPEED_FALL_FROM_SKY)
 	{

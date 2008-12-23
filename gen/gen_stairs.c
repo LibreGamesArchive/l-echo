@@ -7,7 +7,7 @@ int main()
 {
 	PRINT_STATS;
 	float each = -0.5f;
-	printf("#ifdef ARM9\n");
+	printf("#ifdef ECHO_NDS\n");
 	printf("\t#define SET_ID(id)	gfx_set_polyID(id)\n");
 	printf("#else\n");
 	printf("\t#define SET_ID(id)\n");

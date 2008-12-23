@@ -24,7 +24,7 @@
 
 #ifndef __ECHO_CHARACTER__
 #define __ECHO_CHARACTER__
-/** @brief echo_char represent an active mannequin (i.e., not a goal, or an "echo")
+/** @brief echo_char represent an active mannequin (i.e., not a goal, or an "echo")\n
  * Usually the main character, echo_chars can also be antagonist characters
  * that sap a bit of the character's health if they collide.
  * 
@@ -55,15 +55,6 @@ class echo_char
 		int num_goals;
 		/// Is this character running (Grid Mode).
 		int is_running;
-		/*
-			
-			
-			dist is the distance between the two grids.
-			
-			weight +=/-= (speed / dist) each step;
-			
-			
-		*/
 		///The percentage weight on the first grid (Grid Mode)
 		float grid1per;
 		/** The speed of the character.  Depends on the Mode this character is\n
@@ -113,9 +104,9 @@ class echo_char
 	public:
 		
 		/** Initialize, and prepare to fall to that grid.
-		 * @param start The initial grid on which to spawn
+		 * @param g1 The initial grid on which to spawn
 		 */
-		echo_char(grid* start);
+		echo_char(grid* g1);
 		/// Destructor
 		virtual ~echo_char();
 		/** Reinitializes the grid; spawns on g1

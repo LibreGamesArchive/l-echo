@@ -83,7 +83,7 @@ void grid::init_to_null()
 	neighbors = NULL;
 	triggers = NULL;
 	points = NULL;
-#ifdef ARM9
+#ifdef ECHO_NDS
 	polyID = 0;
 #endif
 	already_init = 1;

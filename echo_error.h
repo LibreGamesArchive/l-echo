@@ -36,7 +36,7 @@ void lderr(const char* msg);
  * @param msg2 The second error message, concatenated onto this first.
  */
 void lderr(const char* msg1, const char* msg2);
-/** Reports a memory error (usually the inability to allocate memory), and quits
+/** Reports a memory error (usually the inability to allocate memory), and quits\n
  * Used by the loader
  */
 void ldmemerr();
@@ -45,7 +45,7 @@ void ldmemerr();
  */
 void ldwarn(const char* msg);
 
-/** Stands for GENeral MEMory ERRor;
+/** Stands for GENeral MEMory ERRor;\n
  * Reports a memory error (usually the inability to allocate memory), and quits
  */
 void genmemerr();
