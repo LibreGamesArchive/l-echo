@@ -71,6 +71,11 @@ class vector3f
 		 * @param copy_from The vector to copy from.
 		 */
 		void		set(vector3f* copy_from);
+		/** Sets the vector to the components given.
+		 * @param my_x The new x component of this vector
+		 * @param my_y The new y component of this vector
+		 * @param my_z The new z component of this vector
+		 */
 		void		set(float my_x, float my_y, float my_z);
 		/** Test if the vectors are equivalent, or similar within the range of
 		 * +/- EchoMath.EPSILON.
@@ -89,39 +94,36 @@ class vector3f
 		 * @return The length of this vector
 		 */
 		float		length();
-		
-		void		normalize(float length);
-		vector3f*	normalize_new(float length);
-		
-		//just the scalar angle between the two vectors
-		STATUS		scalar_angle(vector3f* vec, float* angle);
-		STATUS		scalar_angle_with_up(float* angle);
+		/** Returns the angle this vector has with up as a single scalar in degrees
+		 * @return Angle this vector has with up; note that this is on an interval of [0, 180]
+		 */
+		float		scalar_angle_with_up();
 		
 		/** Gets a new vector representing the angle between this vector and <0, 0, 1>
 		 * @return Vector with the x and y rotation angles needed to rotate this vector to the positive z-axis.
 		 */
 		vector3f*	angle_xy();
-		//rotate from the screen to the world via the camera angle
+		/** Rotates from Absolute Position to World Position
+		 * @param rot Current camera angle
+		 * @return New vector containing a World Position if this vector is an Absolute Position
+		 */
 		vector3f* 	rotate_xy(vector3f rot);
+		/** Rotates from World Position to Screen Position
+		 * @param rot Current camera angle
+		 * @return New vector containing a Screen Position if this vector is a World Position
+		 */
 		vector3f* 	neg_rotate_xy(vector3f rot);
-		//rotate from the world to the screen via the camera angle
+		/** Rotates from World Position to Absolute Position
+		 * @param rot Current camera angle
+		 * @return New vector containing an Absolute Position if this vector is a World Position
+		 */
 		vector3f*	neg_rotate_yx(vector3f rot);
+		/** Rotates from Screen Position to World Position
+		 * @param rot Current camera angle
+		 * @return New vector containing a World Position if this vector is a Screen Position
+		 */
 		vector3f*	rotate_yx(vector3f rot);
-		//rotate around y axis, putting it in a new vector
-		vector3f*	rotate_about_y(float angle);
-		//rotate around y axis, putting answers bak in myself
-		void		self_rotate_about_y(float angle);
-		/** Makes a vector <0, 0, 1> and rotate it by this vector (angle).
-			Essentially, if:
-			vector* angle = vec->angle_xy();
-			then:
-			vec == angle.angle_to_real();
-			
-			@return A normal vector <0, 0, 1> rotated by this vector.
-		*/
-		vector3f*	angle_to_real();
 		
-		vector3f	normalize_angle();
 		/** Gets a new vector that is opposite to this vector.
 		 * @return A new vector that is opposite to this vector
 		 */
@@ -136,11 +138,6 @@ class vector3f
 		 * @return Distance between this point and <0, 1, 0>
 		 */
 		float		dist_with_up();
-		
-		void		add(vector3f* vec);
-		
-		vector3f*	add_new(vector3f* vec);
-		vector3f*	sub_new(vector3f* vec);
 		/** Gets a new vector that is this vector times the scalar given.
 		 * @param f Factor to multiply each element by.
 		 * @return This vector times the scalar given.
@@ -157,27 +154,51 @@ class vector3f
 		 */
 		vector3f*	operator -(vector3f* vec);
 };
-vector3f*	add_new(vector3f* v1, vector3f* v2);
-vector3f*	sub_new(vector3f* v1, vector3f* v2);
 #endif
 
 #ifndef __ECHO_ANGLE_RANGE__
 #define __ECHO_ANGLE_RANGE__
+/** @brief Angle range of the escs that are checked against the camera angle.  If the
+ * camera angle is in the bounds of the two vectors in the angle_range, then the esc matches
+ */
 class angle_range
-{
+{                                                   
 	protected:
 		vector3f* v1;
 		vector3f* v2;
 	public:
+		/// Destructor; DELETES BOTH VECTORS IF POSSIBLE!
 		~angle_range();
+		/** Initialize an angle_range with the two bounds given
+		 * @param my_v1 First bound (WILL BE DELETED!)
+		 * @param my_v2 Second bound (WILL BE DELETED!)
+		 */
 		angle_range(vector3f* my_v1, vector3f* my_v2);
+		/** Is the given vector inside the bounds.
+		 * @param v Vector to check.
+		 * @return If the vector is within bounds
+		 */
 		int is_vec_in(vector3f v);
 };
 #endif
 
 #define VECPTR_TO_RANGE(v)    (new angle_range(v, v))
 
+/** Get the correct angle between the two lengths that would make the third leg the same length as distance
+ * @param length1 One of the shorter lengths of the triangle
+ * @param length2 Another short length
+ * @param distance Longest length
+ * @return Angle between length1 and length2
+ */
 STATUS IK_angle(float length1, float length2, float distance, float* angle);
+/** Tests for line segment intersection
+ * Adapted from http://www.idevgames.com/forum/showthread.php?t=7458
+ * @param a1 One of the points of line segment A
+ * @param a2 One of the points of line segment A
+ * @param b1 One of the points of line segment B
+ * @param b2 One of the points of line segment B
+ * @return If line segments A and B intersect.
+ */
 int lineSeg_intersect(vector3f* a1, vector3f* a2, vector3f* b1, vector3f* b2);
 
 float echo_sin(int deg);
@@ -185,6 +206,7 @@ float echo_cos(int deg);
 float echo_sin(float deg);
 float echo_cos(float deg);
 #ifndef ECHO_NDS
+	/// Initialize the lookup table
 	void init_math();
 #endif
 

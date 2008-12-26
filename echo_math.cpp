@@ -189,14 +189,17 @@ float vector3f::dist(vector3f* other)
 		+ (z - other->z) * (z - other->z)));
 }
 /** Gets the distance between this point vector and <0, 1, 0>.
-	 * Used to accelerate IK calculations
-	 * @return Distance between this point and <0, 1, 0>
-	 */
+ * Used to accelerate IK calculations
+ * @return Distance between this point and <0, 1, 0>
+ */
 float vector3f::dist_with_up()
 {
 	return(sqrt(x * x + y * y - 2 * y + 1 + z * z));
 }
-
+/** Rotates from Absolute Position to World Position
+ * @param rot Current camera angle
+ * @return New vector containing a World Position if this vector is an Absolute Position
+ */
 vector3f* vector3f::rotate_xy(vector3f rot)
 {
 	/// If there is no rotation, just give a copy of this vector
@@ -215,10 +218,13 @@ vector3f* vector3f::rotate_xy(vector3f rot)
 	ret->x = z_save * ECHO_SINF(rot.y) + ret->x * ECHO_COSF(rot.y);
 	return(ret);
 }
-
+/** Rotates from World Position to Screen Position
+ * @param rot Current camera angle
+ * @return New vector containing a Screen Position if this vector is a World Position
+ */
 vector3f* vector3f::neg_rotate_xy(vector3f rot)
 {
-	if(rot.x == 0 && rot.y == 0 && rot.z == 0)
+	if(rot.x == 0 && rot.y == 0)
 	{
 		vector3f* ret = new vector3f(x, y, z);
 		CHKPTR(ret);
@@ -233,16 +239,24 @@ vector3f* vector3f::neg_rotate_xy(vector3f rot)
 	ret->x = z_save * ECHO_SINF(-rot.y) + ret->x * ECHO_COSF(-rot.y);
 	return(ret);
 }
-
+/** Sets the vector to the components given.
+ * @param my_x The new x component of this vector
+ * @param my_y The new y component of this vector
+ * @param my_z The new z component of this vector
+ */
 void vector3f::set(float my_x, float my_y, float my_z)
 {
 	x = my_x;
 	y = my_y;
 	z = my_z;
 }
+/** Rotates from Screen Position to World Position
+ * @param rot Current camera angle
+ * @return New vector containing a World Position if this vector is a Screen Position
+ */
 vector3f* vector3f::rotate_yx(vector3f rot)
 {
-	if(rot.x == 0 && rot.y == 0 && rot.z == 0)
+	if(rot.x == 0 && rot.y == 0)
 	{
 		vector3f* ret = new vector3f(x, y, z);
 		CHKPTR(ret);
@@ -256,9 +270,13 @@ vector3f* vector3f::rotate_yx(vector3f rot)
 	ret->z = y_save * ECHO_SINF(rot.x) + ret->z * ECHO_COSF(rot.x);
 	return(ret);
 }
+/** Rotates from World Position to Absolute Position
+ * @param rot Current camera angle
+ * @return New vector containing an Absolute Position if this vector is a World Position
+ */
 vector3f* vector3f::neg_rotate_yx(vector3f rot)
 {
-	if(rot.x == 0 && rot.y == 0 && rot.z == 0)
+	if(rot.x == 0 && rot.y == 0)
 	{
 		vector3f* ret = new vector3f(x, y, z);
 		CHKPTR(ret);
@@ -272,90 +290,23 @@ vector3f* vector3f::neg_rotate_yx(vector3f rot)
 	ret->z = y_save * ECHO_SINF(-rot.x) + ret->z * ECHO_COSF(-rot.x);
 	return(ret);
 }
-vector3f* vector3f::rotate_about_y(float angle)
-{
-#ifdef STRICT_MEM
-	vector3f* ret = new vector3f(z * ECHO_SINF(angle) + x * ECHO_COSF(angle)
-			, y, z * ECHO_COSF(angle) - x * ECHO_SINF(angle));
-	CHKPTR(ret);
-	return(ret);
-#else
-	return(new vector3f(z * ECHO_SINF(angle) + x * ECHO_COSF(angle)
-			, y, z * ECHO_COSF(angle) - x * ECHO_SINF(angle)));
-#endif
-}
-
-void vector3f::self_rotate_about_y(float angle)
-{
-	float x_save = x;
-	x = z * ECHO_SINF(angle) + x_save * ECHO_COSF(angle);
-	z = z * ECHO_COSF(angle) - x_save * ECHO_SINF(angle);
-}
-
-void vector3f::add(vector3f* vec)
-{
-	x += vec->x;
-	y += vec->y;
-	z += vec->z;
-}
-
-static vector3f cam(0, 0, 10);
-
-vector3f* vector3f::angle_to_real()
-{
-	return(cam.rotate_xy(*this));
-}
-
-STATUS vector3f::scalar_angle(vector3f* vec, float* angle)
-{
-	const float distance = dist(vec);
-	const float length1 = length();
-	const float length2 = vec->length();
-	*angle = ECHO_ACOSF_DEG( ( (length1 * length1) + (length2 * length2) 
-			- (distance * distance) ) / (2 * length1 * length2) );
-	return(WIN);
-}
-
-STATUS vector3f::scalar_angle_with_up(float* angle)
+/** Returns the angle this vector has with up as a single scalar in degrees
+ * @return Angle this vector has with up; note that this is on an interval of [0, 180]
+ */
+float vector3f::scalar_angle_with_up()
 {
 	const float distance = dist_with_up();
 	const float length1 = length();
 	//const float length2 = vec->length();
-	*angle = ECHO_ACOSF_DEG( ( (length1 * length1) + 1
-			- (distance * distance) ) / (2 * length1) );
-	return(WIN);
+	return(ECHO_ACOSF_DEG( ( (length1 * length1) + 1
+			- (distance * distance) ) / (2 * length1) ));
 }
-
-vector3f* vector3f::normalize_new(float new_length)
-{
-	const float mult = new_length / length();
-	vector3f* ret = new vector3f(x * mult, y * mult, z * mult);
-	CHKPTR(ret);
-	return(ret);
-}
-
-vector3f* vector3f::add_new(vector3f* vec)
-{
-	vector3f* ret = new vector3f(x + vec->x, y + vec->y, z + vec->z);
-	CHKPTR(ret);
-	return(ret);
-}
-
-vector3f* vector3f::sub_new(vector3f* vec)
-{
-	vector3f* ret = new vector3f(x - vec->x, y - vec->y, z - vec->z);
-	CHKPTR(ret);
-	return(ret);
-}
-
-void vector3f::normalize(float new_length)
-{
-	const float mult = new_length / length();
-	x *= mult;
-	y *= mult;
-	z *= mult;
-}
-
+/** Get the correct angle between the two lengths that would make the third leg the same length as distance
+ * @param length1 One of the shorter lengths of the triangle
+ * @param length2 Another short length
+ * @param distance Longest length
+ * @return Angle between length1 and length2
+ */
 STATUS IK_angle(float length1, float length2, float distance, float* angle)
 {
 	/*
@@ -375,8 +326,14 @@ STATUS IK_angle(float length1, float length2, float distance, float* angle)
 	}
 	return(WIN);
 }
-
-/// Adapted from http://www.idevgames.com/forum/showthread.php?t=7458
+/** Tests for line segment intersection
+ * Adapted from http://www.idevgames.com/forum/showthread.php?t=7458
+ * @param a1 One of the points of line segment A
+ * @param a2 One of the points of line segment A
+ * @param b1 One of the points of line segment B
+ * @param b2 One of the points of line segment B
+ * @return If line segments A and B intersect.
+ */
 int lineSeg_intersect(vector3f* a1, vector3f* a2, vector3f* b1, vector3f* b2)
 {
     float a1yb1y = a1->y - b1->y;
@@ -408,23 +365,29 @@ int lineSeg_intersect(vector3f* a1, vector3f* a2, vector3f* b1, vector3f* b2)
 }
 
 //-----------ANGLE_RANGE----------
-
+/** Initialize an AngleRange with the two bounds given
+ * @param my_v1 First bound
+ * @param my_v2 Second bound
+ */
 angle_range::angle_range(vector3f* my_v1, vector3f* my_v2)
 {
 	v1 = my_v1;
 	v2 = my_v2;
 }
 
-//is b in between a and c?
+/// is b in between a and c?
 #define IN_BETWEEN(a,b,c) (((a) <= (b) && (b) <= (c)) || ((c) <= (b) && (b) <= (a)))
 
+/** Is the given vector inside the bounds.
+ * @param v Vector to check.
+ * @return If the vector is within bounds
+ */
 int angle_range::is_vec_in(vector3f v)
 {
 	return(IN_BETWEEN(v1->x, v.x, v2->x) 
-		&& IN_BETWEEN(v1->y, v.y, v2->y)
-		&& IN_BETWEEN(v1->z, v.z, v2->z));
+		&& IN_BETWEEN(v1->y, v.y, v2->y));
 }
-
+/// Destructor; DELETES BOTH VECTORS IF POSSIBLE!
 angle_range::~angle_range()
 {
 	if(v1 != NULL)

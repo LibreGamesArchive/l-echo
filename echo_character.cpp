@@ -525,7 +525,7 @@ vector3f* echo_char::get_direction()
 			grid_info_t* i2 = grid2->get_info(echo_ns::angle);
 			if(i2 != NULL)
 				/// Return their subtraction
-				return(i2->pos->sub_new(i1->pos));
+				return(*(i2->pos) - i1->pos);
 		}
 	}
 	/// Failed
@@ -580,8 +580,7 @@ void echo_char::draw(float x, float y, float z)
 			if(foot_vec != NULL)
 			{
 				/// Get the angle the direction vector has with the up vector <0, 1, 0>
-				float dir_angle = 0;
-				foot_vec->scalar_angle_with_up(&dir_angle);
+				const float dir_angle = foot_vec->scalar_angle_with_up();
 				/// Get the approximate distance the right leg has with the ground (0.825f is arbitrary)
 				right_dist_foot = (vshift + 0.825f) * echo_sin(abs(joints.rthigh_lift)) 
 											/ echo_sin(dir_angle);
