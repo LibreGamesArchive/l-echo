@@ -35,8 +35,9 @@
 	
 	#define ECHO_ACOSF_DEG(ratio)	(angleToDegrees(acosLerp(floattof32(ratio))))
 #else
+	/// Cosine lookup table (index in degrees)
 	static float cos_table[360];
-	
+	/// Initialize the lookup table
 	void init_math()
 	{
 	    int deg = 0;
@@ -60,31 +61,35 @@ float echo_sin(float deg){ return(ECHO_SINF(deg)); }
 float echo_cos(int deg){ return(ECHO_COSI(deg)); }
 float echo_cos(float deg){ return(ECHO_COSF(deg)); }
 
+/// Default constructor
 vector3f::vector3f()
 {
 	x = 0;
 	y = 0;
 	z = 0;
 }
-
+/** Sets elements as specified
+ * @param myX The new vector's x-coordinate
+ * @param myY The new vector's y-coordinate
+ * @param myZ The new vector's z-coordinate
+ */
 vector3f::vector3f(float my_x, float my_y, float my_z)
 {
 	x = my_x;
 	y = my_y;
 	z = my_z;
 }
-
-int vector3f::angle_similar(vector3f* v)
-{
-	return(ABS(x - v->x) < EPSILON &&
-		ABS(y - v->y) < EPSILON);
-}
-
+/** Test if the vectors are unequal, or different outside of the range of +/- EPSILON.
+ * @param v The other vector to check against.
+ */
 int vector3f::operator !=(vector3f* v)
 {
     return(!(*this == v));
 }
-
+/** Test if the vectors are equivalent, or similar within the range of
+ * +/- EPSILON.
+ * @param v The other vector to check against
+ */
 int vector3f::operator ==(vector3f* v)
 {
 	return(ABS(x - v->x) < EPSILON &&
@@ -92,51 +97,72 @@ int vector3f::operator ==(vector3f* v)
 		ABS(z - v->z) < EPSILON);
 }
 
+/** Get the length of this vector from the origin.\n
+ * Needless to say, the result of this function only makes sense if the
+ * vector is used as a point or direction.
+ * @return The length of this vector
+ */
 float vector3f::length()
 {
 	return(sqrt(x * x + y * y + z * z));
 }
 
+/// Print out the elements
 void vector3f::dump()
 {
 	ECHO_PRINT("vector3f: [%f,%f,%f]", x, y, z);
 }
-
+/** Sets the vector to exactly the same as the vector given.
+ * @param copy_from The vector to copy from.
+ */
 void vector3f::set(vector3f* copy_from)
 {
 	x = copy_from->x;
 	y = copy_from->y;
 	z = copy_from->z;
 }
-
+/** Gets a new vector that is opposite to this vector.
+ * @return A new vector that is opposite to this vector
+ */
 vector3f* vector3f::negate()
 {
 	vector3f* ret = new vector3f(-x, -y, -z);
 	CHKPTR(ret);
 	return(ret);
 }
-
+/** Gets the resultant vector from the addition of this vector and the one given.
+ * @param vec The other vector to add to to form the resultant vector.
+ * @return The resultant vector.
+ */
 vector3f* vector3f::operator +(vector3f* vec)
 {
     vector3f* ret = new vector3f(x + vec->x, y + vec->y, z + vec->z);
     CHKPTR(ret);
     return(ret);
 }
-
+/** Gets the resultant vector from the subtraction of the vector given from this vector.
+ * @param vec The other vector to subtract this vector to form the resultant vector.
+ * @return The resultant vector.
+ */
 vector3f* vector3f::operator -(vector3f* vec)
 {
     vector3f* ret = new vector3f(x - vec->x, y - vec->y, z - vec->z);
     CHKPTR(ret);
     return(ret);
 }
-
+/** Gets a new vector that is this vector times the scalar given.
+ * @param f Factor to multiply each element by.
+ * @return This vector times the scalar given.
+ */
 vector3f* vector3f::operator *(float f)
 {
 	vector3f* ret = new vector3f(x * f, y * f, z * f);
 	CHKPTR(ret);
 	return(ret);
 }
-
+/** Gets a new vector representing the angle between this vector and <0, 0, 1>
+ * @return Vector with the x and y rotation angles needed to rotate this vector to the positive z-axis.
+ */
 vector3f* vector3f::angle_xy()
 {
 	vector3f* ret = NULL;
@@ -152,19 +178,29 @@ vector3f* vector3f::angle_xy()
         return(ret);
 
 }
-
+/** Gets the distance between this point vector and the other point vector given.
+ * @param other The other point.
+ * @return The distance between the two points.
+ */
 float vector3f::dist(vector3f* other)
 {
-	return(sqrt(pow(x - other->x, 2) + pow(y - other->y, 2) + pow(z - other->z, 2)));
+	return(sqrt((x - other->x) * (x - other->x)
+		+ (y - other->y) * (y - other->y) 
+		+ (z - other->z) * (z - other->z)));
 }
+/** Gets the distance between this point vector and <0, 1, 0>.
+	 * Used to accelerate IK calculations
+	 * @return Distance between this point and <0, 1, 0>
+	 */
 float vector3f::dist_with_up()
 {
-	return(sqrt(x * x + pow(y - 1, 2) + z * z));
+	return(sqrt(x * x + y * y - 2 * y + 1 + z * z));
 }
 
 vector3f* vector3f::rotate_xy(vector3f rot)
 {
-	if(rot.x == 0 && rot.y == 0 && rot.z == 0)
+	/// If there is no rotation, just give a copy of this vector
+	if(rot.x == 0 && rot.y == 0)
 	{
 		vector3f* ret = new vector3f(x, y, z);
 		CHKPTR(ret);

@@ -28,8 +28,12 @@
 
 #ifndef __ECHO_GRID_INFO_T__
 #define __ECHO_GRID_INFO_T__
+/** @brief Contains information on the grid, which is just its position
+ * as of this release.
+ */
 typedef struct
 {
+	/// The position of the grid
 	vector3f* pos;
 }
 grid_info_t;
