@@ -45,7 +45,6 @@ grid::grid(grid_info_t* my_info)
 {
 	already_init = 0;
 	init_to_null();
-	//ECHO_PRINT("2\n");
 	init(my_info, NULL, NULL);
 }
 
@@ -53,7 +52,6 @@ grid::grid(grid_info_t* my_info, grid* my_prev, grid* my_next)
 {
 	already_init = 0;
 	init_to_null();
-	//ECHO_PRINT("3\n");
 	init(my_info, my_prev, my_next);
 }
 
@@ -61,13 +59,11 @@ grid::grid(grid_info_t* my_info, grid* my_prev, grid* my_next, int num_neighbor)
 {
 	already_init = 0;
 	init_to_null();
-	//ECHO_PRINT("4\n");
 	init(my_info, my_prev, my_next, num_neighbor);
 }
 
 void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next)
 {
-	//ECHO_PRINT("5\n");
 	init(my_info, my_prev, my_next, 2);
 }
 
