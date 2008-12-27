@@ -28,17 +28,36 @@ class trigger;
 #include <grid.h>
 #include <filter.h>
 
+/** @brief Trigger structure that contains a filter and a target that is triggered if
+ * the filter is null or is true.
+ */
 class trigger
 {
 	protected:
+		/// Filter to ask if the the target should be triggered.
 		filter* my_filter;
+		/// Target grid
 		grid* target;
 	public:
-		trigger();
+		/** Makes a new Trigger with the filter given, and a null target (MUST SET LATER!)
+		 * @param filter The new trigger's filter; WILL BE DELETED!!!!
+		 */
 		trigger(filter* filter);
+		/** Makes a new Trigger with the filter and target given
+		 * @param filter The new trigger's filter; WILL BE DELETED!!!!
+		 * @param my_target The new trigger's target
+		 */
 		trigger(filter* filter, grid* my_target);
+		/// Deletes the filter
 		~trigger();
+		/** Triggers the target's goal if the trigger's filter is null or is true
+		 * for that camera angle.
+		 * @param angle The current camera angle
+		 */
 		void toggle(vector3f angle);
+		/** Sets the trigger's target to the one given
+		 * @param my_target The trigger's new target
+		 */
 		void set_target(grid* my_target);
 };
 
