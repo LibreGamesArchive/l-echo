@@ -48,64 +48,33 @@ launcher::launcher(grid_info_t* my_info, grid* my_prev, grid* my_next, angle_ran
 
 launcher::launcher(grid_info_t* my_info, grid* my_prev, grid* my_next) : escgrid()
 {
-    init(my_info, my_prev, my_next);
+	init(my_info, my_prev, my_next);
 }
 
 void launcher::init(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info_t* my_esc_info
 	, grid* my_normal_prev, grid* my_esc_prev, grid* my_normal_next, grid* my_esc_next)
 {
-	escgrid::init(my_escangle, my_normal_info, my_esc_info, echo_ns::hole_grid, my_esc_prev, echo_ns::hole_grid, my_esc_next);
-	real_prev = my_normal_prev;
-	real_next = my_normal_next;
+	escgrid::init(my_escangle, my_normal_info, my_esc_info, NULL, my_esc_prev, NULL, my_esc_next);
 }
 
 void launcher::init(grid_info_t* my_info, grid* my_prev, grid* my_next, angle_range** my_escranges, grid** my_escs, int my_num_escs)
 {
-	escgrid::init(my_info, echo_ns::hole_grid, echo_ns::hole_grid, my_escranges, my_escs, my_num_escs);
-	real_prev = my_prev;
-	real_next = my_next;
+	escgrid::init(my_info, NULL, NULL, my_escranges, my_escs, my_num_escs);
 }
 
 void launcher::init(grid_info_t* my_info, grid* my_prev, grid* my_next)
 {
-    launcher::init(my_info, my_prev, my_next, NULL, NULL, 0);
+	launcher::init(my_info, my_prev, my_next, NULL, NULL, 0);
 }
 
 launcher::~launcher()
 {
 }
 
-void launcher::init_to_null()
-{
-	escgrid::init_to_null();
-	real_prev = NULL;
-	real_next = NULL;
-}
-
 void launcher::draw(vector3f angle)
 {
 	escgrid::draw(angle);
 	draw_launcher(get_info(angle)->pos);
-}
-
-void launcher::set_real_next(grid* g)
-{
-	real_next = g;
-}
-
-void launcher::set_real_prev(grid* g)
-{
-	real_prev = g;
-}
-
-grid* launcher::get_real_next()
-{
-	return(real_next);
-}
-
-grid* launcher::get_real_prev()
-{
-	return(real_prev);
 }
 
 grid* launcher::get_next(vector3f angle, grid* current)

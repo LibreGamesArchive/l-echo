@@ -25,9 +25,6 @@
 #define __ECHO_CLASS_LAUNCHER__
 class launcher : public escgrid
 {
-	protected:
-		grid* real_prev;
-		grid* real_next;
 	public:
 		launcher();
 		launcher(grid_info_t* my_info, grid* my_prev, grid* my_next);
@@ -38,16 +35,9 @@ class launcher : public escgrid
 			, grid* my_normal_prev, grid* my_esc_prev, grid* my_normal_next, grid* my_esc_next);
 		void init(grid_info_t* my_info, grid* my_prev, grid* my_next, angle_range** my_escranges, grid** my_escs, int my_num_escs);
 		void init(grid_info_t* my_info, grid* my_prev, grid* my_next);
-
+		
 		virtual ~launcher();
-		virtual void init_to_null();
 		virtual grid* get_next(vector3f angle, grid* current);
 		virtual void draw(vector3f angle);
-		virtual grid* get_real_next();
-		virtual grid* get_real_prev();
-		
-
-		virtual void set_real_next(grid* g);
-		virtual void set_real_prev(grid* g);
 };
 #endif

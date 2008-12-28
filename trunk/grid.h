@@ -50,54 +50,97 @@ void dump_grid_info(grid_info_t ginfo);
 class grid;
 
 typedef std::set<grid*> GRID_PTR_SET;
-
+/** @brief The "nodes" in Grid Mode; the character just traverses through the grids like a
+ * linked list, and grids are the nodes.
+ * 
+ * The basic grid can only have a previous node and a next node.  See TGrid for
+ * a grid with 3 neighbors (too lazy to make a XGrid for 4 neighbors).
+ */
 class grid
 {
 	protected:
+		/// Contains basic info about the grid, which is just its positions
 		grid_info_t* ginfo;
+		/// The grid's neighbors
 		grid** neighbors;
+		/// The number of neighbors it has
 		int n_neighbors;
-
+		/// Is there a goal on this grid?
 		int am_goal;
-		//int goal_angle;
+		/// Should this grid be drawn?
 		int draw_me;
+		/// Can the character land on this grid?
 		int landable;
+		/// Is this grid already initialized?
 		int already_init;
-		
+		/// This grid's triggers; if this grid is toggled, then it will attempt to toggle the triggers in this list
 		TRIGGER_SET* triggers;
-		
+		/** Cached points of this grid; THERE MUST BE 4, OR THE SUBCLASS MUST ALSO
+		 * MODIFY generate_points _AND_ draw _AND_ projected_line_intersect!
+		 */
 		vector3f** points;
-		
 #ifdef ECHO_NDS
+		/// The polyID; see echo_gfx for explanation
 		unsigned int polyID;
 #endif
 	public:
+		/// Initialize a grid with no info and no previous or next
 		grid();
-		//grid(int is_generate_lines);
+		/** Initialize a grid with the info, previous and next given
+		 * @param my_info The new grid's info
+		 * @param my_prev The new grid's previous
+		 * @param my_next The new grid's next
+		 */
 		grid(grid_info_t* my_info, grid* my_prev, grid* my_next);
+		/** Initialize a grid with the info, previous and next given
+		 * @param my_info The new grid's info
+		 * @param my_prev The new grid's previous
+		 * @param my_next The new grid's next
+		 * @param num_neighbors The new grid's number of neighbors
+		 */
 		grid(grid_info_t* my_info, grid* my_prev, grid* my_next, int num_neighbor);
+		/** Initialize a grid with the info given and no previous or next
+		 * @param my_info The new grid's info
+		 */
 		grid(grid_info_t* my_info);
+		/// Initialize everything to be dynamically allocated to null
 		virtual void init_to_null();
+		/** Initialize this grid with the info, previous and next given
+		 * @param my_info The grid's new info
+		 * @param my_prev The grid's new previous
+		 * @param my_next The grid's new next
+		 */
 		void init(grid_info_t* my_info, grid* my_prev, grid* my_next);
+		/** Initialize this grid with the info, previous and next given
+		 * @param my_info The grid's new info
+		 * @param my_prev The grid's new previous
+		 * @param my_next The grid's new next
+		 * @param num_neighbors The grid's new nuber of neighbors
+		 */
 		void init(grid_info_t* my_info, grid* my_prev, grid* my_next, int num_neighbor);
-		//void init(grid_info_t* my_info, grid* my_prev, grid* my_next, int num_neighbor, int is_generate_lines);
-
+		/// Delete everything
 		virtual ~grid();
+		/// Clear the grid's points
 		void delete_points();
+		/// Clear the triggers
 		void delete_triggers();
+		/// Clear the list of neighbors, not the neighbors themselves
 		void delete_neighbors();
+		
 		virtual grid_info_t* get_info(vector3f angle);
 		virtual grid* get_next(vector3f angle, grid* current);
 		virtual void dump();
-
+		
 		virtual grid** get_neighbors(vector3f angle);
 		int num_neighbors(vector3f angle);
 		virtual int equals(grid* g, vector3f angle);
-		
-		virtual grid* get_real_next();
-		virtual grid* get_real_prev();
-		virtual grid_info_t* get_real_info();
+		/** Sets the next grid; used mainly by the loader
+		 * @param g The new next grid
+		 */
 		virtual void set_real_next(grid* g);
+		/** Sets the previous grid; used mainly by the loader
+		 * @param g The new previous grid
+		 */
 		virtual void set_real_prev(grid* g);
 		
 		virtual void add_trigger(trigger* trig);
