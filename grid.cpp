@@ -34,39 +34,55 @@ void dump_grid_info(grid_info_t ginfo)
 	ginfo.pos->dump();
 	ECHO_PRINT("]");
 }
-
+/// Initialize a grid with no info and no previous or next
 grid::grid()
 {
 	already_init = 0;
 	init_to_null();
 	init(NULL, NULL, NULL);
 }
+/** Initialize a grid with the info given and no previous or next
+ * @param my_info The new grid's info
+ */
 grid::grid(grid_info_t* my_info)
 {
 	already_init = 0;
 	init_to_null();
 	init(my_info, NULL, NULL);
 }
-
+/** Initialize a grid with the info, previous and next given
+ * @param my_info The new grid's info
+ * @param my_prev The new grid's previous
+ * @param my_next The new grid's next
+ */
 grid::grid(grid_info_t* my_info, grid* my_prev, grid* my_next)
 {
 	already_init = 0;
 	init_to_null();
 	init(my_info, my_prev, my_next);
 }
-
+/** Initialize a grid with the info, previous and next given
+ * @param my_info The new grid's info
+ * @param my_prev The new grid's previous
+ * @param my_next The new grid's next
+ * @param num_neighbors The new grid's number of neighbors
+ */
 grid::grid(grid_info_t* my_info, grid* my_prev, grid* my_next, int num_neighbor)
 {
 	already_init = 0;
 	init_to_null();
 	init(my_info, my_prev, my_next, num_neighbor);
 }
-
+/** Initialize this grid with the info, previous and next given
+ * @param my_info The grid's new info
+ * @param my_prev The grid's new previous
+ * @param my_next The grid's new next
+ */
 void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next)
 {
 	init(my_info, my_prev, my_next, 2);
 }
-
+/// Initialize everything to be dynamically allocated to null
 void grid::init_to_null()
 {
 	if(already_init == 1)
@@ -85,36 +101,38 @@ void grid::init_to_null()
 	already_init = 1;
 	landable = 1;
 }
-
+/** Initialize this grid with the info, previous and next given
+ * @param my_info The grid's new info
+ * @param my_prev The grid's new previous
+ * @param my_next The grid's new next
+ * @param num_neighbors The grid's new nuber of neighbors
+ */
 void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, int my_num_neighbors)
 {
-	//ECHO_PRINT("6: %i\n", is_generate_lines);
 	am_goal = 0;
-	//goal_angle = 0;
 	draw_me = 1;
+	
 	delete_triggers();
 	triggers = new TRIGGER_SET();
 	CHKPTR(triggers);
 	
 	ginfo = my_info;
-	//ECHO_PRINT("ginfo: %p\n", ginfo);
+	
 	n_neighbors = my_num_neighbors;
 	delete_neighbors();
 	neighbors = new grid*[my_num_neighbors < 2 ? 2 : my_num_neighbors];
 	CHKPTR(neighbors);
 	neighbors[0] = my_prev;
 	neighbors[1] = my_next;
+	
 	delete_points();
 	points = ginfo != NULL ? generate_points(ginfo) : NULL;
-	//ECHO_PRINT("points generated: %p\n", points);
 }
-
+/// Clear the grid's points
 void grid::delete_points()
 {
-	//ECHO_PRINT("deleting points\n");
 	if(points != NULL)
 	{
-		//ECHO_PRINT("\tpoints not equal to NULL\n");
 		delete points[0];
 		delete points[1];
 		delete points[2];
@@ -123,13 +141,11 @@ void grid::delete_points()
 		points = NULL;
 	}
 }
-
+/// Clear the triggers
 void grid::delete_triggers()
 {
-	//ECHO_PRINT("deleting triggers\n");
 	if(triggers != NULL)
 	{
-		//ECHO_PRINT("\ttriggers is NO NULL\n");
 		TRIGGER_SET::iterator it = triggers->begin();
 		while(it != triggers->end())
 		{
@@ -142,21 +158,18 @@ void grid::delete_triggers()
 		triggers = NULL;
 	}
 }
-
+/// Clear the list of neighbors, not the neighbors themselves
 void grid::delete_neighbors()
 {
-	//ECHO_PRINT("deleting neighbors\n");
 	if(neighbors != NULL)
 	{
-		//ECHO_PRINT("\tneighbors is NOT NULL\n");
 		delete[] neighbors;
 		neighbors = NULL;
 	}
 }
-
+/// Delete everything
 grid::~grid()
 {
-	//ECHO_PRINT("deallocating grid\n");
 	if(ginfo != NULL)
 	{
 		if(ginfo->pos != NULL)
@@ -167,43 +180,29 @@ grid::~grid()
 		delete ginfo;
 		ginfo = NULL;
 	}
-	//*
 	delete_neighbors();
 	delete_points();
 	delete_triggers();
-	// */triggers
 }
-
-grid* grid::get_real_next()
-{
-	return(neighbors[1]);
-}
-
-grid* grid::get_real_prev()
-{
-	return(neighbors[0]);
-}
-
-grid_info_t* grid::get_real_info()
-{
-	return(ginfo);
-}
-
+/** Sets the next grid; used mainly by the loader
+ * @param g The new next grid
+ */
 void grid::set_real_next(grid* g)
 {
 	neighbors[1] = g;
 }
-
+/** Sets the previous grid; used mainly by the loader
+ * @param g The new previous grid
+ */
 void grid::set_real_prev(grid* g)
 {
 	neighbors[0] = g;
 }
 
-void grid::draw(vector3f angle)	//TODO CHANGE FOR NORMALS
+void grid::draw(vector3f angle)
 {
-	//ECHO_PRINT("points generated: %p\n", points);
 	draw_rect(points[0], points[1], points[2], points[3]);
-	draw_goal(angle);	
+	draw_goal(angle);
 }
 
 vector3f** grid::generate_points(grid_info_t* my_info)

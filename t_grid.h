@@ -28,11 +28,11 @@ class t_grid : public grid
 		t_grid();
 		t_grid(grid_info_t* my_info, grid* my_prev, grid* my_next, grid* my_next2);
 		void init(grid_info_t* my_info, grid* my_prev, grid* my_next, grid* my_next2);
-
+		
 		virtual ~t_grid();
 		virtual grid* get_next(vector3f angle, grid* current);
 		virtual void dump();
-
+		
 		virtual grid* get_real_next2();
 		virtual void set_real_next2(grid* g);
 };
