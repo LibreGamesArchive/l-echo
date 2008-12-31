@@ -205,30 +205,10 @@ grid_info_t* escgrid::get_info(vector3f angle)
 	return(esc ? esc->get_info(angle) : grid::get_info(angle));
 }
 
-/*
-line3f* escgrid::get_lines(vector3f angle)
-{
-	grid* esc = get_esc(angle);
-	return(esc ? esc->get_lines(angle) : grid::get_lines(angle));
-}
-// */
-
 grid* escgrid::get_next(vector3f angle, grid* current)
 {
 	grid* esc = get_esc(angle);
 	return(esc ? esc->get_next(angle, current) : grid::get_next(angle, current));
-}
-
-grid** escgrid::get_neighbors(vector3f angle)
-{
-	grid* esc = get_esc(angle);
-	return(esc ? esc->get_neighbors(angle) : grid::get_neighbors(angle));
-}
-
-int escgrid::num_neighbors(vector3f angle)
-{
-	grid* esc = get_esc(angle);
-	return(esc ? esc->num_neighbors(angle) : grid::num_neighbors(angle));
 }
 
 #ifdef ECHO_NDS

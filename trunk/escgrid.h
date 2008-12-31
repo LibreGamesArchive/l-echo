@@ -65,8 +65,6 @@ class escgrid : public grid
 		virtual unsigned int get_polyID(vector3f angle);
 #endif
 	protected:
-		virtual grid** get_neighbors(vector3f angle);
-		virtual int num_neighbors(vector3f angle);
 		void delete_table(int delete_every);
 
 };

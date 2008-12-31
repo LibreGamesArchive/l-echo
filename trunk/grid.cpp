@@ -28,6 +28,7 @@
 #include <grid.h>
 #include <echo_math.h>
 
+/// Prettyprints the info's data
 void dump_grid_info(grid_info_t ginfo)
 {
 	ECHO_PRINT("grid_info_t: [");
@@ -163,6 +164,7 @@ void grid::delete_neighbors()
 {
 	if(neighbors != NULL)
 	{
+		/// Just delete the list, not the elements
 		delete[] neighbors;
 		neighbors = NULL;
 	}
@@ -170,16 +172,21 @@ void grid::delete_neighbors()
 /// Delete everything
 grid::~grid()
 {
+	/// If this grid's info is not null
 	if(ginfo != NULL)
 	{
+		/// If the info's position is not null
 		if(ginfo->pos != NULL)
 		{
+			/// Clear the position
 			delete ginfo->pos;
 			ginfo->pos = NULL;
 		}
+		/// Clear the info
 		delete ginfo;
 		ginfo = NULL;
 	}
+	/// Delete everything else
 	delete_neighbors();
 	delete_points();
 	delete_triggers();
@@ -198,13 +205,21 @@ void grid::set_real_prev(grid* g)
 {
 	neighbors[0] = g;
 }
-
+/** Draws the grid; default behavior is to draw a quad with attribute "points",
+ * and draw a goal if this is a goal.
+ * @param angle The current camera angle
+ */
 void grid::draw(vector3f angle)
 {
 	draw_rect(points[0], points[1], points[2], points[3]);
 	draw_goal(angle);
 }
-
+/** Generates the set of points that outline the grid\n
+ * Used for drawing, and deciding if a character lands on this grid\n
+ * Default behavior is to return a square with width GRID_SIZE that is centered at the grid's position
+ * @param my_info The grid's info, so that this method doesn't have to get it
+ * @return The points
+ */
 vector3f** grid::generate_points(grid_info_t* my_info)
 {
 	vector3f** ret = new vector3f*[4];
@@ -218,39 +233,44 @@ vector3f** grid::generate_points(grid_info_t* my_info)
 	CHKPTR(ret[2]);
 	ret[3] = new vector3f(my_info->pos->x + HALF_GRID, my_info->pos->y, my_info->pos->z - HALF_GRID);
 	CHKPTR(ret[3]);
-	//ECHO_PRINT("points generated: %p, %p\n", ret, ret[0]);
 	return(ret);
 }
-
+/** Gets the info of the grid; override for awesomeness
+ * @param angle Current camera angle
+ */
 grid_info_t* grid::get_info(vector3f angle)
 {
 	return(ginfo);
 }
-
+/** Checks grids for equality, which just requires the positions to be
+ * same.  The rationale is that one of the grids is a EscGrid, and thus
+ * just comparing references won't necessarily detect equality.
+ * @param g The other grid to compare to.
+ * @param angle The current camera angle
+ */
 int grid::equals(grid* g, vector3f angle)
 {
+	/// Although, short-circuiting is ideal
+	if(this == g)
+		return(true);
 	grid_info_t* i1 = get_info(angle);
 	grid_info_t* i2 = g->get_info(angle);
 	return(i1 && i2 && i1->pos == i2->pos);
 }
-
+/** Directs the character to the next grid.  Note that this have to be
+ * bidirectional; the grid has to return the grid in the right direction
+ * the character is traversing in this "linked list".
+ * @param angle Current camera angle
+ * @param current Current grid (actually, a grid next to this grid)
+ * @return The next grid the character should go to
+ */
 grid* grid::get_next(vector3f angle, grid* current)
 {
 	if(current && neighbors[1] && current->equals(neighbors[1], angle))
 		return(neighbors[0]);
 	return(neighbors[1]);
 }
-
-grid** grid::get_neighbors(vector3f angle)
-{
-	return(neighbors);
-}
-
-int grid::num_neighbors(vector3f angle)
-{
-	return(n_neighbors);
-}
-
+/// Prettyprints the grid
 void grid::dump()
 {
 	ECHO_PRINT("grid: [");
@@ -258,17 +278,22 @@ void grid::dump()
 	else        ECHO_PRINT("NULL grid_info_t?");
 	ECHO_PRINT("]");
 }
-
+/** Adds the trigger
+ * @param trig Trigger to be added
+ */
 void grid::add_trigger(trigger* trig)
 {
 	triggers->insert(trig);
 }
-
+/// Sets the grid to be a goal; used mainly by the loader
 void grid::set_as_goal()
 {
 	am_goal = 1;
 }
-
+/** Toggles the grid; if this grid is a goal before calling this, then
+ * triggers will be toggled.
+ * @param angle Current camera angle
+ */
 void grid::toggle_goal(vector3f angle)
 {
 	if(am_goal)	//triggers
@@ -283,47 +308,51 @@ void grid::toggle_goal(vector3f angle)
 	}
 	am_goal = !am_goal;
 }
-
+/** Is this grid a goal?
+ * @param angle Current camera angle
+ */
 int grid::is_goal(vector3f angle)
 {
 	return(am_goal);
 }
-
+/// Should this grid be drawn?
 int grid::should_draw()
 {
 	return(draw_me);
 }
+/// Sets the grid's draw property; should this grid be visible?
 void grid::set_draw(int draw)
 {
 	draw_me = draw;
 }
-
+/** If this grid is a goal, then it draws a goal above the position of this grid.
+ * @param angle Current camera angle
+ */
 void grid::draw_goal(vector3f angle)
 {
 	if(is_goal(angle))
 	{
 		draw_goal_gfx(get_info(angle)->pos);
-		/*
-		goal_angle += 5;
-		if(goal_angle == 360)
-			goal_angle = 0;
-		// */
 	}
 }
-
+/** Is the given point on this grid?  Default behavior is to make sure
+ * that the y is similar and that the x and z is within a HALF_GRID
+ * distance.
+ * @param angle Current camera angle
+ * @param pt Point to check
+ */
 int grid::is_pt_on(vector3f angle, vector3f* pt)
 {
 	vector3f* pos = get_info(angle)->pos;
 	return(ABS(pos->y - pt->y) < EPSILON && ABS(pos->x - pt->x) < HALF_GRID
 				&& ABS(pos->z - pt->z) < HALF_GRID);
 }
-
-float grid::vert_shift(float percent_in)
-{
-	//return(-0.05f);
-	return(0.05f * echo_cos(360 * percent_in) - 0.05f);
-}
-
+/** Checks for an intersection between a line of Screen Position points and
+ * any of the edges formed by the points; used by holes and launchers.
+ * @param p1 The first point of the line
+ * @param p2 The second point of the line
+ * @param angle Current camera angle
+ */
 int grid::projected_line_intersect(vector3f* p1, vector3f* p2, vector3f angle)
 {
 	vector3f* proj_pt0 = points[0]->neg_rotate_xy(angle);
@@ -331,26 +360,6 @@ int grid::projected_line_intersect(vector3f* p1, vector3f* p2, vector3f angle)
 	vector3f* proj_pt2 = points[2]->neg_rotate_xy(angle);
 	vector3f* proj_pt3 = points[3]->neg_rotate_xy(angle);
 	
-	/*
-	ECHO_PRINT("points of grid: ");
-	ginfo->pos->dump();
-	ECHO_PRINT("\n");
-	points[0]->dump();
-	proj_pt0->dump();
-	ECHO_PRINT("\n");
-	proj_pt1->dump();
-	ECHO_PRINT("\n");
-	proj_pt2->dump();
-	ECHO_PRINT("\n");
-	proj_pt3->dump();
-	ECHO_PRINT("\n");
-	ECHO_PRINT("\npoints: ");
-	p1->dump();
-	ECHO_PRINT("\n");
-	p2->dump();
-	ECHO_PRINT("\n");
-	ECHO_PRINT("\n");
-	// */
 	int ret = lineSeg_intersect(p1, p2, proj_pt0, proj_pt1) 
 		|| lineSeg_intersect(p1, p2, proj_pt1, proj_pt2)
 		|| lineSeg_intersect(p1, p2, proj_pt2, proj_pt3)
@@ -358,24 +367,34 @@ int grid::projected_line_intersect(vector3f* p1, vector3f* p2, vector3f angle)
 	delete proj_pt0, proj_pt1, proj_pt2, proj_pt3;
 	return(ret);
 }
-
+/** Sets the grid's land flag; can the character land on this grid?
+ * @param land New land flag
+ */
 void grid::set_land(int land)
 {
 	landable = land;
 }
+/** Can the character land on this grid?
+ * @param angle Current camera angle
+ */
 int grid::should_land(vector3f angle)
 {
 	return(landable);
 }
-
 #ifdef ECHO_NDS
-unsigned int grid::get_polyID(vector3f angle)
-{
-	return(polyID);
-}
-void grid::set_polyID(unsigned int my_polyID)
-{
-	polyID = my_polyID;
-}
+	/** Gets the grid's polyID (see echo_gfx for more info on polyID)
+	 * @param angle Current camera angle
+	 */
+	unsigned int grid::get_polyID(vector3f angle)
+	{
+		return(polyID);
+	}
+	/** Sets this grid's polyID
+	 * @param my_polyID The grid's new polyID
+	 */
+	void grid::set_polyID(unsigned int my_polyID)
+	{
+		polyID = my_polyID;
+	}
 #endif
 

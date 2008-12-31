@@ -550,24 +550,24 @@ void echo_char::draw(float x, float y, float z)
 		joints.lthigh_lift = -35 * echo_sin(dist_traveled_cyclic) - 15;
 		
 		/// main_grid is the grid the character is on right now (if it's just two normal grids) 
-		grid* main_grid = NULL;
-		/// main_per is the percentage into the grid on the interval of [0.5, 1)
-		float main_per = 0;
-		if(grid1 != NULL && grid1per >= 0.5f)
-		{
-			main_per = grid1per;
-			main_grid = grid1;
-		}
-		else if(grid2 != NULL && grid1per <= 0.5f)
-		{
-			main_per = 1 - grid1per;
-			main_grid = grid2;
-		}
+                grid* main_grid = NULL;
+                /// main_per is the percentage into the grid on the interval of [0.5, 1)
+                float main_per = 0;
+                if(grid1 != NULL && grid1per >= 0.5f)
+                {
+                        main_per = grid1per;
+                        main_grid = grid1;
+                }
+                else if(grid2 != NULL && grid1per <= 0.5f)
+                {
+                        main_per = 1 - grid1per;
+                        main_grid = grid2;
+                }
 		/// If there is a main_grid...
 		if(main_grid != NULL)
 		{
-			/// ...then there is a vertical shift, which is defined by the grid
-			float vshift = main_grid->vert_shift(main_per);
+			/// ...then there is a vertical shift, which is a cos function
+			float vshift = 0.05f * echo_cos(360 * main_per) - 0.05f;
 			/// Shift y up
 			y += vshift;
 #ifdef USE_IK

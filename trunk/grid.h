@@ -23,7 +23,9 @@
 #include <echo_math.h>
 #include <echo_platform.h>
 
+/// The size of a grid
 #define GRID_SIZE	1
+/// Half the size of a grid
 #define HALF_GRID	0.5f
 
 #ifndef __ECHO_GRID_INFO_T__
@@ -38,6 +40,7 @@ typedef struct
 }
 grid_info_t;
 
+/// Prettyprints the info's data
 void dump_grid_info(grid_info_t ginfo);
 #endif
 
@@ -126,13 +129,26 @@ class grid
 		void delete_triggers();
 		/// Clear the list of neighbors, not the neighbors themselves
 		void delete_neighbors();
-		
+		/** Gets the info of the grid; override for awesomeness
+		 * @param angle Current camera angle
+		 */
 		virtual grid_info_t* get_info(vector3f angle);
+		/** Directs the character to the next grid.  Note that this have to be
+		 * bidirectional; the grid has to return the grid in the right direction
+		 * the character is traversing in this "linked list".
+		 * @param angle Current camera angle
+		 * @param current Current grid (actually, a grid next to this grid)
+		 * @return The next grid the character should go to
+		 */
 		virtual grid* get_next(vector3f angle, grid* current);
+		/// Prettyprints the grid
 		virtual void dump();
-		
-		virtual grid** get_neighbors(vector3f angle);
-		int num_neighbors(vector3f angle);
+		/** Checks grids for equality, which just requires the positions to be
+		 * same.  The rationale is that one of the grids is a EscGrid, and thus
+		 * just comparing references won't necessarily detect equality.
+		 * @param g The other grid to compare to.
+		 * @param angle The current camera angle
+		 */
 		virtual int equals(grid* g, vector3f angle);
 		/** Sets the next grid; used mainly by the loader
 		 * @param g The new next grid
@@ -142,31 +158,64 @@ class grid
 		 * @param g The new previous grid
 		 */
 		virtual void set_real_prev(grid* g);
-		
+		/** Adds the trigger
+		 * @param trig Trigger to be added
+		 */
 		virtual void add_trigger(trigger* trig);
+		/** Toggles the grid; if this grid is a goal before calling this, then
+		 * triggers will be toggled.
+		 * @param angle Current camera angle
+		 */
 		virtual void toggle_goal(vector3f angle);
 		virtual int is_goal(vector3f angle);
+		/// Sets the grid to be a goal; used mainly by the loader
 		virtual void set_as_goal();
-		
+		/** Generates the set of points that outline the grid\n
+		 * Used for drawing, and deciding if a character lands on this grid\n
+		 * Default behavior is to return a square with width GRID_SIZE that is centered at the grid's position
+		 * @param my_info The grid's info, so that this method doesn't have to get it
+		 * @return The points
+		 */
 		virtual vector3f** generate_points(grid_info_t* my_info);
-		
+		/// Should this grid be drawn?
 		virtual int should_draw();
 		virtual void set_draw(int draw);
+		/** Draws the grid; default behavior is to draw a quad with attribute "points",
+		 * and draw a goal if this is a goal.
+		 * @param angle The current camera angle
+		 */
 		virtual void draw(vector3f angle);
-		
+		/** Sets the grid's land flag; can the character land on this grid?
+		 * @param land New land flag
+		 */
 		virtual void set_land(int land);
 		virtual int should_land(vector3f angle);
-
+		/** Is the given point on this grid?  Default behavior is to make sure
+		 * that the y is similar and that the x and z is within a HALF_GRID
+		 * distance.
+		 * @param angle Current camera angle
+		 * @param pt Point to check
+		 */
 		virtual int is_pt_on(vector3f angle, vector3f* pt);
-		
+		/** Checks for an intersection between a line of Screen Position points and
+		 * any of the edges formed by the points; used by holes and launchers.
+		 * @param p1 The first point of the line
+		 * @param p2 The second point of the line
+		 * @param angle Current camera angle
+		 */
 		virtual int projected_line_intersect(vector3f* p1, vector3f* p2, vector3f angle);
-		
-		virtual float vert_shift(float percent_in);
-
+		/** If this grid is a goal, then it draws a goal above the position of this grid.
+		 * @param angle Current camera angle
+		 */
 		void draw_goal(vector3f angle);
-
 #ifdef ECHO_NDS
+		/** Gets the grid's polyID (see echo_gfx for more info on polyID)
+		 * @param angle Current camera angle
+		 */
 		virtual unsigned int get_polyID(vector3f angle);
+		/** Sets this grid's polyID
+		 * @param my_polyID The grid's new polyID
+		 */
 		void set_polyID(unsigned int my_polyID);
 #endif
 };
