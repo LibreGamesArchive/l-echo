@@ -45,20 +45,62 @@ struct echo_files
 };
 #endif
 
+/** Delete every string in the structure, and the structure itself
+ * @param files The structure to be deallocated
+ */
 STATUS delete_echo_files(echo_files* files);
 
+/// NDS doesn't have support for stat (at least, when I first wrote this)
 #ifndef ECHO_NDS
+	/** Is the combined filename a directory?
+	 * @param dir Directory
+	 * @param fname Relative path
+	 */ 
 	int is_dir(const char* dir, const char* fname);
+	/** Is the given filename a directory?
+	 * @param fname Absolute path
+	 */
 	int is_dir(const char* fname);
 #endif
 
+/** Correctly merges the filenames
+ * @param arg1 Directory
+ * @param arg2 Relative path
+ * @return The right file name.
+ */
 char* echo_merge(const char* arg1, const char* arg2);
+/** Is the file at "file_index" a directory?
+ * @param files File strucutre containing the file name to check
+ * @param file_index Which filename to check
+ */
 int is_dir(echo_files* files, int file_index);
+/** Get the file structure at dirname
+ * @param dirname Directory to check
+ * @return Echo_file structure, with the file names of that directory
+ */
 echo_files* get_files(const char* dirname);
+/** Print out the files
+ * @param files File structure to print out
+ */
 void dump_files(echo_files* files);
-
-//get the previous directory
+/** Get the parent directory of the path
+ * @param path The path
+ * @param save Where to save the parent directory
+ */
 STATUS echo_parentdir(const char* path, char** save);
-//get the directory of the executable
+/** Get the executable's directory, if possible:\n
+ * Windows and Linux - Works\n
+ * OSX - Current directory\n
+ * NDS - Just root\n
+ * @param save Where to put the directory
+ */
 STATUS echo_execdir(char** save);
+/** Generate a new string at "save" that is equal to "/"; used because
+ * paths have to be dynamically allocated.  Delete after use.
+ * @param save Pointer to where to put the string; remember to delete it after use
+ */
 STATUS echo_genroot(char** save);
+/** Get the current directory; not neccessarily the executable's directory
+ * @param save Where to save the current directory
+ */
+STATUS echo_currentdir(char** save);

@@ -46,6 +46,7 @@
 	#define POP_MATRIX 		glPopMatrix(1)
 	#define SET_ID(id)		glPolyFmt(POLY_ALPHA(31) | POLY_CULL_NONE | POLY_ID(id));
 #else
+	/// Are we currently drawing the outline?
 	static int drawing_outline = 0;
 	#define SET_ID(id)
 	#define POP_MATRIX		glPopMatrix()
