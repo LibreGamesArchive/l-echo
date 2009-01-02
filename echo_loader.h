@@ -19,4 +19,7 @@
 
 #include <echo_stage.h>
 
+/** Load the stage from the file name
+ * @param file_name File to load the stage from.
+ */
 stage* load_stage(char* file_name);
