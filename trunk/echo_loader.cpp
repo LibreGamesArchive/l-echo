@@ -17,23 +17,26 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/// Standard libraries
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <string>
 #include <typeinfo>
-
 #include <vector>
 #include <map>
 
-#include <filter.h>
-#include <trigger.h>
-
+/// Various L-Echo libraries
 #include <echo_debug.h>
 #include <echo_error.h>
 #include <echo_stage.h>
 #include <echo_platform.h>
+#include <echo_xml.h>
 
+#include <filter.h>
+#include <trigger.h>
+
+/// Various grids
 #include <launcher.h>
 #include <freeform_grid.h>
 #include <t_grid.h>
@@ -42,103 +45,122 @@
 #include <grid.h>
 #include <stair.h>
 
-#include <echo_xml.h>
-
-//#define LOAD_DEBUG
-
+/// If we want to debug the loading...
 #ifdef LOAD_DEBUG
+	/// Forward the printing to ECHO_PRINT
 	#define LD_PRINT(...)	ECHO_PRINT(__VA_ARGS__)
 #else
+	/// Or just swallow it
 	#define LD_PRINT(...)
 #endif
 
+/** @brief Holds a grid and calls a given function function of the grid.\n
+ * Used for dependencies.
+ */
 class functor
 {
 public:
-        grid* obj;
-        void (grid::*funcp)(grid*);
-        functor()
+	/// Grid object
+	grid* obj;
+	/// Function to be called; has to take a grid pointer as arg
+	void (grid::*funcp)(grid*);
+protected:
+	/// Default constructor; everything NULL; used by subclasses
+	functor()
 	{
 		obj = NULL;
 		funcp = NULL;
 	}
+public:
+	/// Deconstructor; does nothing
 	virtual ~functor(){}
-        functor(grid* my_obj, void (grid::*my_funcp)(grid*))
-        {
+	/// Constructor, initializes both attributes
+	functor(grid* my_obj, void (grid::*my_funcp)(grid*))
+	{
 		obj = my_obj;
 		funcp = my_funcp;
-        }
-        virtual void call(grid* ptr) const
-        {
+	}
+	/// Calls the function with the pointer as argument
+	virtual void call(grid* ptr) const
+	{
 		(obj->*funcp)(ptr);
-        }
+	}
 };
-
+/** @brief Holds a t_grid and calls a given function function of the grid.\n
+ * Used for dependencies.
+ */
 class t_functor : public functor
 {
 public:
-        t_grid* t_obj;
-        void (t_grid::*t_funcp)(grid*);
-	t_functor()
-	{
-		t_obj = NULL;
-		t_funcp = NULL;
-	}
+	/// The t_grid object whose function is called
+	t_grid* t_obj;
+	/// The function to be called
+	void (t_grid::*t_funcp)(grid*);
+	/// Deconstructor; does nothing
 	virtual ~t_functor(){}
-        t_functor(t_grid* my_obj, void (t_grid::*my_funcp)(grid*))
-        {
+	/// Constructor, initializes both attributes of this class; doesn't initialize functor stuff
+	t_functor(t_grid* my_obj, void (t_grid::*my_funcp)(grid*))
+	{
 		t_obj = my_obj;
 		t_funcp = my_funcp;
-        }
-        virtual void call(grid* ptr) const
-        {
+	}
+	/// Calls the function with the pointer as argument
+	virtual void call(grid* ptr) const
+	{
 		(t_obj->*t_funcp)(ptr);
-        }
+	}
 };
+/** @brief Holds a filter and calls a given function function of the grid.\n
+ * Used for dependencies.
+ */
 class filter_functor : public functor
 {
 public:
-        filter* f_obj;
-        void (filter::*f_funcp)(grid*);
-	filter_functor()
-	{
-		f_obj = NULL;
-		f_funcp = NULL;
-	}
+	/// The filter object whose function is called
+	filter* f_obj;
+	/// The function to be called
+	void (filter::*f_funcp)(grid*);
+	/// Deconstructor; does nothing
 	virtual ~filter_functor(){}
-        filter_functor(filter* my_obj, void (filter::*my_funcp)(grid*))
-        {
+	/// Constructor, initializes both attributes of this class; doesn't initialize functor stuff
+	filter_functor(filter* my_obj, void (filter::*my_funcp)(grid*))
+	{
 		f_obj = my_obj;
 		f_funcp = my_funcp;
-        }
-        virtual void call(grid* ptr) const
-        {
+	}
+	/// Calls the function with the pointer as argument
+	virtual void call(grid* ptr) const
+	{
 		(f_obj->*f_funcp)(ptr);
-        }
+	}
 };
+/** @brief Holds a trigger and calls a given function function of the grid.\n
+ * Used for dependencies.
+ */
 class trigger_functor : public functor
 {
 public:
-        trigger* t_obj;
-        void (trigger::*t_funcp)(grid*);
-	trigger_functor()
-	{
-		t_obj = NULL;
-		t_funcp = NULL;
-	}
+	/// The trigger object whose function is called
+	trigger* t_obj;
+	/// The function to be called
+	void (trigger::*t_funcp)(grid*);
+	/// Deconstructor; does nothing
 	virtual ~trigger_functor(){}
-        trigger_functor(trigger* my_obj, void (trigger::*my_funcp)(grid*))
-        {
+	/// Constructor, initializes both attributes of this class; doesn't initialize functor stuff
+	trigger_functor(trigger* my_obj, void (trigger::*my_funcp)(grid*))
+	{
 		t_obj = my_obj;
 		t_funcp = my_funcp;
-        }
-        virtual void call(grid* ptr) const
-        {
+	}
+	/// Calls the function with the pointer as argument
+	virtual void call(grid* ptr) const
+	{
 		(t_obj->*t_funcp)(ptr);
-        }
+	}
 };
-
+/// A list of functors.
 typedef std::vector<functor*> FUNCTOR_VEC;
+/// Map of grid id strings to a list of functors to call with the grid.
 typedef std::map<std::string, FUNCTOR_VEC*> DEPENDENCY_MAP;
 
 #ifdef ECHO_NDS
@@ -148,6 +170,7 @@ typedef std::map<std::string, FUNCTOR_VEC*> DEPENDENCY_MAP;
 	static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot);
 #endif
 
+/// Deletes all the functors in the list, and the list itself
 void delete_functors(FUNCTOR_VEC* vec)
 {
 	FUNCTOR_VEC::iterator it = vec->begin();
