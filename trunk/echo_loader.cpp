@@ -162,13 +162,42 @@ public:
 typedef std::vector<functor*> FUNCTOR_VEC;
 /// Map of grid id strings to a list of functors to call with the grid.
 typedef std::map<std::string, FUNCTOR_VEC*> DEPENDENCY_MAP;
+/// A map of y-coordinates to a list of grids on that level
+typedef std::map<float, GRID_PTR_SET*> LEVEL_MAP;
 
 #ifdef ECHO_NDS
+	/// The function for parsing a grid from an element.  This NDS version has extra maps
 	static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot
 			, LEVEL_MAP* nonffgrids, LEVEL_MAP* ffgrids);
 #else
 	static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, escgrid* escroot);
 #endif
+
+/// Convenience function for map_add_pos below; gets the right grid list in the map
+static GRID_PTR_SET* map_get_level(LEVEL_MAP* levels, vector3f* pos)
+{
+        LEVEL_MAP::iterator it = levels->find(pos->y);
+        if(it == levels->end())
+                return(NULL);
+        return(it->second);
+}
+
+/// Add the grid to the right level with its position
+void map_add_pos(LEVEL_MAP* levels, vector3f* pos, grid* g)
+{
+        GRID_PTR_SET* set = map_get_level(levels, pos);
+        if(set)
+        {
+                set->insert(g);
+        }
+        else
+        {
+                set = new GRID_PTR_SET();
+                CHKPTR(set);
+                set->insert(g);
+                levels->insert(LEVEL_MAP::value_type(pos->y, set));
+        }
+}
 
 /// Deletes all the functors in the list, and the list itself
 void delete_functors(FUNCTOR_VEC* vec)
@@ -184,6 +213,7 @@ void delete_functors(FUNCTOR_VEC* vec)
 	delete vec;
 }
 
+/// Deletes all the functor lists in the map, and the map itself
 void delete_dependencies(DEPENDENCY_MAP* map)
 {
 	DEPENDENCY_MAP::iterator it = map->begin();

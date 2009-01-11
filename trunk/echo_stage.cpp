@@ -209,3 +209,4 @@ float stage::get_farthest()
 	return(farthest);
 }
 
+
