@@ -307,7 +307,7 @@ float vector3f::scalar_angle_with_up()
  * @param distance Longest length
  * @return Angle between length1 and length2
  */
-STATUS IK_angle(float length1, float length2, float distance, float* angle)
+float IK_angle(float length1, float length2, float distance)
 {
 	/*
 	 * Where C = distance, A = length1, B = length2
@@ -318,13 +318,12 @@ STATUS IK_angle(float length1, float length2, float distance, float* angle)
 	 */
 	//ECHO_PRINT("l1, l2, d: %f, %f, %f\n", length1, length2, distance);
 	if(length1 + length2 < distance)
-		*angle = 0;
+		return(0);
 	else
 	{
-		*angle = 180 - ECHO_ACOSF_DEG( ( (length1 * length1) + (length2 * length2) 
-			- (distance * distance) ) / (2 * length1 * length2) );
+		return(180 - ECHO_ACOSF_DEG( ( (length1 * length1) + (length2 * length2) 
+			- (distance * distance) ) / (2 * length1 * length2) ));
 	}
-	return(WIN);
 }
 /** Tests for line segment intersection
  * Adapted from http://www.idevgames.com/forum/showthread.php?t=7458
