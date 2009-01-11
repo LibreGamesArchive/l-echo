@@ -35,8 +35,6 @@
 
 namespace echo_ns
 {
-	grid* hole_grid = new grid();
-	
 	float null_char_opacity = NULL_CHAR_OPACITY_MIN;
 	int opacity_incr = 1;
 	
@@ -51,7 +49,6 @@ namespace echo_ns
 			delete current_stage;
 		if(main_char != NULL)
 			delete main_char;
-		delete hole_grid;
 	}
 	void init(stage* st)
 	{

@@ -20,21 +20,30 @@
 #include <echo_prefs.h>
 #include <echo_error.h>
 #include <echo_debug.h>
+#include <echo_ingame_loader.h>
 #include <echo_platform.h>
 #include <echo_xml.h>
 
-#ifdef ECHO_NDS
-	#ifndef __ECHO_NDS_PREFS__
+#ifndef __ECHO_NDS_PREFS__
 	#define __ECHO_NDS_PREFS__
 	
 	#define HAND_ATTR_NAME 		"handedness"
 	#define HAND_LEFT_VALUE 	"left"
 	#define HAND_RIGHT_VALUE 	"right"
-	#define PREFS_FILE			"/apps/n-echo/prefs.xml"
 	
 	STATUS open_prefs(echo_xml** document)
 	{
-		return(echo_xml_load_file(document, PREFS_FILE));
+		char** path = new(char*);
+		CHKPTR(path);
+		if(echo_prefsfile(path) == WIN)
+		{
+			ECHO_PRINT("prefs path: %s\n", *path);
+			const STATUS result = echo_xml_load_file(document, *path);
+			delete path;
+			return(result);
+		}
+		delete path;
+		return(FAIL);
 	}
 	STATUS get_hand(echo_xml* document, HAND* handedness)
 	{
@@ -85,7 +94,6 @@
 				return(WIN);
 		return(FAIL);
 	}
-	#endif
 #endif
 
 

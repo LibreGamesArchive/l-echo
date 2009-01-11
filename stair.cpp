@@ -17,8 +17,6 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #include <echo_debug.h>
 #include <echo_error.h>
 #include <echo_math.h>
@@ -27,29 +25,29 @@
 #include <grid.h>
 #include <stair.h>
 
+/// Init info and neighbors to null and angle to 0
 stair::stair() : grid()
 {
 	init(NULL, NULL, NULL, 0);
 }
-
+/// Init the stair with the info, neighbors, and angle
 stair::stair(grid_info_t* my_info, grid* my_prev, grid* my_next, float my_angle) : grid(0)
 {
 	init(my_info, my_prev, my_next, my_angle);
 }
-
+/// Re-Init the stair with the info, neighbors, and angle
 void stair::init(grid_info_t* my_info, grid* my_prev, grid* my_next, float my_angle)
 {
 	angle = my_angle;
-	//ECHO_PRINT("stair angle 1: %f\n", angle);
 	grid::init(my_info, my_prev, my_next);
 }
-
+/// Inits the angle to 0
 void stair::init_to_null()
 {
 	grid::init_to_null();
 	angle = 0;
 }
-
+/// Draws the stairs with angle given around the y-axis
 void stair::draw(vector3f angle)
 {
 	gfx_push_matrix();

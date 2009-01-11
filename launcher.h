@@ -23,21 +23,26 @@
 
 #ifndef __ECHO_CLASS_LAUNCHER__
 #define __ECHO_CLASS_LAUNCHER__
+/** A launcher; it's basically a special escgrid that serves as a marker for 
+ * the character to realize that it's being launched.
+ */
 class launcher : public escgrid
 {
 	public:
+		/// Initializes an empty launcher with no info or neighbors
 		launcher();
-		launcher(grid_info_t* my_info, grid* my_prev, grid* my_next);
-		launcher(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info_t* my_esc_info
-			, grid* my_normal_prev, grid* my_esc_prev, grid* my_normal_next, grid* my_esc_next);
-		launcher(grid_info_t* my_info, grid* my_prev, grid* my_next, angle_range** my_escranges, grid** my_escs, int my_num_escs);
-		void init(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info_t* my_esc_info
-			, grid* my_normal_prev, grid* my_esc_prev, grid* my_normal_next, grid* my_esc_next);
-		void init(grid_info_t* my_info, grid* my_prev, grid* my_next, angle_range** my_escranges, grid** my_escs, int my_num_escs);
-		void init(grid_info_t* my_info, grid* my_prev, grid* my_next);
-		
+		/// Initializes a launcher with info and no neighbors (it doesn't need them)
+		launcher(grid_info_t* my_info);
+		/// Re-Initializes a launcher with info and no neighbors (it doesn't need them)
+		void init(grid_info_t* my_info);
+		/// Deconstructor; does nothing
 		virtual ~launcher();
+		/** Gets the next grid; it's either the next grid of the current esc,
+		 * or null, which tells the character to launch itself (this grid certainly
+		 * isn't going to do that for him.
+		 */
 		virtual grid* get_next(vector3f angle, grid* current);
+		/// Draws the launcher
 		virtual void draw(vector3f angle);
 };
 #endif

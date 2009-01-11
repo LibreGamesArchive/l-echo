@@ -130,6 +130,34 @@ STATUS echo_execdir(char** save)
 	}
 	return(FAIL);
 }
+/** Gets the prefs filename: \n
+ * Win/Lin/Mac - echo_execdir() + "prefs.xml"\n
+ * NDS - "/apps/n-echo/prefs.xml"\n
+ * @param save Where to put the file name
+ */
+STATUS echo_prefsfile(char** save)
+{
+	if(save != NULL)
+	{
+#ifdef ECHO_NDS
+		*save = new char[strlen("/apps/n-echo/prefs.xml") + 1];
+		CHKPTR(*save);
+		strcpy(*save, "/apps/n-echo/prefs.xml");
+		return(WIN);
+#else
+		char** path = new(char*);
+		CHKPTR(path);
+		if(echo_execdir(path) == WIN)
+		{
+			*save = echo_merge(*path, "prefs.xml");
+			delete path;
+			return(WIN);
+		}
+		delete path;
+#endif
+	}
+	return(FAIL);
+}
 /** Get the current directory; not neccessarily the executable's directory
  * @param save Where to save the current directory
  */

@@ -22,21 +22,17 @@
 #include <echo_character.h>
 #include <echo_math.h>
 #include <grid.h>
-//#include <static_grid.h>
 #include <echo_stage.h>
 
 #ifndef __ECHO_NS__
 #define __ECHO_NS__
-//typedef std::set<static_grid*> STATIC_SET;
 
 namespace echo_ns
 {
-	extern grid* hole_grid;
 	extern vector3f angle;
 	extern stage* current_stage;
 	extern echo_char* main_char;
-	//extern STATIC_SET* statics;
-
+	
 	void deallocate();
 	void init(stage* st);
 	void start();

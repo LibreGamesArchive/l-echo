@@ -27,51 +27,35 @@
 #include <echo_math.h>
 #include <grid.h>
 
+/// Initializes an empty hole with no info or neighbors
 hole::hole() : escgrid()
 {
 
 }
-
-hole::hole(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info_t* my_esc_info
-	, grid* my_normal_prev, grid* my_esc_prev, grid* my_normal_next, grid* my_esc_next) : escgrid()
+/// Initializes a hole with info and no neighbors (it doesn't need them)
+hole::hole(grid_info_t* my_info) : escgrid()
 {
-	init(my_escangle, my_normal_info, my_esc_info, my_normal_prev, my_esc_prev, my_normal_next, my_esc_next);
+	init(my_info);
 }
-
-hole::hole(grid_info_t* my_info, grid* my_prev, grid* my_next, angle_range** my_escranges, grid** my_escs, int my_num_escs) : escgrid()
+/// Re-Initializes a hole with info and no neighbors (it doesn't need them)
+void hole::init(grid_info_t* my_info)
 {
-	init(my_info, my_prev, my_next, my_escranges, my_escs, my_num_escs);
+	escgrid::init(my_info, NULL, NULL);
 }
-
-hole::hole(grid_info_t* my_info, grid* my_prev, grid* my_next) : escgrid()
-{
-	init(my_info, my_prev, my_next);
-}
-
-void hole::init(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info_t* my_esc_info
-	, grid* my_normal_prev, grid* my_esc_prev, grid* my_normal_next, grid* my_esc_next)
-{
-	escgrid::init(my_escangle, my_normal_info, my_esc_info, NULL, my_esc_prev, NULL, my_esc_next);
-}
-
-void hole::init(grid_info_t* my_info, grid* my_prev, grid* my_next, angle_range** my_escranges, grid** my_escs, int my_num_escs)
-{
-	escgrid::init(my_info, NULL, NULL, my_escranges, my_escs, my_num_escs);
-}
-
-void hole::init(grid_info_t* my_info, grid* my_prev, grid* my_next)
-{
-	hole::init(my_info, my_prev, my_next, NULL, NULL, 0);
-}
-
+/// Descontructor; does nothing
 hole::~hole()
 {
 }
+/// Draws the hole
 void hole::draw(vector3f angle)
 {
 	escgrid::draw(angle);
 	draw_hole(get_info(angle)->pos);
 }
+/** Gets the next grid; it's either the next grid of the current esc,
+ * or null, which tells the character to fall into the hole itself (this grid certainly
+ * isn't going to do that for him)
+ */
 grid* hole::get_next(vector3f angle, grid* current)
 {
 	grid* esc = get_esc(angle);

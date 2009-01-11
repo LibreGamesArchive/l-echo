@@ -95,6 +95,12 @@ STATUS echo_parentdir(const char* path, char** save);
  * @param save Where to put the directory
  */
 STATUS echo_execdir(char** save);
+/** Gets the prefs filename: \n
+ * Win/Lin/Mac - echo_execdir() + "prefs.xml"\n
+ * NDS - "/apps/n-echo/prefs.xml"\n
+ * @param save Where to put the file name
+ */
+STATUS echo_prefsfile(char** save);
 /** Generate a new string at "save" that is equal to "/"; used because
  * paths have to be dynamically allocated.  Delete after use.
  * @param save Pointer to where to put the string; remember to delete it after use

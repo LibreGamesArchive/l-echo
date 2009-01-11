@@ -22,19 +22,22 @@
 
 #ifndef __ECHO_CLASS_STAIR__
 #define __ECHO_CLASS_STAIR__
+/** @brief Displays a stair instead of the typical square. */
 class stair : public grid
 {
 	protected:
 		float angle;
 	public:
+		/// Init info and neighbors to null and angle to 0
 		stair();
+		/// Init the stair with the info, neighbors, and angle
 		stair(grid_info_t* my_info, grid* my_prev, grid* my_next, float my_angle);
+		/// Re-Init the stair with the info, neighbors, and angle
 		void init(grid_info_t* my_info, grid* my_prev, grid* my_next, float my_angle);
-		
+		/// Inits the angle to 0
 		virtual void init_to_null();
-		//virtual line3f* generate_lines(grid_info_t my_info);
+		/// Draws the stairs with angle given around the y-axis
 		virtual void draw(vector3f angle);
-		
 };
 #endif
 

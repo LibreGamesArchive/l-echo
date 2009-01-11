@@ -26,18 +26,20 @@
 class hole : public escgrid
 {
 	public:
+		/// Initializes an empty hole with no info or neighbors
 		hole();
-		hole(grid_info_t* my_info, grid* my_prev, grid* my_next);
-		hole(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info_t* my_esc_info
-			, grid* my_normal_prev, grid* my_esc_prev, grid* my_normal_next, grid* my_esc_next);
-		hole(grid_info_t* my_info, grid* my_prev, grid* my_next, angle_range** my_escranges, grid** my_escs, int my_num_escs);
-		void init(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info_t* my_esc_info
-			, grid* my_normal_prev, grid* my_esc_prev, grid* my_normal_next, grid* my_esc_next);
-		void init(grid_info_t* my_info, grid* my_prev, grid* my_next, angle_range** my_escranges, grid** my_escs, int my_num_escs);
-		void init(grid_info_t* my_info, grid* my_prev, grid* my_next);
-		
+		/// Initializes a hole with info and no neighbors (it doesn't need them)
+		hole(grid_info_t* my_info);
+		/// Re-Initializes a hole with info and no neighbors (it doesn't need them)
+		void init(grid_info_t* my_info);
+		/// Descontructor; does nothing
 		virtual ~hole();
+		/** Gets the next grid; it's either the next grid of the current esc,
+		 * or null, which tells the character to fall into the hole itself (this grid certainly
+		 * isn't going to do that for him)
+		 */
 		virtual grid* get_next(vector3f angle, grid* current);
+		/// Draws the hole
 		virtual void draw(vector3f angle);
 };
 #endif

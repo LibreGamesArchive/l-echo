@@ -167,6 +167,7 @@ class grid
 		 * @param angle Current camera angle
 		 */
 		virtual void toggle_goal(vector3f angle);
+		/// Asks if this grid is a goal
 		virtual int is_goal(vector3f angle);
 		/// Sets the grid to be a goal; used mainly by the loader
 		virtual void set_as_goal();
@@ -179,6 +180,7 @@ class grid
 		virtual vector3f** generate_points(grid_info_t* my_info);
 		/// Should this grid be drawn?
 		virtual int should_draw();
+		/// Sets if this grid should be drawn
 		virtual void set_draw(int draw);
 		/** Draws the grid; default behavior is to draw a quad with attribute "points",
 		 * and draw a goal if this is a goal.
@@ -189,6 +191,7 @@ class grid
 		 * @param land New land flag
 		 */
 		virtual void set_land(int land);
+		/// Can a character land on this grid at that angle?
 		virtual int should_land(vector3f angle);
 		/** Is the given point on this grid?  Default behavior is to make sure
 		 * that the y is similar and that the x and z is within a HALF_GRID
