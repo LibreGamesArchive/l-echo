@@ -23,6 +23,9 @@
 
 #ifndef __ECHO_CLASS_HOLE__
 #define __ECHO_CLASS_HOLE__
+/** @brief A hole; it's basically a special escgrid that serves as a marker for 
+ * the character to realize that it's falling down.
+ */
 class hole : public escgrid
 {
 	public:

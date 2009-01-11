@@ -31,18 +31,27 @@
 #include <grid.h>
 #include <hole.h>
 
+/// The minimum opacity of the "stand-in mannequin" 
 #define NULL_CHAR_OPACITY_MIN   0.25f
 
+/// Holds important stuff
 namespace echo_ns
 {
+	/** Opacity of the "stand-in" mannequin, or the mannequin that marks
+	 * where the character initially lands.
+	 */
 	float null_char_opacity = NULL_CHAR_OPACITY_MIN;
-	int opacity_incr = 1;
-	
+	/// Are we increasing the character's opacity or decreasing?
+	int opacity_incr = true;
+	/// The world's rotation angle.  _VERY_ important variable
 	vector3f angle;
+	/// The main character; the protagonist, the one the player controls
 	echo_char* main_char = NULL;
+	/// The current stage
 	stage* current_stage = NULL;
-	int started;
-	
+	/// Has the game started yet?
+	int started = false;
+	/// Deallocate everything: stage and character
 	void deallocate()
 	{
 		if(current_stage != NULL)
@@ -50,11 +59,11 @@ namespace echo_ns
 		if(main_char != NULL)
 			delete main_char;
 	}
+	/// Initialize everything with the stage (which will be delete if deallocate is called)
 	void init(stage* st)
 	{
 		if(current_stage != NULL)
 			delete current_stage;
-		started = 0;
 		current_stage = st;
 		if(st != NULL)
 		{
@@ -64,14 +73,17 @@ namespace echo_ns
 		else
 			main_char = NULL;
 	}
+	/// Get the ball rolling!
 	void start()
 	{
-		started = 1;
+		started = true;
 	}
+	/// Get the lowest level in the current stage
 	float get_lowest_level()
 	{
 		return(current_stage->get_lowest_level());
 	}
+	/// Draws the stage and the character, or a "stand-in" mannequin
 	void draw()
 	{
 		if(current_stage != NULL)
@@ -81,8 +93,10 @@ namespace echo_ns
 			{
 				main_char->step();
 			}
+			/// Need a stand-in mannequin
 			else
 			{
+				/// Get the starting grid's info
 				grid* g = current_stage->get_start();
 				if(g)
 				{
@@ -102,66 +116,80 @@ namespace echo_ns
 						gfx_outline_end();
 #endif
 						gfx_pop_matrix();
+						
+						/// Change the opacity
+						/// If we're increasing the opacity
 						if(opacity_incr)
 						{
+							/// Increase the opacity slightly
 							null_char_opacity += 0.05f;
+							/// If the opacity is greater than (or equal to) 1
 							if(null_char_opacity >= 1)
-								opacity_incr = 0;
+							{
+								/// Change it back to one
+								null_char_opacity = 1;
+								/// Start decreasing the opacity
+								opacity_incr = false;
+							}
 						}
+						/// Else, we're decreasing...
 						else
 						{
+							/// Decrease the opacity slightly
 							null_char_opacity -= 0.05f;
+							/// If the opacity is less than the minimum
 							if(null_char_opacity <= NULL_CHAR_OPACITY_MIN)
-								opacity_incr = 1;
+								/// Start increasing the opacity
+								/// (don't need to change to NULL_CHAR_OPACITY_MIN because it's OK to cross the threshold)
+								opacity_incr = true;
 						}
 					}
 				}
 			}
 		}
 	}
+	/// Pause or unpause the game
 	void toggle_pause()
 	{
-		if(current_stage != NULL)
+		if(main_char != NULL)
 			main_char->toggle_pause();
 	}
-	void step_char()	//CHANGE FOR NORMALS
-	{
-		if(started)	main_char->step();
-	}
-	void reset()
-	{
-		main_char->reset();
-	}
+	/// Is the game paused?
 	int is_paused()
 	{
 		return(main_char->is_paused());
 	}
+	/// How many goals are there on this stage?
 	int num_goals()
 	{
 		return(current_stage->get_num_goals());
 	}
+	/// How goals has the many character reached?
 	int num_goals_reached()
 	{
 		return(main_char->num_goals_reached());
 	}
+	/// How many goals are left?
 	int goals_left()
 	{
 		return(current_stage->get_num_goals() - num_goals_reached());
 	}
+	/// Get the speed of the character (see echo_char#speed)
 	float get_speed()
 	{
 		return(main_char->get_speed());
 	}
-	//change speed to running if we can
+	/// Change speed to running if we can
 	void start_run()
 	{
 		main_char->start_run();
 	}
-	//change speed to walking if we can
+	/// Change speed to walking if we can
 	void start_step()
 	{
 		main_char->start_step();
 	}
+	/// Toggle running
 	void toggle_run()
 	{
 		main_char->toggle_run();

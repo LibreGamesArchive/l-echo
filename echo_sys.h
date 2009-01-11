@@ -19,7 +19,9 @@
 
 #include <echo_platform.h>
 
-#define FPS		30
+/// Frames per second
+#define FPS	30
+/// Delay per frame (if it's running top speed, which it probably won't be)
 #define WAIT 	33.333f
 
 #ifndef ECHO_NDS

@@ -23,7 +23,7 @@
 
 #ifndef __ECHO_CLASS_LAUNCHER__
 #define __ECHO_CLASS_LAUNCHER__
-/** A launcher; it's basically a special escgrid that serves as a marker for 
+/** @brief A launcher; it's basically a special escgrid that serves as a marker for 
  * the character to realize that it's being launched.
  */
 class launcher : public escgrid
