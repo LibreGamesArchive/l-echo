@@ -19,10 +19,9 @@
 
 #include <echo_platform.h>
 #include <echo_xml.h>
-#ifdef ECHO_NDS
-	enum HAND { LEFT_HAND, RIGHT_HAND };
-	STATUS open_prefs(echo_xml** document);
-	STATUS get_hand(echo_xml* document, HAND* handedness);
-	STATUS set_hand(echo_xml* document, HAND handedness);
-	STATUS close_prefs(echo_xml* document);
-#endif
+
+enum HAND { LEFT_HAND, RIGHT_HAND };
+STATUS open_prefs(echo_xml** document);
+STATUS get_hand(echo_xml* document, HAND* handedness);
+STATUS set_hand(echo_xml* document, HAND handedness);
+STATUS close_prefs(echo_xml* document);

@@ -45,8 +45,6 @@ void stage::init(grid* my_start, std::string* my_name, int my_num_goals)
 	lowest = FLT_MAX;
 	grids = new STAGE_MAP();
 	CHKPTR(grids);
-	levels = new LEVEL_MAP();
-	CHKPTR(levels);
 	
 	start = my_start;
 	name = my_name;
@@ -67,74 +65,31 @@ stage::~stage()
 	    ++it;
 	}
 	delete grids;
-	LEVEL_MAP::iterator level_it = levels->begin();
-	LEVEL_MAP::iterator level_end = levels->end();
-	while(level_it != level_end)
-	{
-		if(level_it->second != NULL)
-			delete level_it->second;
-	    ++level_it;
-	}
-	delete levels;
 }
-
+/** Adds the grid with the id.
+ * @param id The id of the grid to add
+ * @param ptr The grid to add
+ */
 void stage::add(std::string id, grid* ptr)
 {
     grids->insert(STAGE_MAP::value_type(id, ptr));
 }
-
-GRID_PTR_SET* map_get_level(LEVEL_MAP* levels, vector3f* pos)
-{
-	LEVEL_MAP::iterator it = levels->find(pos->y);
-	if(it == levels->end())
-		return(NULL);
-	return(it->second);
-}
-
-void map_add_pos(LEVEL_MAP* levels, vector3f* pos, grid* g)
-{
-	GRID_PTR_SET* set = map_get_level(levels, pos);
-	if(set)
-	{
-		set->insert(g);
-	}
-	else
-	{
-		set = new GRID_PTR_SET();
-		CHKPTR(set);
-		set->insert(g);
-		levels->insert(LEVEL_MAP::value_type(pos->y, set));
-	}
-}
-
-GRID_PTR_SET* stage::get_level(vector3f* pos)
-{
-	return(map_get_level(levels, pos));
-}
-
+/** Adds the position of the grid.  It was used in the old holes and launchers
+ * implementation, but used right now just to calculate the lowest position.
+ * @param pos The position of the grid.  Just has to be the position of the grid at some angle.
+ * @param g The grid (isn't used now)
+ */
 void stage::add_pos(vector3f* pos, grid* g)
 {
 	if(pos->y < lowest)
 		lowest = pos->y;
-	map_add_pos(levels, pos, g);
 }
-
+/// Gets the lowest y-coordinate that has a grid that can be landed on
 float stage::get_lowest_level()
 {
 	return(lowest);
 }
-
-void stage::dump_levels()
-{
-	LEVEL_MAP::iterator it = levels->begin(), end = levels->end();
-	ECHO_PRINT("levels: \n");
-	while(it != end)
-	{
-		ECHO_PRINT("%f: size: %i\n", it->first, it->second->size());
-		it++;
-	}
-}
-
+/// Gets a grid with the given string id
 grid* stage::get(std::string id)
 {
     STAGE_MAP::iterator pos = grids->find(id);
@@ -142,7 +97,7 @@ grid* stage::get(std::string id)
         return(NULL);
     return(pos->second);
 }
-
+/// Draws all the grids
 void stage::draw(vector3f angle)
 {
 	STAGE_MAP::iterator it = grids->begin();
@@ -155,7 +110,6 @@ void stage::draw(vector3f angle)
 		    it->second->draw(angle);
 	    ++it;
 	}
-	//draw_character();
 	gfx_outline_mid();
 	it = grids->begin();
 	while(it != end)
@@ -164,7 +118,6 @@ void stage::draw(vector3f angle)
 		    it->second->draw(angle);
 	    ++it;
 	}
-	//draw_character();
 	gfx_outline_end();
 #else
 	while(it != end)
@@ -178,37 +131,42 @@ void stage::draw(vector3f angle)
 	}
 #endif
 }
-
+/// Sets the initial starting point of the stage
 void stage::set_start(grid* g)
 {
     start = g;
 }
-
+/// Sets the name of the stage
 void stage::set_name(std::string* my_name)
 {
     name = my_name;
 }
-
+/// Sets the number of goals of the stage
 void stage::set_num_goals(int my_num_goals)
 {
     num_goals = my_num_goals;
 }
-
+/// Gets the initial starting point of this stage
 grid* stage::get_start()
 {
     return(start);
 }
-
+/// Gets the name of the stage
 std::string* stage::get_name()
 {
     return(name);
 }
-
+/// Gets the total number of goals of the stage
 int stage::get_num_goals()
 {
     return(num_goals);
 }
-
+/** Tests if any grid is intersected by the line represented by the
+ * Screen Position points
+ * @param p1 Screen Position; point 1 of the line
+ * @param p2 Screen Position; point 2 of the line
+ * @param angle Current camera angle
+ */
 grid* stage::get_grid_intersection(vector3f* p1, vector3f* p2, vector3f angle)
 {
 	grid* ret = NULL;
@@ -217,11 +175,14 @@ grid* stage::get_grid_intersection(vector3f* p1, vector3f* p2, vector3f angle)
 	STAGE_MAP::iterator end = grids->end();
 	while(it != end)
 	{
+		/// Short-circuit if you can't land on the line anyways
 		if(it->second->should_land(angle) && it->second->projected_line_intersect(p1, p2, angle))
 		{
+			/// The line intersects, but we want the nearest grid
 			grid_info_t* info = it->second->get_info(angle);
 			if(info != NULL)
 			{
+				/// Get the distance from the first point
 				vector3f* rot = info->pos->rotate_xy(angle);
 				float dist = p1->dist(rot);
 				if(dist < shortest_dist)
@@ -236,47 +197,13 @@ grid* stage::get_grid_intersection(vector3f* p1, vector3f* p2, vector3f angle)
 	}
 	return(ret);
 }
-
-LEVEL_MAP* stage::get_levels_lower_than(float y)
-{
-	LEVEL_MAP::iterator it = levels->begin(), end = levels->end();
-	LEVEL_MAP* ret = new LEVEL_MAP();
-	CHKPTR(ret);
-	while(it != end)
-	{
-		if(it->first >= y)
-			goto RET;
-		ret->insert(LEVEL_MAP::value_type(it->first, it->second));
-		it++;
-	}
-	RET:
-	return(ret);
-}
-
-LEVEL_MAP* stage::get_levels_higher_than(float y)
-{
-	if(!levels->size())
-		return(new LEVEL_MAP());
-	LEVEL_MAP::iterator it = levels->end(), end = levels->begin();
-	LEVEL_MAP* ret = new LEVEL_MAP();
-	do
-	{
-		it--;
-		if(it->first < y)
-			goto RET;
-		ret->insert(LEVEL_MAP::value_type(it->first, it->second));
-	}
-	while(it != end);
-	RET:
-	return(ret);
-}
-
+/// Set the farthest position
 void stage::set_farthest(float new_far)
 {
 	if(farthest < new_far)
 		farthest = new_far;
 }
-
+/// Get the farthest position
 float stage::get_farthest()
 {
 	return(farthest);

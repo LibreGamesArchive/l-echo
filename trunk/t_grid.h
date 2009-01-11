@@ -22,18 +22,25 @@
 
 #ifndef __ECHO_CLASS_T_GRID__
 #define __ECHO_CLASS_T_GRID__
+/** @brief t_grid is a grid that can have 3 neighbors.  Although that doesn't seem
+ * important, grids are implemented like a linked-list/network, so a specialized
+ * grid is necessary for 3-way junctions
+ */
 class t_grid : public grid
 {
 	public:
+		/// Init an empty t_grid with no neighbors and info
 		t_grid();
+		/// Init a t_grid with the info and neighbors
 		t_grid(grid_info_t* my_info, grid* my_prev, grid* my_next, grid* my_next2);
+		/// Re-initializes the t_grid with the info and neighbors
 		void init(grid_info_t* my_info, grid* my_prev, grid* my_next, grid* my_next2);
-		
+		/// Deconstructor; doesn't do anything
 		virtual ~t_grid();
+		/// Gets next grid. It goes in a cycle: neighbors[0] -> neighbors[1] -> neighbors[2]
 		virtual grid* get_next(vector3f angle, grid* current);
 		virtual void dump();
-		
-		virtual grid* get_real_next2();
+		/// Set neighbors[2].  Used by the loader
 		virtual void set_real_next2(grid* g);
 };
 #endif

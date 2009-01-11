@@ -25,39 +25,30 @@ along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 #include <echo_math.h>
 #include <echo_gfx.h>
 
+/// Initializes an empty EscGrid, with no info and neighbors
 escgrid::escgrid() : grid()
 {
 	init_to_null();
 	delete_at_deconstruct = 1;
-	init(NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+	init(NULL, NULL, NULL);
 }
-
+/// Initializes an EscGrid with the info and neighbors given
 escgrid::escgrid(grid_info_t* my_info, grid* my_prev, grid* my_next) : grid()
 {
 	init_to_null();
 	delete_at_deconstruct = 1;
 	init(my_info, my_prev, my_next);
 }
-
-escgrid::escgrid(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info_t* my_esc_info
-	, grid* my_normal_prev, grid* my_esc_prev, grid* my_normal_next, grid* my_esc_next) : grid()
-{
-	init_to_null();
-	delete_at_deconstruct = 1;
-	init(my_escangle, my_normal_info, my_esc_info, my_normal_prev, my_esc_prev, my_normal_next, my_esc_next);
-}
-
+/** Deletes the list of ranges and escs, and, if instructed, the ranges and escs themselves
+ * @param delete_every Where to delete the ranges and escs.
+ */
 void escgrid::delete_table(int delete_every)
 {
-	//ECHO_PRINT("deleting table for escgrid\n");
 	if(delete_at_deconstruct)
 	{
-		//ECHO_PRINT("delete_at_deconstruct is true\n");
 		if(escs)
 		{
-			//ECHO_PRINT("deleting escs\n");
-			//std::cout << "lol1";
-			if(delete_every == 1)
+			if(delete_every == true)
 			{
 				int each = 0;
 				while(each < num_esc)
@@ -71,9 +62,7 @@ void escgrid::delete_table(int delete_every)
 		}
 		if(ranges)
 		{
-			//ECHO_PRINT("deleting ranges\n");
-			//std::cout << "lol2";
-			if(delete_every == 1)
+			if(delete_every == true)
 			{
 				int each = 0;
 				while(each < num_esc)
@@ -87,65 +76,39 @@ void escgrid::delete_table(int delete_every)
 		}
 	}
 }
-
-void escgrid::init(vector3f* my_escangle, grid_info_t* my_normal_info, grid_info_t* my_esc_info
-	, grid* my_normal_prev, grid* my_esc_prev, grid* my_normal_next, grid* my_esc_next)
-{
-	grid::init(my_normal_info, my_normal_prev, my_normal_next);
-	num_esc = 1;
-	delete_table(1);
-	ranges = new angle_range*[1];
-	CHKPTR(ranges);
-	escs = new grid*[1];
-	CHKPTR(escs);
-	delete_at_deconstruct = 1;
-	ranges[0] = VECPTR_TO_RANGE(my_escangle);
-	escs[0] = new grid(my_esc_info, my_esc_prev, my_esc_next);
-}
-
+/// Re-initializes the EscGrid with the info and neighbors
 void escgrid::init(grid_info_t* my_info, grid* my_prev, grid* my_next)
 {
-	//ECHO_PRINT("\nINIT ESCGRID\n\n");
 	grid::init(my_info, my_prev, my_next);
-	//ECHO_PRINT("\nEND INIT ESCGRID: GRID\n\n");
 	delete_table(1);
 	ranges = NULL;
 	escs = NULL;
 	delete_at_deconstruct = 1;
 	num_esc = 0;
 }
-
-void escgrid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, angle_range** my_escranges, grid** my_escs, int my_num_escs)
-{
-	grid::init(my_info, my_prev, my_next);
-	delete_table(1);
-	ranges = my_escranges;
-	escs = my_escs;
-	delete_at_deconstruct = 0;
-	num_esc = my_num_escs;
-}
-
+/// Deletes the table (see delete_table)
 escgrid::~escgrid()
 {
 	delete_table(1);
 }
-
+/// Initializes the angles and escs to null
 void escgrid::init_to_null()
 {
 	grid::init_to_null();
 	ranges = NULL;
 	escs = NULL;
 }
-
+/** Adds the vector as an angle range and maps the grid given to it
+ * @param vec Angle vector to add as an angle range
+ * @param esc Grid to map to that angle range
+ */
 void escgrid::add(vector3f* vec, grid* esc)
 {
 	add(VECPTR_TO_RANGE(vec), esc);
 }
-
+/// Maps the angle range to the esc
 void escgrid::add(angle_range* range, grid* esc)
 {
-	//delete_table();
-	//*
 	angle_range** new_ranges = new angle_range*[num_esc + 1];
 	CHKPTR(new_ranges);
 	grid** new_escs = new grid*[num_esc + 1];
@@ -164,14 +127,14 @@ void escgrid::add(angle_range* range, grid* esc)
 	delete_at_deconstruct = 1;
 	escs = new_escs;
 	ranges = new_ranges;
-	// */
+	/// If this escgrid itself is a goal, make the esc a goal too.
 	if(am_goal)
 		esc->set_as_goal();
 	ranges[num_esc] = range;
 	escs[num_esc] = esc;
 	num_esc++;
 }
-
+/// Get the profile for this escgrid at that camera angle
 grid* escgrid::get_esc(vector3f angle)
 {
 	int each = 0;
@@ -185,26 +148,37 @@ grid* escgrid::get_esc(vector3f angle)
 	}
 	return(NULL);
 }
-
+/// Checks grids for equality.
 int escgrid::equals(grid* g, vector3f angle)
 {
 	grid* esc = get_esc(angle);
 	return(esc ? esc->equals(g, angle) : grid::equals(g, angle));
 }
-
+/** Draws the grid; default behavior is to draw a quad with attribute "points",
+ * and draw a goal if this is a goal.
+ * @param angle The current camera angle
+ */
 void escgrid::draw(vector3f angle)
 {
 	grid* esc = get_esc(angle);
 	if(esc) esc->draw(angle);
 	else    grid::draw(angle);
 }
-
+/** Gets the info of the grid; override for awesomeness
+ * @param angle Current camera angle
+ */
 grid_info_t* escgrid::get_info(vector3f angle)
 {
 	grid* esc = get_esc(angle);
 	return(esc ? esc->get_info(angle) : grid::get_info(angle));
 }
-
+/** Directs the character to the next grid.  Note that this have to be
+ * bidirectional; the grid has to return the grid in the right direction
+ * the character is traversing in this "linked list".
+ * @param angle Current camera angle
+ * @param current Current grid (actually, a grid next to this grid)
+ * @return The next grid the character should go to
+ */
 grid* escgrid::get_next(vector3f angle, grid* current)
 {
 	grid* esc = get_esc(angle);
@@ -212,13 +186,15 @@ grid* escgrid::get_next(vector3f angle, grid* current)
 }
 
 #ifdef ECHO_NDS
-unsigned int escgrid::get_polyID(vector3f angle)
-{
-	grid* esc = get_esc(angle);
-	return(esc ? esc->get_polyID(angle) : grid::get_polyID(angle));
-}
+	/// Get the assigned polyID of this escgrid; changes between escs
+	unsigned int escgrid::get_polyID(vector3f angle)
+	{
+		grid* esc = get_esc(angle);
+		return(esc ? esc->get_polyID(angle) : grid::get_polyID(angle));
+	}
 #endif
 
+/// Sets the grid to be a goal; escgrids must set all of its escs as grids too
 void escgrid::set_as_goal()
 {
 	int each = 0;
@@ -229,7 +205,9 @@ void escgrid::set_as_goal()
 	}
 	grid::set_as_goal();
 }
-
+/** Toggles the grid; all escs will be toggled too
+ * @param angle Current camera angle
+ */
 void escgrid::toggle_goal(vector3f angle)
 {
 	int each = 0;
@@ -240,18 +218,24 @@ void escgrid::toggle_goal(vector3f angle)
 	}
 	grid::toggle_goal(angle);
 }
-
+/// Asks if this grid is a goal
 int escgrid::is_goal(vector3f angle)
 {
 	grid* esc = get_esc(angle);
 	return(esc ? esc->is_goal(angle) : grid::is_goal(angle));
 }
+/// Can a character land on this grid at that angle?
 int escgrid::should_land(vector3f angle)
 {
 	grid* esc = get_esc(angle);
 	return(esc ? esc->should_land(angle) : grid::should_land(angle));
 }
-
+/** Checks for an intersection between a line of Screen Position points and
+ * any of the edges formed by the points; used by holes and launchers.
+ * @param p1 The first point of the line
+ * @param p2 The second point of the line
+ * @param angle Current camera angle
+ */
 int escgrid::projected_line_intersect(vector3f* p1, vector3f* p2, vector3f angle)
 {
 	grid* esc = get_esc(angle);

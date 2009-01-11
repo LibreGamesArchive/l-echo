@@ -1071,7 +1071,7 @@ static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, e
 						else if(!strcmp(*type, "hole"))
 						{
 							LD_PRINT("%s is an hole!\n", name);
-							new_grid = new hole(info, prev, next);
+							new_grid = new hole(info);
 							LD_CHKPTR(new_grid);
 #ifdef ECHO_NDS
 							if(!add_escs(txe, st, map, escroot, (escgrid*)new_grid, nonffgrids, ffgrids))
@@ -1086,7 +1086,7 @@ static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, e
 						else if(!strcmp(*type, "launcher"))
 						{
 							LD_PRINT("%s is a launcher!\n", name);
-							new_grid = new launcher(info, prev, next);
+							new_grid = new launcher(info);
 							LD_CHKPTR(new_grid);
 #ifdef ECHO_NDS
 							if(!add_escs(txe, st, map, escroot, (escgrid*)new_grid, nonffgrids, ffgrids))
@@ -1222,7 +1222,7 @@ static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, e
 									LD_PRINT("it's invisible!\n");
 								}
 							}
-							//noland check
+							/// Noland check
 							int noland = 0;
 							if(echo_xml_get_int_attribute(txe, "noland", &noland) == WIN)
 							{
@@ -1232,17 +1232,22 @@ static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, e
 									LD_PRINT("it's not land-able!\n");
 								}
 							}
-							if(!escroot)
+							/// If there is no esc root...
+							if(escroot == NULL)
 							{
+								/// Add this grid to the stage
 								st->add(name, new_grid);
+								/// And add this grid's position under its own pointer (if it can be landed on)
 								if(!noland)
 									st->add_pos(info->pos, new_grid);
 							}
+							/// Else, if this grid can be landed on
 							else if(!noland)
 							{
+								/// Add this grid position under the pointer of the root
 								st->add_pos(info->pos, escroot);
 							}
-							//trigger check
+							/// Trigger check
 							echo_xml_node** first = new(echo_xml_node*);
 							LD_CHKPTR(first);
 							if(echo_xml_get_first_child(txe, first) == WIN)
