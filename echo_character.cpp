@@ -595,24 +595,16 @@ void echo_char::draw(float x, float y, float z)
 				left_dist_foot = (vshift + 1.175f) / echo_cos(joints.lthigh_lift);
 			}
 			
-			/// Save the previous joint value
-			float temp = joints.rleg_bend;
-			/// Do the IK (0.5f is the length of the thigh, and 0.65f is the length of the leg and foot)
-			IK_angle(0.5f, 0.65f, right_dist_foot, &joints.rleg_bend);
-			/// If the joint value turns into 0 or NaN, restore it to its previous value
-			if(joints.rleg_bend == 0 || joints.rleg_bend != joints.rleg_bend)
-				joints.rleg_bend = temp;
-			/// If the right leg is bending over 90, get it under, so it doesn't look so ridiculous
-			else if(joints.rleg_bend > 90)
-				joints.rleg_bend = fmod(joints.rleg_bend, 90);
+			/// Get the results, mod it under 90
+			const float rtemp = fmod(IK_angle(0.5f, 0.65f, right_dist_foot), 90);
+			/// If the result is not 0 and not NaN, save it
+			if(rtemp != 0 && rtemp == rtemp)
+				joints.rleg_bend = rtemp;
 			
 			/// Do the same thing with left leg
-			temp = joints.lleg_bend;
-			IK_angle(0.5f, 0.65f, left_dist_foot, &joints.lleg_bend);
-			if(joints.lleg_bend == 0 || joints.lleg_bend != joints.lleg_bend)
-				joints.lleg_bend = temp;
-			else if(joints.lleg_bend > 90)
-				joints.lleg_bend = fmod(joints.lleg_bend, 90);
+			const float ltemp = fmod(IK_angle(0.5f, 0.65f, left_dist_foot), 90);
+			if(ltemp != 0 && ltemp == ltemp)
+				joints.lleg_bend = ltemp;
 			delete foot_vec;
 #else
 			#define LEG_BEND_MAX	30

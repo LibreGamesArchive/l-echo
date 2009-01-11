@@ -190,7 +190,7 @@ class angle_range
  * @param distance Longest length
  * @return Angle between length1 and length2
  */
-STATUS IK_angle(float length1, float length2, float distance, float* angle);
+float IK_angle(float length1, float length2, float distance);
 /** Tests for line segment intersection
  * Adapted from http://www.idevgames.com/forum/showthread.php?t=7458
  * @param a1 One of the points of line segment A
