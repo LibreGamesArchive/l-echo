@@ -96,8 +96,15 @@ class echo_char
 		 */
 		vector3f* fall_position;
 		
-		/// Horizontal component of the character's flight (after launched by a launcher)
+		/** Save the direction of the character before changing grids, so
+		 * that if the new grid1 is a launcher it can access the last direction.
+		 */
 		vector3f* fly_direction;
+		
+		/// Lateral component of the character's flight (after launched by a launcher)
+		float x_speed;
+		/// Lateral component of the character's flight (after launched by a launcher)
+		float z_speed;
 		
 		/// The y of the target grid (used if falling from the sky)
 		float target_y;
@@ -176,6 +183,38 @@ class echo_char
 		/** Falling from the sky, at the start of the stage.
 		*/
 		void initialize_fall_from_sky();
+		/** Start launching from the given position and direction, or where grid1 and grid2 are.
+		 * The launching works like this: If the character is launched from and lands on the same 
+		 * level, then he'll go up 7 units and right 4 units (tested in the real game).
+		 * So we can derive some constants from that...
+		 * 
+		 * When y = 7, v_fy = 0:
+		 * {v_oy}^2 + 2{a_y}x = {v_fy}^2
+		 * {v_oy}^2 + 14{a_y} = 0
+		 * {v_oy} = sqrt(-14{a_y})  (a is already negative)
+		 * 
+		 * When y = 0 (when he launches and lands):
+		 * y = {v_oy}t + a{t^2} / 2
+		 * 0 = t * sqrt(-14{a_y}) + a{t^2} / 2
+		 * 
+		 * Since a_y = -sqrt(-a_y) * sqrt(-a_y):
+		 * 0 = t * sqrt(-a_y) * ( sqrt(14) - t * sqrt(-a_y) / 2 )
+		 * 
+		 * So: 
+		 * t * sqrt(-a_y) / 2 = sqrt(14)
+		 * t = 2 * sqrt(14) / sqrt(-a_y)   (when he lands)
+		 * 
+		 * Plug it into the x equation:
+		 * x = v_ox * t
+		 * 4 = v_ox * 2 * sqrt(14) / sqrt(-a_y)
+		 * 2 * sqrt(-a_y) / sqrt(14) = v_ox
+		 * sqrt(-14{a_y}) / 7 = v_ox
+		 * v_oy / 7 = v_ox
+		 * 
+		 * @param pos An arbitrary position to launch from.  If this is NULL, then grid1's position will be used
+		 * @param direction Direction to launch towards laterally (on the xz-plane).  If this is NULL, then get_direction will be used.  WILL BE DELETED!!!
+		 */
+		void initialize_launching(vector3f* pos, vector3f* direction);
 };
 #endif
 
