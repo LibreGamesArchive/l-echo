@@ -14,8 +14,8 @@ DOFILES   := $(CPPFILES:.cpp=.DO)
 #.DOA - Darwin Object ARM (iPhone, iPod Touch)
 DOAFILES   := $(CPPFILES:.cpp=.DOA)
 
-VERSION   := 0.4.1
-REVISION  := 75
+VERSION   := 0.4.2
+REVISION  := 105
 
 PKGCOMMON := -echo-$(VERSION)_r$(REVISION)
 PKGPREFIX := ../l$(PKGCOMMON)-
