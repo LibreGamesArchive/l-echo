@@ -50,19 +50,23 @@
 #include <gen/gen.h>
 
 /// How high above the start grid does the character start?
-#define STARTY		10
+#define STARTY					10
 
-/// The acceleration constant
-#define ACCEL		15.0f
+/// The acceleration constant (Units / s^2)
+#define ACCEL					15.0f
 
 /// Various character speeds
 /// Percentage (we change the weight from grid1 to grid2 to make the character go in grid mode)
-#define SPEED_STEP 			0.07f
-#define SPEED_RUN			0.25f
+#define SPEED_STEP				0.07f
+#define SPEED_RUN				0.25f
 /// Actual speeds (in flying/falling mode) in Units/Sec
-#define SPEED_FALL 			0.00f
-#define SPEED_LAUNCH		0.30f
-#define SPEED_FALL_FROM_SKY	0.50f
+#define SPEED_FALL				0.00f
+#define SPEED_FALL_FROM_SKY		0.50f
+
+/// Launching initial vertical velocity (see echo_char#initialize_launching)
+static float LAUNCH_INIT_Y = sqrt(14 * ACCEL);
+/// Launching initial horizontal velocity (see echo_char#initialize_launching)
+static float LAUNCH_INIT_X = LAUNCH_INIT_Y / 7;
 
 /// Convenience macro to draw at a particular vector3f
 #define DRAW_VEC(vec)		draw((vec)->x, (vec)->y, (vec)->z)
@@ -76,6 +80,8 @@ echo_char::echo_char(grid* g1)
 	num_goals = 0;
 	/// Set fall_position to NULL, or else init/land will attempt to delete it.
 	fall_position = NULL;
+	/// Set fly_direction to NULL, or else next_grid will attempt to delete it.
+	fly_direction = NULL;
 	/// initialize
 	init(g1);
 }
@@ -87,6 +93,11 @@ echo_char::~echo_char()
 	{
 		delete fall_position;
 		fall_position = NULL;
+	}
+	if(fly_direction != NULL)
+	{
+		delete fly_direction;
+		fly_direction = NULL;
 	}
 }
 
@@ -134,6 +145,81 @@ void echo_char::initialize_falling(vector3f* pos)
 		actual_speed = SPEED_FALL;
 }
 
+/** Start launching from the given position and direction, or where grid1 and grid2 are.
+ * The launching works like this: If the character is launched from and lands on the same 
+ * level, then he'll go up 7 units and right 4 units (tested in the real game).
+ * So we can derive some constants from that...
+ * 
+ * When y = 7, v_fy = 0:
+ * {v_oy}^2 + 2{a_y}x = {v_fy}^2
+ * {v_oy}^2 + 14{a_y} = 0
+ * {v_oy} = sqrt(-14{a_y})  (a is already negative)
+ * 
+ * When y = 0 (when he launches and lands):
+ * y = {v_oy}t + a{t^2} / 2
+ * 0 = t * sqrt(-14{a_y}) + a{t^2} / 2
+ * 
+ * Since a_y = -sqrt(-a_y) * sqrt(-a_y):
+ * 0 = t * sqrt(-a_y) * ( sqrt(14) - t * sqrt(-a_y) / 2 )
+ * 
+ * So: 
+ * t * sqrt(-a_y) / 2 = sqrt(14)
+ * t = 2 * sqrt(14) / sqrt(-a_y)   (when he lands)
+ * 
+ * Plug it into the x equation:
+ * x = v_ox * t
+ * 4 = v_ox * 2 * sqrt(14) / sqrt(-a_y)
+ * 2 * sqrt(-a_y) / sqrt(14) = v_ox
+ * sqrt(-14{a_y}) / 7 = v_ox
+ * v_oy / 7 = v_ox
+ * 
+ * @param pos An arbitrary position to launch from.  If this is NULL, then grid1's position will be used
+ * @param direction Direction to launch towards laterally (on the xz-plane).  If this is NULL, then get_direction will be used.  WILL BE DELETED!!!
+ */
+void echo_char::initialize_launching(vector3f* pos, vector3f* direction)
+{
+	if(pos != NULL)
+	{
+		/// fall_position is used as the position if the camera angle is (0, 0, 0)
+		fall_position = pos->neg_rotate_yx(echo_ns::angle);
+	}
+	else if(grid1 != NULL)
+	{
+		/// Get the info
+		grid_info_t* i1 = grid1->get_info(echo_ns::angle);
+		if(i1 != NULL)
+		{
+			/// fall_position is used as the position if the camera angle is (0, 0, 0)
+			fall_position = i1->pos->neg_rotate_yx(echo_ns::angle);
+		}
+	}
+	else
+		echo_error("Cannot find where the character is falling from; quitting\n");
+	
+	/// Initialize direction if it isn't already
+	if(direction == NULL)
+	{
+		direction = new vector3f(fly_direction->x, fly_direction->y, fly_direction->z);
+		CHKPTR(direction);
+	}
+	/// Get the length of the direction...
+	const float dir_length = sqrt(direction->x * direction->x + direction->z * direction->z);
+	/// And normalize the 
+	x_speed = direction->x / dir_length * LAUNCH_INIT_X;
+	z_speed = direction->z / dir_length * LAUNCH_INIT_X;
+	ECHO_PRINT("x_speed: %f\n", x_speed);
+	ECHO_PRINT("y_speed: %f\n", LAUNCH_INIT_Y);
+	ECHO_PRINT("z_speed: %f\n", z_speed);
+	delete direction;
+	
+	/// Set the speed to fall
+	speed = LAUNCH_INIT_Y;
+	/// If the character was already falling (actual_speed != 0), don't change the actual speed
+	if(actual_speed == 0)
+		actual_speed = LAUNCH_INIT_Y;
+	
+}
+
 /** Falling from the sky, at the start of the stage.
  */
 void echo_char::initialize_fall_from_sky()
@@ -177,12 +263,10 @@ void echo_char::change_speed()
 		else if(typeid(*grid1) == typeid(launcher) && grid2 == NULL)
 		{
 			ECHO_PRINT("being launched!\n");
-			/// @todo Actual launch code (no pun intended)
-			speed = SPEED_LAUNCH;
-			actual_speed = SPEED_LAUNCH;
+			initialize_launching(NULL, NULL);
 		}
 		/// If the character isn't in Grid Mode, it should be.
-		else if(speed == SPEED_FALL || speed == SPEED_LAUNCH || speed == SPEED_FALL_FROM_SKY)
+		else if(speed == SPEED_FALL || speed == LAUNCH_INIT_Y || speed == SPEED_FALL_FROM_SKY)
 		{
 			ECHO_PRINT("normal speed\n");
 			speed = is_running ? SPEED_RUN : SPEED_STEP;
@@ -309,6 +393,13 @@ void echo_char::next_grid()
 	{
 		/// Check if the grid this character just arrived at is a goal
 		check_goal(grid2);
+		
+		/// Clear fly_direction
+		if(fly_direction != NULL)
+			delete fly_direction;
+		/// Save the direction in case grid2 is a launcher
+		fly_direction = get_direction();
+		
 		/// Save the pointer to grid2
 		grid* temp = grid2;
 		/// Get the next-next grid, and store that into grid2
@@ -336,9 +427,9 @@ void echo_char::step()
 		if(!paused)
 		{
 			/// Fall by decreasing the y
-			fall_position->y -= actual_speed * WAIT / 1000;
+			fall_position->y += actual_speed * WAIT / 1000;
 			/// The character is accelerating
-			actual_speed += ACCEL * WAIT / 1000;
+			actual_speed -= ACCEL * WAIT / 1000;
 			/// If the character is below the target...
 			if(fall_position->y < target_y)
 			{
@@ -374,7 +465,7 @@ void echo_char::step()
 			{
 				/// Get the character's next position; same as the current absolute position, but moved downwards
 				vector3f* next_absolute_pos = new vector3f(absolute_pos->x,
-									absolute_pos->y - actual_speed * WAIT / 1000,
+									absolute_pos->y + actual_speed * WAIT / 1000,
 									absolute_pos->z);
 				CHKPTR(next_absolute_pos);
 				
@@ -405,7 +496,77 @@ void echo_char::step()
 				else 
 				{
 					/// Accelerate
-					actual_speed += ACCEL * WAIT / 1000;
+					actual_speed -= ACCEL * WAIT / 1000;
+					/// Clear fall_position (don't need to check for NULL, because it'll be too slow, and it won't happen)
+					delete fall_position;
+					/// Get the next fall_position by rotating the next absolute position back
+					fall_position = next_absolute_pos->neg_rotate_yx(echo_ns::angle);
+				}
+				/// Clean up
+				delete next_absolute_pos;
+			}
+		}
+		/// Clean up
+		delete absolute_pos;
+	}
+	/// If the character was launched...
+	else if(speed == LAUNCH_INIT_Y)
+	{
+		/// Get the abolute position from the relative position stored inside fall_position
+		vector3f* absolute_pos = fall_position->rotate_xy(echo_ns::angle);
+		/// Draw it
+		DRAW_VEC(absolute_pos);
+		if(!paused)
+		{
+			/// If the character fell off the stage (defined as 5 units lower than the lowest level)...
+			if(absolute_pos->y < echo_ns::get_lowest_level() - 5)
+			{
+				/// Reset
+				reset();
+			}
+			/// If not...
+			else
+			{
+				/// Get the character's next position; same as the current absolute position, but moved downwards
+				vector3f* next_absolute_pos = new vector3f(absolute_pos->x + x_speed * WAIT / 1000,
+									absolute_pos->y + actual_speed * WAIT / 1000,
+									absolute_pos->z + z_speed * WAIT / 1000);
+				CHKPTR(next_absolute_pos);
+				
+				grid* fall_grid = NULL;
+				
+				/// Check only if we're falling
+				if(actual_speed < 0)
+				{
+					/// Checking for grids to fall on
+					
+					/** Get the projected equivalents of the absolute grids;
+					 * it's neg_rotate_xy because that's what the display function in main does
+					 */
+					vector3f* p1 = absolute_pos->neg_rotate_xy(echo_ns::angle);
+					vector3f* p2 = next_absolute_pos->neg_rotate_xy(echo_ns::angle);
+					/// Get the fall_grid, if any
+					fall_grid = echo_ns::current_stage->get_grid_intersection(p1, p2, echo_ns::angle);
+					/// Clean up
+					delete p1;
+					delete p2;
+				}
+				
+				/** If there is a grid to fall on and it isn't a hole
+				 * (otherwise, the character will keep falling through the same hole)
+				 */
+				if(fall_grid != NULL && typeid(*fall_grid) != typeid(hole))
+				{
+					/// Clear fall_position (don't need to check for NULL, because it'll be too slow, and it won't happen)
+					delete fall_position;
+					fall_position = NULL;
+					/// Land on that grid
+					land(fall_grid, true);
+				}
+				else 
+				{
+					/// Accelerate
+					actual_speed -= ACCEL * WAIT / 1000;
 					/// Clear fall_position (don't need to check for NULL, because it'll be too slow, and it won't happen)
 					delete fall_position;
 					/// Get the next fall_position by rotating the next absolute position back
@@ -550,19 +711,19 @@ void echo_char::draw(float x, float y, float z)
 		joints.lthigh_lift = -35 * echo_sin(dist_traveled_cyclic) - 15;
 		
 		/// main_grid is the grid the character is on right now (if it's just two normal grids) 
-                grid* main_grid = NULL;
-                /// main_per is the percentage into the grid on the interval of [0.5, 1)
-                float main_per = 0;
-                if(grid1 != NULL && grid1per >= 0.5f)
-                {
-                        main_per = grid1per;
-                        main_grid = grid1;
-                }
-                else if(grid2 != NULL && grid1per <= 0.5f)
-                {
-                        main_per = 1 - grid1per;
-                        main_grid = grid2;
-                }
+		grid* main_grid = NULL;
+		/// main_per is the percentage into the grid on the interval of [0.5, 1)
+		float main_per = 0;
+		if(grid1 != NULL && grid1per >= 0.5f)
+		{
+				main_per = grid1per;
+				main_grid = grid1;
+		}
+		else if(grid2 != NULL && grid1per <= 0.5f)
+		{
+				main_per = 1 - grid1per;
+				main_grid = grid2;
+		}
 		/// If there is a main_grid...
 		if(main_grid != NULL)
 		{
@@ -627,7 +788,12 @@ void echo_char::draw(float x, float y, float z)
 		/// Actually translate the character to the position...
 		gfx_translatef(x, y, z);
 		/// But before actually drawing the character, rotate the character so that it faces where it goes
-		if(grid1 != NULL && grid2 != NULL)
+		if(speed == LAUNCH_INIT_Y)
+		{
+			gfx_rotatef(90 - TO_DEG(atan2(fly_direction->z, fly_direction->x))
+				, 0, 1, 0);
+		}
+		else if(grid1 != NULL && grid2 != NULL)
 		{
 			grid_info_t* i1 = grid1->get_info(echo_ns::angle);
 			if(i1 != NULL)
