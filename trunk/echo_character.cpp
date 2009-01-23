@@ -49,25 +49,6 @@
 /// Need to measure the body sizes in order to do IK correctly
 #include <gen/gen.h>
 
-/// How high above the start grid does the character start?
-#define STARTY					10
-
-/// The acceleration constant (Units / s^2)
-#define ACCEL					15.0f
-
-/// Various character speeds
-/// Percentage (we change the weight from grid1 to grid2 to make the character go in grid mode)
-#define SPEED_STEP				0.07f
-#define SPEED_RUN				0.25f
-/// Actual speeds (in flying/falling mode) in Units/Sec
-#define SPEED_FALL				0.00f
-#define SPEED_FALL_FROM_SKY		0.50f
-
-/// Launching initial vertical velocity (see echo_char#initialize_launching)
-static float LAUNCH_INIT_Y = sqrt(14 * ACCEL);
-/// Launching initial horizontal velocity (see echo_char#initialize_launching)
-static float LAUNCH_INIT_X = LAUNCH_INIT_Y / 7;
-
 /// Convenience macro to draw at a particular vector3f
 #define DRAW_VEC(vec)		draw((vec)->x, (vec)->y, (vec)->z)
 
@@ -138,11 +119,12 @@ void echo_char::initialize_falling(vector3f* pos)
 	}
 	else
 		echo_error("Cannot find where the character is falling from; quitting\n");
-	/// Set the speed to fall
-	speed = SPEED_FALL;
-	/// If the character was already falling (actual_speed != 0), don't change the actual speed
-	if(actual_speed == 0)
-		actual_speed = SPEED_FALL;
+	/// Set the mode to fall
+	mode = FALL;
+	/// If the character was already falling (speed != 0), don't change the actual speed
+	if(speed == 0)
+		speed = CHARACTER_SPEEDS[mode];
+	initialize_falling_mode();
 }
 
 /** Start launching from the given position and direction, or where grid1 and grid2 are.
@@ -208,16 +190,16 @@ void echo_char::initialize_launching(vector3f* pos, vector3f* direction)
 	x_speed = direction->x / dir_length * LAUNCH_INIT_X;
 	z_speed = direction->z / dir_length * LAUNCH_INIT_X;
 	ECHO_PRINT("x_speed: %f\n", x_speed);
-	ECHO_PRINT("y_speed: %f\n", LAUNCH_INIT_Y);
+	ECHO_PRINT("y_speed: %f\n", CHARACTER_SPEEDS[LAUNCH]);
 	ECHO_PRINT("z_speed: %f\n", z_speed);
 	delete direction;
 	
-	/// Set the speed to fall
-	speed = LAUNCH_INIT_Y;
-	/// If the character was already falling (actual_speed != 0), don't change the actual speed
-	if(actual_speed == 0)
-		actual_speed = LAUNCH_INIT_Y;
-	
+	/// Set the mode to launch
+	mode = LAUNCH;
+	/// If the character was already falling (speed != 0), don't change the actual speed
+	if(speed == 0)
+		speed = CHARACTER_SPEEDS[mode];
+	initialize_falling_mode();
 }
 
 /** Falling from the sky, at the start of the stage.
@@ -244,8 +226,9 @@ void echo_char::initialize_fall_from_sky()
 	}
 	else
 		echo_error("Cannot find where the character is falling from; quitting\n");
-	speed = SPEED_FALL_FROM_SKY;
-	actual_speed = SPEED_FALL_FROM_SKY;
+	mode = FALL_FROM_SKY;
+	speed = CHARACTER_SPEEDS[mode];
+	initialize_falling_mode();
 }
 /// Changes the mode and speed of the character according to the grids it's at.
 void echo_char::change_speed()
@@ -266,36 +249,38 @@ void echo_char::change_speed()
 			initialize_launching(NULL, NULL);
 		}
 		/// If the character isn't in Grid Mode, it should be.
-		else if(speed == SPEED_FALL || speed == LAUNCH_INIT_Y || speed == SPEED_FALL_FROM_SKY)
+		else if(mode == FALL || mode == LAUNCH || mode == FALL_FROM_SKY)
 		{
-			ECHO_PRINT("normal speed\n");
-			speed = is_running ? SPEED_RUN : SPEED_STEP;
-			actual_speed = 0;
+			ECHO_PRINT("normal mode\n");
+			mode = is_running ? RUN : STEP;
+			speed = CHARACTER_SPEEDS[mode];
 		}
 	}
 }
 /// If the character is walking, start running
 void echo_char::start_run()
 {
-	if(speed == SPEED_STEP)
+	if(mode == STEP)
 	{
-		is_running = 1;
-		speed = SPEED_RUN;
+		is_running = true;
+		mode = RUN;
+		speed = CHARACTER_SPEEDS[mode];
 	}
 }
 /// If the character is running, start walking
 void echo_char::start_step()
 {
-	if(speed == SPEED_RUN)
+	if(mode == RUN)
 	{
-		is_running = 0;
-		speed = SPEED_STEP;
+		is_running = false;
+		mode = STEP;
+		speed = CHARACTER_SPEEDS[mode];
 	}
 }
 /// Start running if walking, or start walking if running
 void echo_char::toggle_run()
 {
-	if(speed == SPEED_RUN)
+	if(mode == RUN)
 		start_step();
 	else
 		start_run();
@@ -320,9 +305,6 @@ void echo_char::init(grid* g1)
 	land(g1, false);
 	/// Initialize the landing sequence
 	initialize_fall_from_sky();
-	
-	/// Initialize the joint values by setting them to zero.
-	reset_joints(&joints);
 }
 /** Makes the character land on the grid
  * @param g1 Where to land on
@@ -350,6 +332,9 @@ void echo_char::land(grid* g1, int do_change_speed)
 	/// Reset the walking distances
 	dist_traveled = 0;
 	dist_traveled_cyclic = 0;
+	
+	/// Initialize the joint values by setting them to zero.
+	reset_joints(&joints);
 	
 	/// Only change the speed if this function is told so
 	if(do_change_speed == true)
@@ -420,16 +405,16 @@ void echo_char::step()
 	/// Set the color to white
 	gfx_color3f(1, 1, 1);
 	/// If the character is (re)spawning...
-	if(speed == SPEED_FALL_FROM_SKY)
+	if(mode == FALL_FROM_SKY)
 	{
 		/// Draw the fall_position (which is absolute in this case), even if the character is paused
 		DRAW_VEC(fall_position);
 		if(!paused)
 		{
 			/// Fall by decreasing the y
-			fall_position->y += actual_speed * WAIT / 1000;
+			fall_position->y += speed * WAIT / 1000;
 			/// The character is accelerating
-			actual_speed -= ACCEL * WAIT / 1000;
+			speed -= ACCEL * WAIT / 1000;
 			/// If the character is below the target...
 			if(fall_position->y < target_y)
 			{
@@ -446,7 +431,7 @@ void echo_char::step()
 		}
 	}
 	/// If the character fell through a hole...
-	else if(speed == SPEED_FALL)
+	else if(mode == FALL)
 	{
 		/// Get the abolute position from the relative position stored inside fall_position
 		vector3f* absolute_pos = fall_position->rotate_xy(echo_ns::angle);
@@ -465,7 +450,7 @@ void echo_char::step()
 			{
 				/// Get the character's next position; same as the current absolute position, but moved downwards
 				vector3f* next_absolute_pos = new vector3f(absolute_pos->x,
-									absolute_pos->y + actual_speed * WAIT / 1000,
+									absolute_pos->y + speed * WAIT / 1000,
 									absolute_pos->z);
 				CHKPTR(next_absolute_pos);
 				
@@ -496,7 +481,7 @@ void echo_char::step()
 				else 
 				{
 					/// Accelerate
-					actual_speed -= ACCEL * WAIT / 1000;
+					speed -= ACCEL * WAIT / 1000;
 					/// Clear fall_position (don't need to check for NULL, because it'll be too slow, and it won't happen)
 					delete fall_position;
 					/// Get the next fall_position by rotating the next absolute position back
@@ -510,7 +495,7 @@ void echo_char::step()
 		delete absolute_pos;
 	}
 	/// If the character was launched...
-	else if(speed == LAUNCH_INIT_Y)
+	else if(mode == LAUNCH)
 	{
 		/// Get the abolute position from the relative position stored inside fall_position
 		vector3f* absolute_pos = fall_position->rotate_xy(echo_ns::angle);
@@ -529,14 +514,14 @@ void echo_char::step()
 			{
 				/// Get the character's next position; same as the current absolute position, but moved downwards
 				vector3f* next_absolute_pos = new vector3f(absolute_pos->x + x_speed * WAIT / 1000,
-									absolute_pos->y + actual_speed * WAIT / 1000,
+									absolute_pos->y + speed * WAIT / 1000,
 									absolute_pos->z + z_speed * WAIT / 1000);
 				CHKPTR(next_absolute_pos);
 				
 				grid* fall_grid = NULL;
 				
 				/// Check only if we're falling
-				if(actual_speed < 0)
+				if(speed < 0)
 				{
 					/// Checking for grids to fall on
 					
@@ -566,7 +551,7 @@ void echo_char::step()
 				else 
 				{
 					/// Accelerate
-					actual_speed -= ACCEL * WAIT / 1000;
+					speed -= ACCEL * WAIT / 1000;
 					/// Clear fall_position (don't need to check for NULL, because it'll be too slow, and it won't happen)
 					delete fall_position;
 					/// Get the next fall_position by rotating the next absolute position back
@@ -702,93 +687,18 @@ void echo_char::draw(float x, float y, float z)
 	/// Push a matrix so the following operations won't screw up the rotation matrix
 	gfx_push_matrix();
 	{
-		/// Shift the joints (should probably LERP these suckers)
-		joints.rshoulder_swing = -20 * echo_sin(dist_traveled_cyclic);
-		joints.lshoulder_swing = 20 * echo_sin(dist_traveled_cyclic);
-		joints.rarm_bend = -10 * echo_sin(dist_traveled_cyclic) - 20;
-		joints.larm_bend = 10 * echo_sin(dist_traveled_cyclic) - 20;
-		joints.rthigh_lift = 35 * echo_sin(dist_traveled_cyclic) - 15;
-		joints.lthigh_lift = -35 * echo_sin(dist_traveled_cyclic) - 15;
-		
-		/// main_grid is the grid the character is on right now (if it's just two normal grids) 
-		grid* main_grid = NULL;
-		/// main_per is the percentage into the grid on the interval of [0.5, 1)
-		float main_per = 0;
-		if(grid1 != NULL && grid1per >= 0.5f)
+		if(mode == RUN || mode == STEP)
 		{
-				main_per = grid1per;
-				main_grid = grid1;
+			grid_mode_joints(y);
 		}
-		else if(grid2 != NULL && grid1per <= 0.5f)
+		else if(mode != LANDING)
 		{
-				main_per = 1 - grid1per;
-				main_grid = grid2;
-		}
-		/// If there is a main_grid...
-		if(main_grid != NULL)
-		{
-			/// ...then there is a vertical shift, which is a cos function
-			float vshift = 0.05f * echo_cos(360 * main_per) - 0.05f;
-			/// Shift y up
-			y += vshift;
-#ifdef USE_IK
-			/// rdf is the distance from hip to right leg
-			float right_dist_foot = 0;
-			/// ldf is the distance from hip to left leg
-			float left_dist_foot = 0;
-			/// Need to know which direction the character is moving in...
-			vector3f* foot_vec = get_direction();
-			if(foot_vec != NULL)
-			{
-				/// Get the angle the direction vector has with the up vector <0, 1, 0>
-				const float dir_angle = foot_vec->scalar_angle_with_up();
-				/// Get the approximate distance the right leg has with the ground (0.825f is arbitrary)
-				right_dist_foot = (vshift + 0.825f) * echo_sin(abs(joints.rthigh_lift)) 
-											/ echo_sin(dir_angle);
-				/// Do the same things with the right leg
-				left_dist_foot = (vshift + 0.825f) * echo_sin(abs(joints.lthigh_lift)) 
-											/ echo_sin(dir_angle);
-			}
-			/// If the character can't figure out the direction it's going, just use assume that the ground is flat
-			else
-			{
-				right_dist_foot = (vshift + 1.175f) / echo_cos(joints.rthigh_lift);
-				left_dist_foot = (vshift + 1.175f) / echo_cos(joints.lthigh_lift);
-			}
-			
-			/// Get the results, mod it under 90
-			const float rtemp = fmod(IK_angle(0.5f, 0.65f, right_dist_foot), 90);
-			/// If the result is not 0 and not NaN, save it
-			if(rtemp != 0 && rtemp == rtemp)
-				joints.rleg_bend = rtemp;
-			
-			/// Do the same thing with left leg
-			const float ltemp = fmod(IK_angle(0.5f, 0.65f, left_dist_foot), 90);
-			if(ltemp != 0 && ltemp == ltemp)
-				joints.lleg_bend = ltemp;
-			delete foot_vec;
-#else
-			#define LEG_BEND_MAX	30
-			
-			/// Pre-programmed cycles, similar to: http://www.idleworm.com/how/anm/02w/walk1.shtml
-			if(dist_traveled > 1 && dist_traveled <= 1.5f)
-				joints.rleg_bend = LEG_BEND_MAX * echo_cos(dist_traveled * 180 + 180);
-			else if(dist_traveled > 3.0f || dist_traveled <= 1)
-				joints.rleg_bend = LEG_BEND_MAX * echo_sin(dist_traveled * 45);
-			else
-				joints.rleg_bend = 0; 
-			if(dist_traveled > 3 && dist_traveled <= 3.5f)
-				joints.lleg_bend = LEG_BEND_MAX * echo_cos(dist_traveled * 180 + 180);
-			else if(dist_traveled > 1.0f && dist_traveled <= 3)
-				joints.lleg_bend = LEG_BEND_MAX * echo_sin(dist_traveled * 45 - 90);
-			else
-				joints.lleg_bend = 0;
-#endif
+			falling_mode_joints();
 		}
 		/// Actually translate the character to the position...
 		gfx_translatef(x, y, z);
 		/// But before actually drawing the character, rotate the character so that it faces where it goes
-		if(speed == LAUNCH_INIT_Y)
+		if(mode == LAUNCH)
 		{
 			gfx_rotatef(90 - TO_DEG(atan2(fly_direction->z, fly_direction->x))
 				, 0, 1, 0);
@@ -827,4 +737,100 @@ void echo_char::draw(float x, float y, float z)
 float echo_char::get_speed()
 {
 	return(speed);
+}
+/// Initializes the joints for falling mode
+void echo_char::initialize_falling_mode()
+{
+	reset_joints(&joints);
+	
+	joints.body_pitch = 70;
+	joints.waist_bow = 10;
+	joints.rshoulder_flap = -75;
+	joints.lshoulder_flap = 75;
+	joints.rshoulder_push = -15;
+	joints.lshoulder_push = 15;
+	joints.rarm_twist = 45;
+	joints.larm_twist = 45;
+	joints.rarm_bend = -45;
+	joints.larm_bend = -45;
+}
+/// Calculate joint values for a character in the air (Falling Mode)
+void echo_char::falling_mode_joints()
+{
+	static float rotation = 0;
+	
+	joints.body_turn = 30 * echo_sin(rotation);
+	
+	rotation += 10;
+	if(rotation > 360)
+		rotation = 0;
+}
+/// Step through joint calculations for walking (used in Grid Mode)
+void echo_char::grid_mode_joints(float y)
+{
+	/// Shift the joints (should probably LERP these suckers)
+	joints.rshoulder_swing = -20 * echo_sin(dist_traveled_cyclic);
+	joints.lshoulder_swing = 20 * echo_sin(dist_traveled_cyclic);
+	joints.rarm_bend = -10 * echo_sin(dist_traveled_cyclic) - 20;
+	joints.larm_bend = 10 * echo_sin(dist_traveled_cyclic) - 20;
+	joints.rthigh_lift = 35 * echo_sin(dist_traveled_cyclic) - 15;
+	joints.lthigh_lift = -35 * echo_sin(dist_traveled_cyclic) - 15;
+	
+	/// main_grid is the grid the character is on right now (if it's just two normal grids) 
+	grid* main_grid = NULL;
+	/// main_per is the percentage into the grid on the interval of [0.5, 1)
+	float main_per = 0;
+	if(grid1 != NULL && grid1per >= 0.5f)
+	{
+		main_per = grid1per;
+		main_grid = grid1;
+	}
+	else if(grid2 != NULL && grid1per <= 0.5f)
+	{
+		main_per = 1 - grid1per;
+		main_grid = grid2;
+	}
+	/// If there is a main_grid...
+	if(main_grid != NULL)
+	{
+		/// ...then there is a vertical shift, which is a cos function
+		float vshift = 0.05f * echo_cos(360 * main_per) - 0.05f;
+		/// Shift y up
+		y += vshift;
+		/// rdf is the distance from hip to right leg
+		float right_dist_foot = 0;
+		/// ldf is the distance from hip to left leg
+		float left_dist_foot = 0;
+		/// Need to know which direction the character is moving in...
+		vector3f* foot_vec = get_direction();
+		if(foot_vec != NULL)
+		{
+			/// Get the angle the direction vector has with the up vector <0, 1, 0>
+			const float dir_angle = foot_vec->scalar_angle_with_up();
+			/// Get the approximate distance the right leg has with the ground (0.825f is arbitrary)
+			right_dist_foot = (vshift + 0.825f) * echo_sin(abs(joints.rthigh_lift)) 
+										/ echo_sin(dir_angle);
+			/// Do the same things with the right leg
+			left_dist_foot = (vshift + 0.825f) * echo_sin(abs(joints.lthigh_lift)) 
+										/ echo_sin(dir_angle);
+		}
+		/// If the character can't figure out the direction it's going, just use assume that the ground is flat
+		else
+		{
+			right_dist_foot = (vshift + 1.175f) / echo_cos(joints.rthigh_lift);
+			left_dist_foot = (vshift + 1.175f) / echo_cos(joints.lthigh_lift);
+		}
+		
+		/// Get the results, mod it under 90
+		const float rtemp = fmod(IK_angle(0.5f, 0.65f, right_dist_foot), 90);
+		/// If the result is not 0 and not NaN, save it
+		if(rtemp != 0 && rtemp == rtemp)
+			joints.rleg_bend = rtemp;
+		
+		/// Do the same thing with left leg
+		const float ltemp = fmod(IK_angle(0.5f, 0.65f, left_dist_foot), 90);
+		if(ltemp != 0 && ltemp == ltemp)
+			joints.lleg_bend = ltemp;
+		delete foot_vec;
+	}
 }

@@ -1,0 +1,88 @@
+<?xml version="1.0" standalone="no" ?>
+<stage name="L1" start="g1" goals="4">
+    <escgrid id="g1" x="-2" y="0" z="0" prev="g2" next="g2">
+		<angle x="-50" y="90">
+			<grid id="g1_esc" x="-3.5" y="-2" z="0" prev="left4" next="g2"/>
+		</angle>
+	</escgrid>
+    <escgrid id="g2" x="-1" y="0" z="0" prev="g1" next="g1">
+		<angle x="-50" y="90">
+			<grid id="g2_esc2" x="-2.5" y="-2" z="0" prev="g1" next="g1"/>
+		</angle>
+		<angle x="-55.000000" y="135.000000">
+			<grid id="g2_esc" x="-1" y="0" z="0" prev="g1" next="above_middle" /> <!-- -->
+		</angle>
+	</escgrid>
+	<escgrid id="g4" x="1" y="0" z="0" prev="g5" next="g5">
+		<angle x="-55.000000" y="135.000000">
+			<grid id="g4_esc" x="1" y="0" z="0" prev="above_middle" next="g5" /> <!-- -->
+		</angle>
+	</escgrid>
+	<escgrid id="g5" x="2" y="0" z="0" prev="g4" next="g4" goal="1">
+		<triggers>
+			<trigger id="below_g1" />
+		</triggers>
+		<angle x="-55.000000" y="135.000000">
+			<grid id="g5_esc" x="2" y="0" z="0" prev="g4" next="below_g2" /> <!-- -->
+		</angle>
+	</escgrid>
+	
+	<escgrid id="below_g1" x="2" y="-2" z="2" prev="below_g2" next="below_g2">
+		<triggers>
+			<trigger id="left3"/>
+		</triggers>
+		<angle x="-55.000000" y="135.000000">
+			<grid id="below_g1_esc" x="3" y="0" z="1" prev="below_g2" next="below_g2" /> <!-- -->
+		</angle>
+	</escgrid>
+	<escgrid id="below_g2" x="1" y="-2" z="2" prev="below_g1" next="below_g1">
+		<angle x="-50" y="90">
+			<grid id="below_g2_to_left" x="1" y="-2" z="2" prev="below_g1" next="middle"/>
+		</angle>
+		<angle x="-55.000000" y="135.000000">
+			<grid id="below_g2_esc" x="2" y="0" z="1" prev="g5" next="below_g1" /> <!-- -->
+		</angle>
+	</escgrid>
+	
+	<escgrid id="middle" x="-1.9" y="-4" z="2" prev="NONE" next="NONE">
+		<angle x="-50" y="90">
+			<grid id="below_middle" x="0" y="-2" z="2" prev="below_g2" next="left1"/>
+		</angle>
+		<angle x="-55.000000" y="135.000000">
+			<grid id="above_middle" x="0" y="0" z="0" prev="g2" next="g4" />
+		</angle>
+	</escgrid>
+	<escgrid id="left1" x="-6" y="-8" z="2" prev="left2" next="left2">
+		<angle x="-50" y="90">
+			<grid id="left1_esc" x="-1" y="-2" z="2" prev="middle" next="left2"/>
+		</angle>
+	</escgrid>
+	<escgrid id="left2" x="-7" y="-8" z="2" prev="left1" next="left3">
+		<angle x="-50" y="90">
+			<grid id="left2_esc" x="-2" y="-2" z="2" prev="left1" next="left3"/>
+		</angle>
+	</escgrid>
+	<escgrid id="left3" x="-8" y="-8" z="2" prev="left2" next="left2">
+		<triggers>
+			<trigger id="g1" />
+		</triggers>
+		<angle x="-50" y="90">
+			<freeform_grid id="left3_esc" x="-3.25" y="-2" z="2" prev="left2" next="left4">
+				<angle x="0" y="0" z="0.5" />
+				<angle x="0.75f" y="0" z="0" />
+			</freeform_grid>
+		</angle>
+		<range x_min="-180" x_max="180" y_min="-180" y_max="180" z_min="-180" z_max="180">
+			<freeform_grid id="left3_normal" x="-8.25" y="-8" z="2" prev="left2" next="left2">
+				<angle x="0" y="0" z="0.5" />
+				<angle x="0.75f" y="0" z="0" />
+			</freeform_grid>
+		</range>
+	</escgrid>
+	<escgrid id="left4" x="-8.5" y="-8" z="1" prev="left3" next="left3">
+		<angle x="-50" y="90">
+			<grid id="left4_esc" x="-3.5" y="-2" z="1" prev="left3" next="g1"/>
+		</angle>
+	</escgrid>
+</stage>
+
