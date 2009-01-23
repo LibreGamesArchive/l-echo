@@ -906,11 +906,6 @@ static filter* get_filter(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map,
 			while(echo_xml_next_sibling(*first, first) == WIN && error == false);
 			delete e;
 		}
-		else
-		{
-			error = true;
-			lderr("\"or\" filter has no item inside\n");
-		}
 		delete first;
 		if(error == true)	delete ret;
 		else				return(ret);

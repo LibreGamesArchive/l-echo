@@ -203,6 +203,9 @@ void draw_character(echo_char_joints* joints)
 			/// Body
 			glTranslatef(0, 1.875f, 0);
 			SET_ID(1);
+			glRotatef(joints->body_x, 1, 0, 0);
+			glRotatef(joints->body_y, 0, 1, 0);
+			glRotatef(joints->body_z, 0, 0, 1);
 			draw_body();
 			
 			gfx_push_matrix();
@@ -309,8 +312,8 @@ void draw_character(echo_char_joints* joints)
 				draw_sphere_point1();
 				
 				/// Lower Body
+				glRotatef(joints->waist_x, 1, 0, 0);
 				glRotatef(joints->waist_y, 0, 1, 0);
-				glRotatef(joints->waist_z, 0, 0, 1);
 				glTranslatef(0, -0.32f, 0);
 				SET_ID(1);
 				draw_lower_body();

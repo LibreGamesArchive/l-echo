@@ -22,7 +22,7 @@
 #ifndef __ECHO_CHAR_JOINTS__
 #define __ECHO_CHAR_JOINTS__
 /// Number of values in echo_char_joints...Just count them
-#define NUM_VALUES	27
+#define NUM_VALUES	30
 
 /** @brief Joint values of a mannequin
  * 
@@ -39,11 +39,15 @@ union echo_char_joints
 	float value[NUM_VALUES];
 	struct
 	{
+		float body_x;	/// Body turning forward or backwards
+		float body_y;	/// Body turning left or right
+		float body_z;	/// Body doing cartwheeels
+		
 		float head_x; 	/// nodding
 		float head_y;	/// turning head
 		float head_z;	/// tilting head
 		float waist_y;	/// turning waist
-		float waist_z;	/// bowing
+		float waist_x;	/// bowing
 		
 		float lthigh_x;	/// lifting leg
 		float lthigh_y;	/// twisting leg (roll)
@@ -77,6 +81,10 @@ union echo_char_joints
 	};
 	struct
 	{
+		float body_pitch;	/// Body turning forward or backwards
+		float body_turn;	/// Body turning left or right
+		float body_tilt;	/// Body doing cartwheeels
+		
 		float head_nod; 	/// nodding
 		float head_turn;	/// turning head
 		float head_tilt;	/// tilting head

@@ -84,6 +84,8 @@ int not_filter::is_true(vector3f angle)
  */
 int or_filter::is_true(vector3f angle)
 {
+	if(filters->empty())
+		return(1);
 	FILTER_SET::iterator it = filters->begin(), end = filters->end();
 	while(it != end)
 	{
@@ -99,6 +101,8 @@ int or_filter::is_true(vector3f angle)
  */
 int and_filter::is_true(vector3f angle)
 {
+	if(filters->empty())
+		return(1);
 	FILTER_SET::iterator it = filters->begin(), end = filters->end();
 	while(it != end)
 	{

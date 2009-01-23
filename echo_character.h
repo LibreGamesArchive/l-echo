@@ -22,6 +22,24 @@
 #include <echo_stage.h>
 #include <echo_char_joints.h>
 
+/// The acceleration constant (Units / s^2)
+#define ACCEL					15.0f
+
+/// How high above the start grid does the character start?
+#define STARTY					10
+
+#ifndef __ECHO_CHARACTER_SPEED__
+	#define __ECHO_CHARACTER_SPEED__
+	/** Speeds/modes of the character.  STEP and RUN are percentage speeds (%/sec),
+	 * and FALL, FALL_FROM_SKY, LAUNCH are "real" speeds (Units/sec)
+	 */
+	enum CHARACTER_SPEED{ STEP = 0, RUN = 1, FALL = 2, FALL_FROM_SKY = 3, LAUNCH = 4, LANDING = 5 };
+	const float CHARACTER_SPEEDS[] = { 0.07f, 0.25f, 0.00f, -0.50f, 14.4913767f, 0.00f };
+	
+	/// Launching initial horizontal velocity (see echo_char#initialize_launching)
+	const float LAUNCH_INIT_X = CHARACTER_SPEEDS[LAUNCH] / 7;
+#endif
+
 #ifndef __ECHO_CHARACTER__
 #define __ECHO_CHARACTER__
 /** @brief echo_char represent an active mannequin (i.e., not a goal, or an "echo")\n
@@ -57,13 +75,9 @@ class echo_char
 		int is_running;
 		///The percentage weight on the first grid (Grid Mode)
 		float grid1per;
-		/** The speed of the character.  Depends on the Mode this character is\n
-		 * in (see class description).\n
-		 * Various speeds are defined in echo_character.cpp\n
-		 * Used mainly as a mode indicator, but also used in Grid Mode\n
-		 * to increment grid1per and dist_traveled.\n
+		/** Defines which mode the character is in
 		 */
-		float speed;
+		enum CHARACTER_SPEED mode;
 		
 		/// Cached distance between grid1 and grid2 (Grid Mode)
 		float dist;
@@ -78,7 +92,7 @@ class echo_char
 		echo_char_joints joints;
 		
 		/// The actual speed of the character; changed by acceleration (Falling Mode)
-		float actual_speed;
+		float speed;
 		
 		/** fall_position is used as:\n
 		 * 
@@ -215,6 +229,12 @@ class echo_char
 		 * @param direction Direction to launch towards laterally (on the xz-plane).  If this is NULL, then get_direction will be used.  WILL BE DELETED!!!
 		 */
 		void initialize_launching(vector3f* pos, vector3f* direction);
+		/// Calculate joint values for a character in the air (Falling Mode)
+		void falling_mode_joints();
+		/// Step through joint calculations for walking (used in Grid Mode)
+		void grid_mode_joints(float y);
+		/// Initializes the joints for falling mode
+		void initialize_falling_mode();
 };
 #endif
 
