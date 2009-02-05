@@ -33,7 +33,7 @@
 	/** Speeds/modes of the character.  STEP and RUN are percentage speeds (%/sec),
 	 * and FALL, FALL_FROM_SKY, LAUNCH are "real" speeds (Units/sec)
 	 */
-	enum CHARACTER_SPEED{ STEP = 0, RUN = 1, FALL = 2, FALL_FROM_SKY = 3, LAUNCH = 4, LANDING = 5 };
+	enum CHARACTER_SPEED{ STEP = 0, RUN = 1, FALL = 2, FALL_FROM_SKY = 3, LAUNCH = 4, LANDING = 5, STANDING_UP = 6 };
 	const float CHARACTER_SPEEDS[] = { 0.07f, 0.25f, 0.00f, -0.50f, 14.4913767f, 0.00f };
 	
 	/// Launching initial horizontal velocity (see echo_char#initialize_launching)
@@ -229,8 +229,17 @@ class echo_char
 		 * @param direction Direction to launch towards laterally (on the xz-plane).  If this is NULL, then get_direction will be used.  WILL BE DELETED!!!
 		 */
 		void initialize_launching(vector3f* pos, vector3f* direction);
+		/** Initialize the landing sequence; doesn't actually call
+		 * land.  The step method will call land after the landing and 
+		 * standing up sequences have been executed.
+		 */
+		void initialize_landing();
 		/// Calculate joint values for a character in the air (Falling Mode)
 		void falling_mode_joints();
+		/// Joint calculation for a character just landing
+		void landing_mode_joints();
+		/// Joint calculation for a character standing up right after a landing
+		void standing_up_joints();
 		/// Step through joint calculations for walking (used in Grid Mode)
 		void grid_mode_joints(float y);
 		/// Initializes the joints for falling mode

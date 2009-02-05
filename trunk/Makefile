@@ -14,8 +14,8 @@ DOFILES   := $(CPPFILES:.cpp=.DO)
 #.DOA - Darwin Object ARM (iPhone, iPod Touch)
 DOAFILES   := $(CPPFILES:.cpp=.DOA)
 
-VERSION   := 0.4.2
-REVISION  := 105
+VERSION   := 0.4.3
+REVISION  := 107
 
 PKGCOMMON := -echo-$(VERSION)_r$(REVISION)
 PKGPREFIX := ../l$(PKGCOMMON)-
@@ -73,7 +73,7 @@ dbg: all
 
 package: all w32
 	zip -r $(PKGPREFIX)lin32.zip l-echo *.xml *.xml.real L_ECHO_README
-	zip -r $(PKGPREFIX)w32.zip l-echo.exe *.xml *.xml.real L_ECHO_README
+	zip -r $(PKGPREFIX)w32.zip l-echo.exe *.xml *.xml.real glut32.dll L_ECHO_README
 
 package-mac: mac
 #macintel macppc

@@ -2,4 +2,8 @@
 <stage name="simple" start="grid" goals="0">
     <grid id="grid" x="0" y="0" z="0" prev="grid2" next="grid2" />
     <grid id="grid2" x="1" y="0" z="0" prev="grid" next="grid" />
+	<freeform_grid id="f" x="-0.5" y="1.35" z="0" prev="NONE" next="NONE">
+		<angle x="0" y="0" z="0.5" />
+		<angle x="0" y="1.35" z="0" />
+	</freeform_grid>
 </stage>
