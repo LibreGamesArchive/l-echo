@@ -22,22 +22,12 @@
 #include <echo_stage.h>
 #include <echo_char_joints.h>
 
-/// The acceleration constant (Units / s^2)
-#define ACCEL					15.0f
-
-/// How high above the start grid does the character start?
-#define STARTY					10
-
 #ifndef __ECHO_CHARACTER_SPEED__
 	#define __ECHO_CHARACTER_SPEED__
 	/** Speeds/modes of the character.  STEP and RUN are percentage speeds (%/sec),
 	 * and FALL, FALL_FROM_SKY, LAUNCH are "real" speeds (Units/sec)
 	 */
 	enum CHARACTER_SPEED{ STEP = 0, RUN = 1, FALL = 2, FALL_FROM_SKY = 3, LAUNCH = 4, LANDING = 5, STANDING_UP = 6 };
-	const float CHARACTER_SPEEDS[] = { 0.07f, 0.25f, 0.00f, -0.50f, 14.4913767f, 0.00f };
-	
-	/// Launching initial horizontal velocity (see echo_char#initialize_launching)
-	const float LAUNCH_INIT_X = CHARACTER_SPEEDS[LAUNCH] / 7;
 #endif
 
 #ifndef __ECHO_CHARACTER__

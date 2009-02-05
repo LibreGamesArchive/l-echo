@@ -52,6 +52,17 @@
 /// Convenience macro to draw at a particular vector3f
 #define DRAW_VEC(vec)		draw((vec)->x, (vec)->y, (vec)->z)
 
+/// The acceleration constant (Units / s^2)
+#define ACCEL					15.0f
+
+/// How high above the start grid does the character start?
+#define STARTY					10
+
+const float CHARACTER_SPEEDS[] = { 0.07f, 0.25f, 0.00f, -0.50f, 14.4913767f, 0.00f };
+	
+/// Launching initial horizontal velocity (see echo_char#initialize_launching)
+const float LAUNCH_INIT_X = CHARACTER_SPEEDS[LAUNCH] / 7;
+
 /** Initialize, and prepare to fall to that grid.
  * @param g1 The initial grid on which to spawn
  */
