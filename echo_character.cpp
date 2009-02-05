@@ -691,7 +691,15 @@ void echo_char::draw(float x, float y, float z)
 		{
 			grid_mode_joints(y);
 		}
-		else if(mode != LANDING)
+		else if(mode == LANDING)
+		{
+			landing_mode_joints();
+		}
+		else if(mode == STANDING_UP)
+		{
+			standing_up_joints();
+		}
+		else
 		{
 			falling_mode_joints();
 		}
@@ -747,12 +755,10 @@ void echo_char::initialize_falling_mode()
 	joints.waist_bow = 10;
 	joints.rshoulder_flap = -75;
 	joints.lshoulder_flap = 75;
-	joints.rshoulder_push = -15;
-	joints.lshoulder_push = 15;
+	joints.rshoulder_push = -45;
+	joints.lshoulder_push = 45;
 	joints.rarm_twist = 45;
 	joints.larm_twist = 45;
-	joints.rarm_bend = -45;
-	joints.larm_bend = -45;
 }
 /// Calculate joint values for a character in the air (Falling Mode)
 void echo_char::falling_mode_joints()
@@ -760,10 +766,26 @@ void echo_char::falling_mode_joints()
 	static float rotation = 0;
 	
 	joints.body_turn = 30 * echo_sin(rotation);
+	joints.lshoulder_swing = rotation;
+	joints.rshoulder_swing = -rotation;
+	joints.rarm_bend = 45 * echo_sin(rotation / 2);
+	joints.larm_bend = joints.rarm_bend;
+	joints.lthigh_lift = 45 * echo_sin(rotation);
+	joints.rthigh_lift = -joints.lthigh_lift;
+	joints.lleg_bend = 30 * echo_sin(rotation) + 30;
+	joints.rleg_bend = 30 * echo_sin(rotation + 90) + 30;
 	
 	rotation += 10;
 	if(rotation > 360)
 		rotation = 0;
+}
+/// Joint calculation for a character just landing
+void echo_char::landing_mode_joints()
+{
+}
+/// Joint calculation for a character standing up right after a landing
+void echo_char::standing_up_joints()
+{
 }
 /// Step through joint calculations for walking (used in Grid Mode)
 void echo_char::grid_mode_joints(float y)

@@ -1,5 +1,5 @@
 <?xml version="1.0" standalone="no" ?>
-<stage name="L1" start="g1" goals="4">
+<stage name="LEcho1" start="g1" goals="4">
     <escgrid id="g1" x="-2" y="0" z="0" prev="g2" next="g2">
 		<angle x="-50" y="90">
 			<grid id="g1_esc" x="-3.5" y="-2" z="0" prev="left4" next="g2"/>
