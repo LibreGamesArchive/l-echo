@@ -19,10 +19,10 @@
 
 #include <cstdlib>
 
-#include <echo_error.h>
-#include <freeform_grid.h>
-#include <echo_math.h>
-#include <grid.h>
+#include "echo_error.h"
+#include "freeform_grid.h"
+#include "echo_math.h"
+#include "grid.h"
 
 /// Initializes an empty freeform grid sloping right and up
 freeform_grid::freeform_grid() : grid()
@@ -52,25 +52,25 @@ void freeform_grid::init_to_null()
 vector3f** freeform_grid::generate_points(grid_info_t* my_info)
 {
 	vector3f** ret = new vector3f*[4];
-	CHKPTR(ret);
+	
 	
 	vector3f* pos = my_info->pos;
 	ret[0] = new vector3f(pos->x + dir->x + width->x
 				, pos->y + dir->y + width->y
 				, pos->z + dir->z + width->z);
-	CHKPTR(ret[0]);
+	
 	ret[1] = new vector3f(pos->x - dir->x + width->x
 				, pos->y - dir->y + width->y
 				, pos->z - dir->z + width->z);
-	CHKPTR(ret[1]);
+	
 	ret[2] = new vector3f(pos->x - dir->x - width->x
 				, pos->y - dir->y - width->y
 				, pos->z - dir->z - width->z);
-	CHKPTR(ret[2]);
+	
 	ret[3] = new vector3f(pos->x + dir->x - width->x
 				, pos->y + dir->y - width->y
 				, pos->z + dir->z - width->z);
-	CHKPTR(ret[3]);
+	
 	
 	return(ret);
 }

@@ -18,12 +18,12 @@
 */
 
 #include <set>
-#include <echo_platform.h>
-#include <echo_debug.h>
+#include "echo_platform.h"
+#include "echo_debug.h"
 
-#include <filter.h>
-#include <trigger.h>
-#include <grid.h>
+#include "filter.h"
+#include "trigger.h"
+#include "grid.h"
 
 /** Makes a new Trigger with the filter given, and a null target (MUST SET LATER!)
  * @param filter The new trigger's filter; WILL BE DELETED!!!!

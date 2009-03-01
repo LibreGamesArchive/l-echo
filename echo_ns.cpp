@@ -21,15 +21,15 @@
 #include <iostream>
 #include <set>
 
-#include <echo_platform.h>
-#include <echo_error.h>
-#include <echo_character.h>
-#include <echo_math.h>
-#include <echo_ns.h>
-#include <echo_gfx.h>
+#include "echo_platform.h"
+#include "echo_error.h"
+#include "echo_character.h"
+#include "echo_math.h"
+#include "echo_ns.h"
+#include "echo_gfx.h"
 
-#include <grid.h>
-#include <hole.h>
+#include "grid.h"
+#include "hole.h"
 
 /// The minimum opacity of the "stand-in mannequin" 
 #define NULL_CHAR_OPACITY_MIN   0.25f
@@ -68,7 +68,7 @@ namespace echo_ns
 		if(st != NULL)
 		{
 			main_char = new echo_char(st->get_start());
-			CHKPTR(main_char);
+			
 		}
 		else
 			main_char = NULL;

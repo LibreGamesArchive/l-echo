@@ -25,8 +25,8 @@
 
 class trigger;
 
-#include <grid.h>
-#include <filter.h>
+#include "grid.h"
+#include "filter.h"
 
 /** @brief Trigger structure that contains a filter and a target that is triggered if
  * the filter is null or is true.

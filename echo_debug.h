@@ -17,7 +17,7 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <echo_platform.h>
+#include "echo_platform.h"
 
 #ifdef DEBUG
 	#ifdef ECHO_NDS

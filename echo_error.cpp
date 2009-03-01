@@ -21,8 +21,8 @@
 #include <cstdlib>
 
 /// Needed for printing
-#include <echo_debug.h>
-#include <echo_error.h>
+#include "echo_debug.h"
+#include "echo_error.h"
 
 /** Report an error while loading
  * @param msg The error message

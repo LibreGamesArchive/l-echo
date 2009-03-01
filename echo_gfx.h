@@ -18,9 +18,9 @@
 */
 
 /// Various L-Echo libraries
-#include <echo_char_joints.h>
-#include <echo_math.h>
-#include <echo_platform.h>
+#include "echo_char_joints.h"
+#include "echo_math.h"
+#include "echo_platform.h"
 
 /// Need NDS library for the definition of v16
 #ifdef ECHO_NDS

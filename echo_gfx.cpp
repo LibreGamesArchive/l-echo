@@ -17,13 +17,13 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <echo_platform.h>
-#include <echo_math.h>
-#include <echo_debug.h>
-#include <echo_char_joints.h>
-#include <echo_error.h>
-#include <echo_gfx.h>
-#include <echo_math.h>
+#include "echo_platform.h"
+#include "echo_math.h"
+#include "echo_debug.h"
+#include "echo_char_joints.h"
+#include "echo_error.h"
+#include "echo_gfx.h"
+#include "echo_math.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -40,7 +40,7 @@
 	#include <GL/glut.h>
 #endif
 
-#include <grid.h>
+#include "grid.h"
 
 #ifdef ECHO_NDS
 	#define POP_MATRIX 		glPopMatrix(1)

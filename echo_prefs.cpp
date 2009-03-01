@@ -17,12 +17,12 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <echo_prefs.h>
-#include <echo_error.h>
-#include <echo_debug.h>
-#include <echo_ingame_loader.h>
-#include <echo_platform.h>
-#include <echo_xml.h>
+#include "echo_prefs.h"
+#include "echo_error.h"
+#include "echo_debug.h"
+#include "echo_ingame_loader.h"
+#include "echo_platform.h"
+#include "echo_xml.h"
 
 #ifndef __ECHO_NDS_PREFS__
 	#define __ECHO_NDS_PREFS__
@@ -34,7 +34,7 @@
 	STATUS open_prefs(echo_xml** document)
 	{
 		char** path = new(char*);
-		CHKPTR(path);
+		
 		if(echo_prefsfile(path) == WIN)
 		{
 			ECHO_PRINT("prefs path: %s\n", *path);
@@ -48,9 +48,9 @@
 	STATUS get_hand(echo_xml* document, HAND* handedness)
 	{
 		char** attr = new(char*);
-		CHKPTR(attr);
+		
 		echo_xml_element** root = new(echo_xml_element*);
-		CHKPTR(root);
+		
 		if(echo_xml_get_root(document, root) == WIN &&
 			echo_xml_get_attribute(*root, HAND_ATTR_NAME, attr) == WIN)
 		{
@@ -76,7 +76,7 @@
 	STATUS set_hand(echo_xml* document, HAND handedness)
 	{
 		echo_xml_element** root = new(echo_xml_element*);
-		CHKPTR(root);
+		
 		if(echo_xml_get_root(document, root) == WIN &&
 			echo_xml_set_attribute(*root, HAND_ATTR_NAME
 				, handedness == LEFT_HAND ? HAND_LEFT_VALUE : HAND_RIGHT_VALUE))

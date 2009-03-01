@@ -17,8 +17,8 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <echo_platform.h>
-#include <echo_error.h>
+#include "echo_platform.h"
+#include "echo_error.h"
 
 #define PI			    3.1415926f
 #define TWOPI			6.2831853f

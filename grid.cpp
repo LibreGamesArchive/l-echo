@@ -20,13 +20,13 @@
 #include <cstdlib>
 #include <iostream>
 
-#include <echo_debug.h>
-#include <echo_platform.h>
-#include <echo_error.h>
-#include <echo_gfx.h>
-#include <trigger.h>
-#include <grid.h>
-#include <echo_math.h>
+#include "echo_debug.h"
+#include "echo_platform.h"
+#include "echo_error.h"
+#include "echo_gfx.h"
+#include "trigger.h"
+#include "grid.h"
+#include "echo_math.h"
 
 /// Prettyprints the info's data
 void dump_grid_info(grid_info_t ginfo)
@@ -115,14 +115,14 @@ void grid::init(grid_info_t* my_info, grid* my_prev, grid* my_next, int my_num_n
 	
 	delete_triggers();
 	triggers = new TRIGGER_SET();
-	CHKPTR(triggers);
+	
 	
 	ginfo = my_info;
 	
 	n_neighbors = my_num_neighbors;
 	delete_neighbors();
 	neighbors = new grid*[my_num_neighbors < 2 ? 2 : my_num_neighbors];
-	CHKPTR(neighbors);
+	
 	neighbors[0] = my_prev;
 	neighbors[1] = my_next;
 	
@@ -223,16 +223,16 @@ void grid::draw(vector3f angle)
 vector3f** grid::generate_points(grid_info_t* my_info)
 {
 	vector3f** ret = new vector3f*[4];
-	CHKPTR(ret);
+	
 	
 	ret[0] = new vector3f(my_info->pos->x - HALF_GRID, my_info->pos->y, my_info->pos->z - HALF_GRID);
-	CHKPTR(ret[0]);
+	
 	ret[1] = new vector3f(my_info->pos->x - HALF_GRID, my_info->pos->y, my_info->pos->z + HALF_GRID);
-	CHKPTR(ret[1]);
+	
 	ret[2] = new vector3f(my_info->pos->x + HALF_GRID, my_info->pos->y, my_info->pos->z + HALF_GRID);
-	CHKPTR(ret[2]);
+	
 	ret[3] = new vector3f(my_info->pos->x + HALF_GRID, my_info->pos->y, my_info->pos->z - HALF_GRID);
-	CHKPTR(ret[3]);
+	
 	return(ret);
 }
 /** Gets the info of the grid; override for awesomeness

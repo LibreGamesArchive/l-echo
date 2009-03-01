@@ -17,9 +17,9 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <echo_char_joints.h>
-#include <echo_debug.h>
-#include <echo_error.h>
+#include "echo_char_joints.h"
+#include "echo_debug.h"
+#include "echo_error.h"
 
 /** Set all joints to zero
  * @param joints Joints to set to zero

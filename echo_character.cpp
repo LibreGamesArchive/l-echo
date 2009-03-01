@@ -29,25 +29,25 @@
 
 /** L-Echo libraries (not grids)
  */
-#include <echo_platform.h>
-#include <echo_sys.h>
-#include <echo_gfx.h>
-#include <echo_debug.h>
-#include <echo_math.h>
-#include <echo_ns.h>
-#include <echo_character.h>
-#include <echo_char_joints.h>
-#include <echo_stage.h>
+#include "echo_platform.h"
+#include "echo_sys.h"
+#include "echo_gfx.h"
+#include "echo_debug.h"
+#include "echo_math.h"
+#include "echo_ns.h"
+#include "echo_character.h"
+#include "echo_char_joints.h"
+#include "echo_stage.h"
 
 /** Grids; just launchers and holes are discriminated against, because
  * the character is responsible for flying and falling
  */
-#include <launcher.h>
-#include <grid.h>
-#include <hole.h>
+#include "launcher.h"
+#include "grid.h"
+#include "hole.h"
 
 /// Need to measure the body sizes in order to do IK correctly
-#include <gen/gen.h>
+#include "gen/gen.h"
 
 /// Convenience macro to draw at a particular vector3f
 #define DRAW_VEC(vec)		draw((vec)->x, (vec)->y, (vec)->z)
@@ -193,7 +193,7 @@ void echo_char::initialize_launching(vector3f* pos, vector3f* direction)
 	if(direction == NULL)
 	{
 		direction = new vector3f(fly_direction->x, fly_direction->y, fly_direction->z);
-		CHKPTR(direction);
+		
 	}
 	/// Get the length of the direction...
 	const float dir_length = sqrt(direction->x * direction->x + direction->z * direction->z);
@@ -463,7 +463,7 @@ void echo_char::step()
 				vector3f* next_absolute_pos = new vector3f(absolute_pos->x,
 									absolute_pos->y + speed * WAIT / 1000,
 									absolute_pos->z);
-				CHKPTR(next_absolute_pos);
+				
 				
 				/// Checking for grids to fall on
 				
@@ -527,7 +527,7 @@ void echo_char::step()
 				vector3f* next_absolute_pos = new vector3f(absolute_pos->x + x_speed * WAIT / 1000,
 									absolute_pos->y + speed * WAIT / 1000,
 									absolute_pos->z + z_speed * WAIT / 1000);
-				CHKPTR(next_absolute_pos);
+				
 				
 				grid* fall_grid = NULL;
 				

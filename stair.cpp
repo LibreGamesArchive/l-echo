@@ -17,13 +17,13 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <echo_debug.h>
-#include <echo_error.h>
-#include <echo_math.h>
-#include <echo_gfx.h>
+#include "echo_debug.h"
+#include "echo_error.h"
+#include "echo_math.h"
+#include "echo_gfx.h"
 
-#include <grid.h>
-#include <stair.h>
+#include "grid.h"
+#include "stair.h"
 
 /// Init info and neighbors to null and angle to 0
 stair::stair() : grid()

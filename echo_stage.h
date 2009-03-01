@@ -22,8 +22,8 @@
 #include <string>
 #include <vector>
 
-#include <grid.h>
-#include <echo_math.h>
+#include "grid.h"
+#include "echo_math.h"
 
 #ifndef __ECHO_CLASS_STAGE__
 #define __ECHO_CLASS_STAGE__
