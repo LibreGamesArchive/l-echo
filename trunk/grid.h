@@ -18,10 +18,10 @@
 */
 
 #include <set>
-#include <filter.h>
-#include <trigger.h>
-#include <echo_math.h>
-#include <echo_platform.h>
+#include "filter.h"
+#include "trigger.h"
+#include "echo_math.h"
+#include "echo_platform.h"
 
 /// The size of a grid
 #define GRID_SIZE	1

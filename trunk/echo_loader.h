@@ -17,7 +17,7 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <echo_stage.h>
+#include "echo_stage.h"
 
 /** Load the stage from the file name
  * @param file_name File to load the stage from.

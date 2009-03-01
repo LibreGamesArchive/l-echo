@@ -17,8 +17,8 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <echo_math.h>
-#include <grid.h>
+#include "echo_math.h"
+#include "grid.h"
 
 #ifndef __ECHO_CLASS_STAIR__
 #define __ECHO_CLASS_STAIR__

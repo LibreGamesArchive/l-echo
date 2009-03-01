@@ -17,10 +17,10 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <echo_math.h>
-#include <grid.h>
-#include <echo_stage.h>
-#include <echo_char_joints.h>
+#include "echo_math.h"
+#include "grid.h"
+#include "echo_stage.h"
+#include "echo_char_joints.h"
 
 #ifndef __ECHO_CHARACTER_SPEED__
 	#define __ECHO_CHARACTER_SPEED__

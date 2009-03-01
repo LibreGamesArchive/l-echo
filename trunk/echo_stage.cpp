@@ -22,12 +22,12 @@
 #include <string>
 #include <cfloat>
 
-#include <echo_platform.h>
-#include <echo_debug.h>
-#include <echo_error.h>
-#include <grid.h>
-#include <echo_stage.h>
-#include <echo_gfx.h>
+#include "echo_platform.h"
+#include "echo_debug.h"
+#include "echo_error.h"
+#include "grid.h"
+#include "echo_stage.h"
+#include "echo_gfx.h"
 
 stage::stage()
 {
@@ -44,7 +44,7 @@ void stage::init(grid* my_start, std::string* my_name, int my_num_goals)
 	farthest = 0;
 	lowest = FLT_MAX;
 	grids = new STAGE_MAP();
-	CHKPTR(grids);
+	
 	
 	start = my_start;
 	name = my_name;

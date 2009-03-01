@@ -19,10 +19,10 @@
 
 #include <set>
 
-#include <grid.h>
-#include <filter.h>
-#include <echo_math.h>
-#include <echo_error.h>
+#include "grid.h"
+#include "filter.h"
+#include "echo_math.h"
+#include "echo_error.h"
 
 /// Initializes a filter with no target; MUST SET BEFORE CALLING is_true!
 filter::filter()
@@ -116,7 +116,7 @@ int and_filter::is_true(vector3f angle)
 multi_filter::multi_filter()
 {
 	filters = new FILTER_SET();
-	CHKPTR(filters);
+	
 }
 /// Destructor; DELETES ALL FILTERS!
 multi_filter::~multi_filter()

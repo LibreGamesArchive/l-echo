@@ -19,10 +19,10 @@
 
 #include <set>
 
-#include <echo_character.h>
-#include <echo_math.h>
-#include <grid.h>
-#include <echo_stage.h>
+#include "echo_character.h"
+#include "echo_math.h"
+#include "grid.h"
+#include "echo_stage.h"
 
 #ifndef __ECHO_NS__
 #define __ECHO_NS__

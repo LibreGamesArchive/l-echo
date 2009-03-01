@@ -23,27 +23,24 @@
 #include <cmath>
 
 //most of the headers
-#include <echo_platform.h>
-#include <echo_xml.h>
-#include <echo_debug.h>
-#include <echo_error.h>
-#include <echo_gfx.h>
-#include <echo_math.h>
-#include <echo_loader.h>
-#include <echo_ns.h>
-#include <echo_sys.h>
-#include <echo_stage.h>
-#include <echo_ingame_loader.h>
-#include <echo_prefs.h>
-//#include <echo_mp3.h>
-#include <echo_char_joints.h>
+#include "echo_platform.h"
+#include "echo_xml.h"
+#include "echo_debug.h"
+#include "echo_error.h"
+#include "echo_gfx.h"
+#include "echo_math.h"
+#include "echo_loader.h"
+#include "echo_ns.h"
+#include "echo_sys.h"
+#include "echo_stage.h"
+#include "echo_ingame_loader.h"
+#include "echo_prefs.h"
+#include "echo_char_joints.h"
 //various grids
-#include <hole.h>
-#include <grid.h>
-#include <escgrid.h>
-//#include <static_grid.h>
-//#include <isect_grid.h>
-#include <t_grid.h>
+#include "hole.h"
+#include "grid.h"
+#include "escgrid.h"
+#include "t_grid.h"
 
 //for Windows, or something
 #define _STDCALL_SUPPORTED
@@ -83,12 +80,12 @@
 	
 	#define CHAR2TILE(c)		((c) - 32)
 	
-	//*
-	//modes for the topscreen
+	/* Modes for the topscreen; debug mode is gone because it's in a split
+	 * screen next to the info and load screens (for now)
+	 */
 	#define NDS_INFO_MODE		-2
 	#define NDS_LOAD_MODE		-1
 	#define NDS_START_MODE		0
-	//#define NDS_DEBUG_MODE		1
 	
 	//the range of the modes
 	#define NDS_MODE_MIN		-2
@@ -99,8 +96,6 @@
 	#define LOAD_BG			DISPLAY_BG0_ACTIVE
 	#define INFO_BG			DISPLAY_BG0_ACTIVE
 	#define START_BG		DISPLAY_BG3_ACTIVE
-	//#define DEBUG_BG		DISPLAY_BG0_ACTIVE
-	// */
 #else
 	#ifdef ECHO_PC
 		//opengl
@@ -309,7 +304,7 @@ int main(int argc, char **argv)
 	//*
 	ECHO_PRINT("trying to load prefs...\n");
 	echo_xml** doc = new(echo_xml*);
-	CHKPTR(doc);
+	
 	if(open_prefs(doc) == WIN)
 	{
 		ECHO_PRINT("loaded prefs...\n");
@@ -697,13 +692,13 @@ static void resize(int w, int h)
 	//figure out the dimensions of our projection
 	if(w <= h)
 	{
-			real_width = depth;
-			real_height = depth * w / h;
+		real_width = depth;
+		real_height = depth * w / h;
 	}
 	else
 	{
-			real_width = depth * w /  h;
-			real_height = depth;
+		real_width = depth * w /  h;
+		real_height = depth;
 	}
 	
 	//change to projection mode
@@ -711,7 +706,7 @@ static void resize(int w, int h)
 	//load an identity matrix
 	glLoadIdentity();
 	//orthogonal projection or else it would look weird and you couldn't play this game
-        glOrtho(-real_width, real_width, -real_height, real_height, -depth, depth);
+	glOrtho(-real_width, real_width, -real_height, real_height, -depth, depth);
 	//shift back
 	glMatrixMode(GL_MODELVIEW);
 }
@@ -719,35 +714,26 @@ static void resize(int w, int h)
 // ----DRAW MAIN----
 
 #ifdef ECHO_NDS
-	//*
 	static void console2_draw_string(int x, int y, char* str)
 	{
 		ECHO_PRINT("\x1b[%d;%dH%s", y, x, str);
 	}
 	static void console2_draw_string(int x, int y, char* str, int num)
 	{
-		int len = strlen(str);
-		if(len > num)
-			len = num;
-		char* s_tmp = new char[len + 1];
-		memset(s_tmp, 0, sizeof(char) * (len + 1));
-		memcpy(s_tmp, str, sizeof(char) * len);
-		//ECHO_PRINT("%s\n", fmt);
-		ECHO_PRINT("\x1b[%d;%dH%s", y, x, s_tmp);
-		delete s_tmp;
+		// "Cheap" solution
+		char c = str[num];
+		str[num] = '\0';
+		ECHO_PRINT("\x1b[%d;%dH%s", y, x, str);
+		str[num] = c;
 	}
 	static void console2_clear()
 	{
-		//32 rows (only 24 are displayed without shifting it) by 32 columns
-		//memset((void*)string_map, '\0', 1024 * sizeof(u16));
 		ECHO_PRINT("\x1b[2J");
 	}
 	static void console2_clear_row(int y)
 	{
-		//memset((void*)(string_map + (y * 32)), '\0', 32 * sizeof(u16));
 		ECHO_PRINT("\x1b[%d;0H          ", y);
 	}
-	// */
 	static void update_loader()
 	{
 		consoleSelect(&info);
@@ -943,7 +929,7 @@ static void resize(int w, int h)
 			//not very precise, but oh well
 			counter = new char[(int)log(goals_left) + 10];
 			counter_alloc = 1;
-			CHKPTR(counter);
+			
 			sprintf(counter, COUNTER_HEAD, goals_left);
 		}
 		else if(echo_ns::num_goals())
@@ -1086,7 +1072,7 @@ static void display()
 	}
 	//frameskip =(
 	//else
-	//	ECHO_PRINT("fskip: %d\n", elapsed);
+	//	ECHO_PRINT("fskip: %f\n", elapsed - WAIT);
 	prev_time = glutGet(GLUT_ELAPSED_TIME);
 #endif
 }
@@ -1109,7 +1095,7 @@ static void display()
 			{
 				touchPosition t_pos = touchReadXY();
 				if(touch_started)	pointer(t_pos.px, t_pos.py);
-				else			pressed(t_pos.px, t_pos.py);
+				else				pressed(t_pos.px, t_pos.py);
 			}
 			else if(touch_started)
 				touch_started = 0;
@@ -1134,7 +1120,6 @@ static void display()
 				//open the directory
 				else
 				{
-					//*
 					//previous dir
 					if(!strcmp(files->file_names[file_index], ".."))
 					{
@@ -1156,11 +1141,12 @@ static void display()
 						delete_echo_files(files);
 						files = get_files(new_dir);
 					}
-					//reset loader
-					//if the user tries to go to parent dir from root, his file_index and file_start are both 0 anyways, so no prob
+					/* Reset loader; if the user tries to go to parent
+					 * dir from root, his file_index and file_start are
+					 * both 0 anyways, so no prob.
+					 */
 					file_index = 0;
 					file_start = 0;
-					// */
 				}
 			}
 			if((key & down_key) && file_index < files->num_files - 1)
@@ -1173,13 +1159,12 @@ static void display()
 		}
 		else if(!menu_mode)
 		{
-			if((key & KEY_L) || (key & KEY_R))
-							start_or_pause();
-			if(key & right_key)	right();
-			if(key & left_key)	left();
-			if(key & down_key)	down();
-			if(key & up_key)	up();
-			if(key & b_key)		echo_ns::toggle_run();
+			if((key & KEY_L) || (key & KEY_R))	start_or_pause();
+			if(key & right_key)					right();
+			if(key & left_key)					left();
+			if(key & down_key)					down();
+			if(key & up_key)					up();
+			if(key & b_key)						echo_ns::toggle_run();
 		}
 		if(key & KEY_START)
 		{
@@ -1245,7 +1230,7 @@ static void display()
 						if(echo_parentdir(files->current_dir, &dir) == FAIL)
 						{
 							dir = new char[strlen(files->current_dir) + 1];
-							CHKPTR(dir);
+							
 							strcpy(dir, files->current_dir);
 						}
 					}

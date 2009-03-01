@@ -17,8 +17,8 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <echo_platform.h>
-#include <echo_xml.h>
+#include "echo_platform.h"
+#include "echo_xml.h"
 
 enum HAND { LEFT_HAND, RIGHT_HAND };
 STATUS open_prefs(echo_xml** document);

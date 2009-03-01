@@ -17,11 +17,11 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <echo_platform.h>
-#include <echo_debug.h>
-#include <echo_error.h>
-#include <echo_math.h>
-//#include <iostream>
+#include "echo_platform.h"
+#include "echo_debug.h"
+#include "echo_error.h"
+#include "echo_math.h"
+
 #include <cmath>
 
 #ifdef ECHO_NDS
@@ -127,7 +127,7 @@ void vector3f::set(vector3f* copy_from)
 vector3f* vector3f::negate()
 {
 	vector3f* ret = new vector3f(-x, -y, -z);
-	CHKPTR(ret);
+	
 	return(ret);
 }
 /** Gets the resultant vector from the addition of this vector and the one given.
@@ -137,7 +137,7 @@ vector3f* vector3f::negate()
 vector3f* vector3f::operator +(vector3f* vec)
 {
     vector3f* ret = new vector3f(x + vec->x, y + vec->y, z + vec->z);
-    CHKPTR(ret);
+    
     return(ret);
 }
 /** Gets the resultant vector from the subtraction of the vector given from this vector.
@@ -147,7 +147,7 @@ vector3f* vector3f::operator +(vector3f* vec)
 vector3f* vector3f::operator -(vector3f* vec)
 {
     vector3f* ret = new vector3f(x - vec->x, y - vec->y, z - vec->z);
-    CHKPTR(ret);
+    
     return(ret);
 }
 /** Gets a new vector that is this vector times the scalar given.
@@ -157,7 +157,7 @@ vector3f* vector3f::operator -(vector3f* vec)
 vector3f* vector3f::operator *(float f)
 {
 	vector3f* ret = new vector3f(x * f, y * f, z * f);
-	CHKPTR(ret);
+	
 	return(ret);
 }
 /** Gets a new vector representing the angle between this vector and <0, 0, 1>
@@ -174,7 +174,7 @@ vector3f* vector3f::angle_xy()
 				? sqrt(x * x  + z * z) : -sqrt(x * x  + z * z))),
 					TO_DEG(atan2f(x, z)), 0);
 	}
-        CHKPTR(ret);
+        
         return(ret);
 
 }
@@ -206,13 +206,13 @@ vector3f* vector3f::rotate_xy(vector3f rot)
 	if(rot.x == 0 && rot.y == 0)
 	{
 		vector3f* ret = new vector3f(x, y, z);
-		CHKPTR(ret);
+		
 		return(ret);
 	}
 	vector3f* ret = new vector3f(x
 			, y * ECHO_COSF(rot.x) - z * ECHO_SINF(rot.x)
 			, y * ECHO_SINF(rot.x) + z * ECHO_COSF(rot.x));
-	CHKPTR(ret);
+	
 	float z_save = ret->z;
 	ret->z = ret->z * ECHO_COSF(rot.y) - ret->x * ECHO_SINF(rot.y);
 	ret->x = z_save * ECHO_SINF(rot.y) + ret->x * ECHO_COSF(rot.y);
@@ -227,13 +227,13 @@ vector3f* vector3f::neg_rotate_xy(vector3f rot)
 	if(rot.x == 0 && rot.y == 0)
 	{
 		vector3f* ret = new vector3f(x, y, z);
-		CHKPTR(ret);
+		
 		return(ret);
 	}
 	vector3f* ret = new vector3f(x
 			, y * ECHO_COSF(-rot.x) - z * ECHO_SINF(-rot.x)
 			, y * ECHO_SINF(-rot.x) + z * ECHO_COSF(-rot.x));
-	CHKPTR(ret);
+	
 	float z_save = ret->z;
 	ret->z = ret->z * ECHO_COSF(-rot.y) - ret->x * ECHO_SINF(-rot.y);
 	ret->x = z_save * ECHO_SINF(-rot.y) + ret->x * ECHO_COSF(-rot.y);
@@ -259,12 +259,12 @@ vector3f* vector3f::rotate_yx(vector3f rot)
 	if(rot.x == 0 && rot.y == 0)
 	{
 		vector3f* ret = new vector3f(x, y, z);
-		CHKPTR(ret);
+		
 		return(ret);
 	}
 	vector3f* ret = new vector3f(z * ECHO_SINF(rot.y) + x * ECHO_COSF(rot.y), y
                                 , z * ECHO_COSF(rot.y) - x * ECHO_SINF(rot.y));
-	CHKPTR(ret);
+	
 	float y_save = ret->y;
 	ret->y = ret->y * ECHO_COSF(rot.x) - ret->z * ECHO_SINF(rot.x);
 	ret->z = y_save * ECHO_SINF(rot.x) + ret->z * ECHO_COSF(rot.x);
@@ -279,12 +279,12 @@ vector3f* vector3f::neg_rotate_yx(vector3f rot)
 	if(rot.x == 0 && rot.y == 0)
 	{
 		vector3f* ret = new vector3f(x, y, z);
-		CHKPTR(ret);
+		
 		return(ret);
 	}
 	vector3f* ret = new vector3f(z * ECHO_SINF(-rot.y) + x * ECHO_COSF(-rot.y), y
                                 , z * ECHO_COSF(-rot.y) - x * ECHO_SINF(-rot.y));
-	CHKPTR(ret);
+	
 	float y_save = ret->y;
 	ret->y = ret->y * ECHO_COSF(-rot.x) - ret->z * ECHO_SINF(-rot.x);
 	ret->z = y_save * ECHO_SINF(-rot.x) + ret->z * ECHO_COSF(-rot.x);

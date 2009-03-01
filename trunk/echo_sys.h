@@ -17,7 +17,7 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <echo_platform.h>
+#include "echo_platform.h"
 
 /// Frames per second
 #define FPS	30

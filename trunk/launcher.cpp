@@ -20,13 +20,13 @@
 #include <cmath>
 #include <iostream>
 
-#include <echo_debug.h>
-#include <echo_error.h>
-#include <echo_ns.h>
-#include <echo_gfx.h>
-#include <launcher.h>
-#include <echo_math.h>
-#include <grid.h>
+#include "echo_debug.h"
+#include "echo_error.h"
+#include "echo_ns.h"
+#include "echo_gfx.h"
+#include "launcher.h"
+#include "echo_math.h"
+#include "grid.h"
 
 /// Initializes an empty launcher with no info or neighbors
 launcher::launcher() : escgrid()

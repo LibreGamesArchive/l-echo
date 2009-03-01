@@ -17,9 +17,9 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <echo_math.h>
-#include <grid.h>
-#include <escgrid.h>
+#include "echo_math.h"
+#include "grid.h"
+#include "escgrid.h"
 
 #ifndef __ECHO_CLASS_HOLE__
 #define __ECHO_CLASS_HOLE__

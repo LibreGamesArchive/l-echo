@@ -3,10 +3,10 @@
 #include <cstdlib>
 #include <cstddef>
 
-#include <echo_platform.h>
-#include <echo_debug.h>
-#include <echo_error.h>
-#include <echo_xml.h>
+#include "echo_platform.h"
+#include "echo_debug.h"
+#include "echo_error.h"
+#include "echo_xml.h"
 
 #ifdef USE_TIXML
 	#ifdef ECHO_NDS
@@ -160,7 +160,7 @@
 			try
 			{
 				f = new rapidxml::file<>(filename);
-				CHKPTR(f);
+				
 				char* data = f->data();
 				if(data != NULL)
 				{
@@ -169,7 +169,7 @@
 						*doc = new(echo_xml);
 						(*doc)->file_name = filename;
 						(*doc)->document = new rapidxml::xml_document<>();
-						CHKPTR((*doc)->document);
+						
 						(*doc)->document->parse<0>(data);
 						
 						delete f;
@@ -251,7 +251,7 @@
 		if(e != NULL && key != NULL && value != NULL)
 		{
 			char** attr_save = new(char*);
-			CHKPTR(attr_save);
+			
 			if(echo_xml_get_attribute(e, key, attr_save) == WIN)
 			{
 				*value = atoi(*attr_save);
@@ -267,7 +267,7 @@
 		if(e != NULL && key != NULL && value != NULL)
 		{
 			char** attr_save = new(char*);
-			CHKPTR(attr_save);
+			
 			if(echo_xml_get_attribute(e, key, attr_save) == WIN)
 			{
 				*value = atof(*attr_save);
@@ -345,10 +345,10 @@
 		if(doc != NULL && filename != NULL)
 		{
 			*doc = new(echo_xml);
-			CHKPTR(*doc);
+			
 			(*doc)->file_name = filename;
 			(*doc)->document = new pugi::xml_document();
-			CHKPTR((*doc)->document);
+			
 			if((*doc)->document->load_file(filename) == true)
 				return(WIN);
 		}
@@ -401,7 +401,7 @@
 		if(e != NULL && key != NULL && value != NULL)
 		{
 			char** attr_save = new(char*);
-			CHKPTR(attr_save);
+			
 			if(echo_xml_get_attribute(e, key, attr_save) == WIN)
 			{
 				*value = atoi(*attr_save);
@@ -420,7 +420,7 @@
 		if(e != NULL && key != NULL && value != NULL)
 		{
 			char** attr_save = new(char*);
-			CHKPTR(attr_save);
+			
 			if(echo_xml_get_attribute(e, key, attr_save) == WIN)
 			{
 				*value = atof(*attr_save);
@@ -496,10 +496,10 @@
 		if(doc != NULL && filename != NULL)
 		{
 			*doc = new(echo_xml);
-			CHKPTR(*doc);
+			
 			(*doc)->file_name = filename;
 			(*doc)->document = new pug::xml_document();
-			CHKPTR((*doc)->document);
+			
 			if((*doc)->document->load_file(filename) == true)
 				return(WIN);
 		}
@@ -553,7 +553,7 @@
 		if(e != NULL && key != NULL && value != NULL)
 		{
 			char** attr_save = new(char*);
-			CHKPTR(attr_save);
+			
 			if(echo_xml_get_attribute(e, key, attr_save) == WIN)
 			{
 				*value = atoi(*attr_save);
@@ -572,7 +572,7 @@
 		if(e != NULL && key != NULL && value != NULL)
 		{
 			char** attr_save = new(char*);
-			CHKPTR(attr_save);
+			
 			if(echo_xml_get_attribute(e, key, attr_save) == WIN)
 			{
 				*value = atof(*attr_save);

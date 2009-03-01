@@ -17,13 +17,13 @@ You should have received a copy of the GNU General Public License
 along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <echo_error.h>
+#include "echo_error.h"
 #include <cstdlib>
 #include <iostream>
-#include <grid.h>
-#include <escgrid.h>
-#include <echo_math.h>
-#include <echo_gfx.h>
+#include "grid.h"
+#include "escgrid.h"
+#include "echo_math.h"
+#include "echo_gfx.h"
 
 /// Initializes an empty EscGrid, with no info and neighbors
 escgrid::escgrid() : grid()
@@ -110,9 +110,9 @@ void escgrid::add(vector3f* vec, grid* esc)
 void escgrid::add(angle_range* range, grid* esc)
 {
 	angle_range** new_ranges = new angle_range*[num_esc + 1];
-	CHKPTR(new_ranges);
+	
 	grid** new_escs = new grid*[num_esc + 1];
-	CHKPTR(new_escs);
+	
 	if(escs)
 	{
 		int each = 0;

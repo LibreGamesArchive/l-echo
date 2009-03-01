@@ -18,12 +18,12 @@
 */
 
 /// Various echo libraries
-#include <echo_platform.h>
-#include <echo_debug.h>
-#include <echo_error.h>
-#include <echo_stage.h>
-#include <echo_loader.h>
-#include <echo_ingame_loader.h>
+#include "echo_platform.h"
+#include "echo_debug.h"
+#include "echo_error.h"
+#include "echo_stage.h"
+#include "echo_loader.h"
+#include "echo_ingame_loader.h"
 
 /// Standard libraries
 #include <cstdlib>
@@ -64,7 +64,7 @@ STATUS echo_genroot(char** save)
 	if(save != NULL)
 	{
 		*save = new char[2];
-		CHKPTR(*save);
+		
 		(*save)[0] = '/';
 		(*save)[1] = '\0';
 		return(WIN);
@@ -141,12 +141,12 @@ STATUS echo_prefsfile(char** save)
 	{
 #ifdef ECHO_NDS
 		*save = new char[strlen("/apps/n-echo/prefs.xml") + 1];
-		CHKPTR(*save);
+		
 		strcpy(*save, "/apps/n-echo/prefs.xml");
 		return(WIN);
 #else
 		char** path = new(char*);
-		CHKPTR(path);
+		
 		if(echo_execdir(path) == WIN)
 		{
 			*save = echo_merge(*path, "prefs.xml");
@@ -169,7 +169,7 @@ STATUS echo_currentdir(char** save)
 		char* pwd = getenv("PWD");
 		/// Copy results over
 		*save = new char[strlen(pwd) + 1];
-		CHKPTR(*save);
+		
 		strcpy(*save, pwd);
 		return(WIN);
 	}
@@ -193,7 +193,7 @@ STATUS echo_parentdir(const char* path, char** save)
 			if(len > 0)
 			{
 				*save = new char[len + 1];
-				CHKPTR(*save);
+				
 				/// Cut off last '/' and after
 				strncpy(*save, path, len);
 				return(WIN);
@@ -205,7 +205,7 @@ STATUS echo_parentdir(const char* path, char** save)
 		const char* dir = dirname(const_cast<char*>(path));
 		/// Copy it over
 		*save = new char[strlen(dir) + 1];
-		CHKPTR(*save);
+		
 		strcpy(*save, dir);
 		return(WIN);
 #endif
@@ -264,7 +264,7 @@ char* echo_merge(const char* arg1, const char* arg2)
 	{
 		/// Besides tehe string lengths, 1 char is for the null-char
 		ret = new char[strlen(arg1) + strlen(arg2) + 1];
-		CHKPTR(ret);
+		
 		/// Just concat it
 		strcat(strcpy(ret, arg1), arg2);
 	}
@@ -273,7 +273,7 @@ char* echo_merge(const char* arg1, const char* arg2)
 	{
 		/// Besides the string lengths, 1 char is for the slash or backslash, and another char is for the null-char
 		ret = new char[strlen(arg1) + strlen(arg2) + 2];
-		CHKPTR(ret);
+		
 #ifdef ECHO_WIN
 		strcat(strcat(strcpy(ret, arg1),  "\\"), arg2);
 #else
@@ -317,7 +317,7 @@ char* echo_merge(const char* arg1, const char* arg2)
 		const int fd = open(fname, O_RDONLY);
 		/// Get a new file structure
 		struct stat* file_stat = new(struct stat);
-		CHKPTR(file_stat);
+		
 		/// File up the file descriptor
 		const int exists = !fstat(fd, file_stat);
 		/// Don't need the file descriptor anymore
@@ -384,7 +384,7 @@ char* echo_merge(const char* arg1, const char* arg2)
 			DIR* dir = opendir(dirname);
 			/// Get a new structure
 			echo_files* ret = new(echo_files);
-			CHKPTR(ret);
+			
 			/// Fill out the fields
 			ret->num_files = 0;
 			ret->current_dir = const_cast<char*>(dirname);
@@ -398,7 +398,7 @@ char* echo_merge(const char* arg1, const char* arg2)
 			}
 			/// Initialize the filename array
 			ret->file_names = new char*[ret->num_files];
-			CHKPTR(ret->file_names);
+			
 			/// "..", or previous directory, is always first
 			ret->file_names[0] = "..";
 			/// Initialize the index
@@ -413,7 +413,7 @@ char* echo_merge(const char* arg1, const char* arg2)
 				{
 					/// New string
 					ret->file_names[each] = new char[strlen(each_ent->d_name) + 1];
-					CHKPTR(ret->file_names[each]);
+					
 					/// Null the string
 					memset(ret->file_names[each], 0
 						, strlen(each_ent->d_name) + 1);
@@ -462,7 +462,7 @@ char* echo_merge(const char* arg1, const char* arg2)
 		{
 			/// New file structure
 			echo_files* ret = new(echo_files);
-			CHKPTR(ret);
+			
 			
 			/// Set fields
 			ret->num_files = 0;
@@ -473,7 +473,7 @@ char* echo_merge(const char* arg1, const char* arg2)
 			struct stat each_ent;
 			/// Buffer to save file names
 			char* filename = new char[MAXPATHLEN];
-			CHKPTR(filename);
+			
 			while(dirnext(dir, filename, &each_ent) == 0)
 			{
 				/// If the file is not "."
@@ -489,7 +489,7 @@ char* echo_merge(const char* arg1, const char* arg2)
 			}
 			/// Make a new array
 			ret->file_names = new char*[ret->num_files];
-			CHKPTR(ret->file_names);
+			
 			/// First file always ".."
 			ret->file_names[0] = "..";
 			/** each_dir is the directory index (1 because ".." is already filled)
@@ -521,7 +521,7 @@ char* echo_merge(const char* arg1, const char* arg2)
 					}
 					/// Copy the file name over
 					ret->file_names[each] = new char[strlen(filename) + 1];
-					CHKPTR(ret->file_names[each]);
+					
 					memset(ret->file_names[each], 0
 						, strlen(filename) + 1);
 					strcpy(ret->file_names[each], filename);

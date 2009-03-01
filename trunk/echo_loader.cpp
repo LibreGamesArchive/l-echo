@@ -27,23 +27,23 @@
 #include <map>
 
 /// Various L-Echo libraries
-#include <echo_debug.h>
-#include <echo_error.h>
-#include <echo_stage.h>
-#include <echo_platform.h>
-#include <echo_xml.h>
+#include "echo_debug.h"
+#include "echo_error.h"
+#include "echo_stage.h"
+#include "echo_platform.h"
+#include "echo_xml.h"
 
-#include <filter.h>
-#include <trigger.h>
+#include "filter.h"
+#include "trigger.h"
 
 /// Various grids
-#include <launcher.h>
-#include <freeform_grid.h>
-#include <t_grid.h>
-#include <escgrid.h>
-#include <hole.h>
-#include <grid.h>
-#include <stair.h>
+#include "launcher.h"
+#include "freeform_grid.h"
+#include "t_grid.h"
+#include "escgrid.h"
+#include "hole.h"
+#include "grid.h"
+#include "stair.h"
 
 /// If we want to debug the loading...
 #ifdef LOAD_DEBUG
@@ -194,7 +194,7 @@ void map_add_pos(LEVEL_MAP* levels, vector3f* pos, grid* g)
         else
         {
                 set = new GRID_PTR_SET();
-                CHKPTR(set);
+                
                 set->insert(g);
                 levels->insert(LEVEL_MAP::value_type(pos->y, set));
         }
@@ -235,25 +235,25 @@ stage* load_stage(char* file_name)
 {
 	/// Prepare to load the file
 	echo_xml** doc = new(echo_xml*);
-	LD_CHKPTR(doc);
+	
 	/// Load the file
 	if(echo_xml_load_file(doc, file_name) == WIN)
 	{
 		/// -----------------------------------------------------------prepare stuff
 		DEPENDENCY_MAP* map = new DEPENDENCY_MAP();
-		LD_CHKPTR(map);
+		
 		stage* ret = new stage();
-		LD_CHKPTR(ret);
+		
 #ifdef ECHO_NDS
 		/// NDS versions need to assign polyID, so non-freeform_grids and freeform_grids are separated into different LEVEL_MAPs
 		LEVEL_MAP* nonffgrids = new LEVEL_MAP();
-		LD_CHKPTR(nonffgrids);
+		
 		LEVEL_MAP* ffgrids = new LEVEL_MAP();
-		LD_CHKPTR(ffgrids);
+		
 #endif
 		/// -----------------------------------------------------------get the root of the document
 		echo_xml_element** root = new(echo_xml_element*);
-		LD_CHKPTR(root);
+		
 		if(echo_xml_get_root(*doc, root) == FAIL)
 		{
 			lderr("cannot find root element!");
@@ -270,11 +270,11 @@ stage* load_stage(char* file_name)
 		}
 		/// -----------------------------------------------------------parse all grids
 		echo_xml_node** child = new(echo_xml_node*);
-		CHKPTR(child);
+		
 		if(echo_xml_get_first_child(*root, child) == WIN)
 		{
 			echo_xml_element** e = new(echo_xml_element*);
-			CHKPTR(e);
+			
 			echo_xml_type type = ECHO_XML_TYPE_NULL;
 			/// For each element...
 			do
@@ -350,7 +350,7 @@ stage* load_stage(char* file_name)
 		delete child;
 		/// -----------------------------------------------------------get starting point string
 		char** start = new(char*);
-		CHKPTR(start);
+		
 		if(echo_xml_get_attribute(*root, "start", start) == FAIL)
 		{
 			lderr("no starting point specified!\n");
@@ -387,7 +387,7 @@ stage* load_stage(char* file_name)
 		delete start;
 		/// -----------------------------------------------------------get/set name
 		char** name = new(char*);
-		CHKPTR(name);
+		
 		if(echo_xml_get_attribute(*root, "name", name) == FAIL)
 		{
 			lderr("name of stage not specified!\n");
@@ -485,7 +485,7 @@ stage* load_stage(char* file_name)
 static FUNCTOR_VEC* dep_set(DEPENDENCY_MAP* map, char* id)
 {
 	std::string* s1 = new std::string(id);
-	LD_CHKPTR(s1);
+	
 	DEPENDENCY_MAP::iterator it = map->find(*s1);
 	delete s1;
 	return(it == map->end() ? NULL : it->second);
@@ -503,7 +503,7 @@ static void add(DEPENDENCY_MAP* map, char* id, functor* f)
 	{
 		LD_PRINT("dep set for %s NOT found, adding\n", id);
 		set = new FUNCTOR_VEC();
-		LD_CHKPTR(set);
+		
 		set->push_back(f);
 		map->insert(DEPENDENCY_MAP::value_type(id, set));
 	}
@@ -513,7 +513,7 @@ static void add(DEPENDENCY_MAP* map, char* id, t_grid* obj, void (t_grid::*funcp
 {
 #ifdef STRICT_MEM
 	t_functor* f = new t_functor(obj, funcp);
-	LD_CHKPTR(f);
+	
 	add(map, id, f);
 #else
 	add(map, id, new t_functor(obj, funcp));
@@ -524,7 +524,7 @@ static void add(DEPENDENCY_MAP* map, char* id, grid* obj, void (grid::*funcp)(gr
 {
 #ifdef STRICT_MEM
 	functor* f = new functor(obj, funcp);
-	LD_CHKPTR(f);
+	
 	add(map, id, f);
 #else
 	add(map, id, new t_functor(obj, funcp));
@@ -535,7 +535,7 @@ static void add(DEPENDENCY_MAP* map, char* id, filter* obj, void (filter::*funcp
 {
 #ifdef STRICT_MEM
 	filter_functor* f = new filter_functor(obj, funcp);
-	LD_CHKPTR(f);
+	
 	add(map, id, f);
 #else
 	add(map, id, new filter_functor(obj, funcp));
@@ -546,7 +546,7 @@ static void add(DEPENDENCY_MAP* map, char* id, trigger* obj, void (trigger::*fun
 {
 #ifdef STRICT_MEM
 	trigger_functor* f = new trigger_functor(obj, funcp);
-	LD_CHKPTR(f);
+	
 	add(map, id, f);
 #else
 	add(map, id, new trigger_functor(obj, funcp));
@@ -578,21 +578,21 @@ static int add_esc(echo_xml_element* child, stage* st, DEPENDENCY_MAP* map, escg
 #endif
 {
 	char** type = new(char*);
-	CHKPTR(type);
+	
 	if(echo_xml_get_tagname(child, type) == WIN)
 	{
 		if(!strcmp(*type, "angle"))
 		{
 			vector3f* each_angle = new vector3f();
-			LD_CHKPTR(each_angle);
+			
 			if(get_angle(child, each_angle) == WIN)
 			{
 				echo_xml_node** first = new(echo_xml_node*);
-				CHKPTR(first);
+				
 				if(echo_xml_get_first_child(child, first) == WIN)
 				{
 					echo_xml_element** e = new(echo_xml_element*);
-					CHKPTR(e);
+					
 					if(echo_xml_to_element(*first, e) == WIN)
 					{
 #ifdef ECHO_NDS
@@ -628,21 +628,21 @@ static int add_esc(echo_xml_element* child, stage* st, DEPENDENCY_MAP* map, escg
 		else if(!strcmp(*type, "range"))
 		{
 			vector3f* v1 = new vector3f();
-			LD_CHKPTR(v1);
+			
 			if(echo_xml_get_float_attribute(child, "x_min", &(v1->x)) == WIN
 				&& echo_xml_get_float_attribute(child, "y_min", &(v1->y)) == WIN)
 			{
 				vector3f* v2 = new vector3f();
-				LD_CHKPTR(v2);
+				
 				if(echo_xml_get_float_attribute(child, "x_max", &(v2->x)) == WIN
 					&& echo_xml_get_float_attribute(child, "y_max", &(v2->y)) == WIN)
 				{
 					echo_xml_node** first = new(echo_xml_node*);
-					LD_CHKPTR(first);
+					
 					if(echo_xml_get_first_child(child, first) == WIN)
 					{
 						echo_xml_element** e = new(echo_xml_element*);
-						LD_CHKPTR(e);
+						
 						if(echo_xml_to_element(*first, e) == WIN)
 						{
 #ifdef ECHO_NDS
@@ -654,7 +654,7 @@ static int add_esc(echo_xml_element* child, stage* st, DEPENDENCY_MAP* map, escg
 							{
 								angle_range* range = new angle_range(v1, v2);
 								//ECHO_PRINT("range added\n");
-								CHKPTR(range);
+								
 								egrid->add(range, g);
 								delete type;
 								delete e;
@@ -697,7 +697,7 @@ static int add_escs(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, escgr
 #endif
 {
 	echo_xml_node** first = new(echo_xml_node*);
-	CHKPTR(first);
+	
 	ECHO_PRINT("first: %p\n", first);
 	if(echo_xml_get_first_child(txe, first) == WIN)
 	{
@@ -705,9 +705,9 @@ static int add_escs(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, escgr
 		ECHO_PRINT("*first: %p\n", first_p);
 		echo_xml_type type = ECHO_XML_TYPE_NULL;
 		char** tag = new(char*);
-		CHKPTR(tag);
+		
 		echo_xml_element** e = new(echo_xml_element*);
-		CHKPTR(e);
+		
 		do
 		{
 			if(echo_xml_get_node_type(*first, &type) == WIN)
@@ -815,7 +815,7 @@ static filter* get_filter(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map,
 		if(name != NULL)
 		{
 			filter* ret = new filter();
-			LD_CHKPTR(ret);
+			
 			grid* g = st->get(name);
 			if(g)
 				ret->set_target(g);
@@ -830,7 +830,7 @@ static filter* get_filter(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map,
 	else if(!strcmp(type, "not"))
 	{
 		echo_xml_node** first = new(echo_xml_node*);
-		LD_CHKPTR(first);
+		
 		if(echo_xml_get_first_child(txe, first) == WIN)
 		{
 			echo_xml_type type = ECHO_XML_TYPE_NULL;
@@ -841,11 +841,11 @@ static filter* get_filter(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map,
 			if(*first != NULL)
 			{
 				echo_xml_element** e = new(echo_xml_element*);
-				LD_CHKPTR(e);
+				
 				if(echo_xml_to_element(*first, e) == WIN)
 				{
 					not_filter* ret = new not_filter(get_filter(*e, st, map));
-					LD_CHKPTR(ret);
+					
 					delete e;
 					delete first;
 					return(ret);
@@ -866,15 +866,15 @@ static filter* get_filter(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map,
 		multi_filter* ret = (!strcmp(type, "or")) ?
 				dynamic_cast<multi_filter*>(new or_filter()) : 
 				dynamic_cast<multi_filter*>(new and_filter());
-		LD_CHKPTR(ret);
+		
 		int error = false;
 		echo_xml_node** first = new(echo_xml_node*);
-		LD_CHKPTR(first);
+		
 		if(echo_xml_get_first_child(txe, first) == WIN)
 		{
 			echo_xml_type type = ECHO_XML_TYPE_NULL;
 			echo_xml_element** e = new(echo_xml_element*);
-			LD_CHKPTR(e);
+			
 			do
 			{
 				if(echo_xml_get_node_type(*first, &type) == WIN)
@@ -920,12 +920,12 @@ static trigger* get_trigger(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* ma
 	/// Filter is optional; function does not fail if there is no filter
 	filter* f = NULL;
 	echo_xml_node** first = new(echo_xml_node*);
-	LD_CHKPTR(first);
+	
 	if(echo_xml_get_first_child(txe, first) == WIN)
 	{
 		/// @todo Account for comments in trigger section
 		echo_xml_element** e = new(echo_xml_element*);
-		LD_CHKPTR(e);
+		
 		if(echo_xml_to_element(*first, e) == WIN)
 		{
 			f = get_filter(*e, st, map, "and");
@@ -947,13 +947,13 @@ static trigger* get_trigger(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* ma
 		if(g)
 		{
 			trigger* ret = new trigger(f, g);
-			LD_CHKPTR(ret);
+			
 			return(ret);
 		}
 		else
 		{
 			trigger* ret = new trigger(f);
-			LD_CHKPTR(ret);
+			
 			LD_PRINT("trigger target (%s) is null, adding to dep map\n", name);
 			add(map, name, ret, &trigger::set_target);
 			return(ret);
@@ -965,14 +965,14 @@ static trigger* get_trigger(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* ma
 static int add_triggers(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, grid* g)
 {
 	echo_xml_node** first = new(echo_xml_node*);
-	LD_CHKPTR(first);
+	
 	int error = false;
 	if(echo_xml_get_first_child(txe, first) == WIN)
 	{
 		//std::cout << "add_triggers: " << *txe << std::endl;
 		echo_xml_type type = ECHO_XML_TYPE_NULL;
 		echo_xml_element** e = new(echo_xml_element*);
-		LD_CHKPTR(e);
+		
 		do
 		{
 			//std::cout << "add_triggers: child: " << (*first)->name() << "; " << **first << std::endl;
@@ -1027,13 +1027,13 @@ static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, e
 	if(name != NULL)
 	{
 		char** type = new(char*);
-		LD_CHKPTR(type);
+		
 		if(echo_xml_get_tagname(txe, type) == WIN)
 		{
 			grid_info_t* info = new(grid_info_t);
-			LD_CHKPTR(info);
+			
 			info->pos = new vector3f();
-			LD_CHKPTR(info->pos);
+			
 			if(get_vec(txe, info->pos, st) == WIN)
 			{
 				char* prev_id = get_attribute(txe, "prev", "no previous for grid: ", name);
@@ -1049,7 +1049,7 @@ static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, e
 						{
 							LD_PRINT("%s is a grid!\n", name);
 							new_grid = new grid(info, prev, next);
-							LD_CHKPTR(new_grid);
+							
 						}
 						else if(!strcmp(*type, "t_grid"))
 						{
@@ -1059,7 +1059,7 @@ static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, e
 							{
 								grid* next2 = st->get(next2_id);
 								new_grid = new t_grid(info, prev, next, next2);
-								LD_CHKPTR(new_grid);
+								
 								if(!next2 && strcmp(next2_id, "NONE"))
 								{
 									LD_PRINT("next2 (%s) is null, adding to dep map\n", next2_id);
@@ -1071,7 +1071,7 @@ static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, e
 						{
 							LD_PRINT("%s is a escgrid!\n", name);
 							new_grid = new escgrid(info, prev, next);
-							LD_CHKPTR(new_grid);
+							
 #ifdef ECHO_NDS
 							if(!add_escs(txe, st, map, escroot, (escgrid*)new_grid, nonffgrids, ffgrids))
 #else
@@ -1086,7 +1086,7 @@ static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, e
 						{
 							LD_PRINT("%s is an hole!\n", name);
 							new_grid = new hole(info);
-							LD_CHKPTR(new_grid);
+							
 #ifdef ECHO_NDS
 							if(!add_escs(txe, st, map, escroot, (escgrid*)new_grid, nonffgrids, ffgrids))
 #else
@@ -1101,7 +1101,7 @@ static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, e
 						{
 							LD_PRINT("%s is a launcher!\n", name);
 							new_grid = new launcher(info);
-							LD_CHKPTR(new_grid);
+							
 #ifdef ECHO_NDS
 							if(!add_escs(txe, st, map, escroot, (escgrid*)new_grid, nonffgrids, ffgrids))
 #else
@@ -1116,7 +1116,7 @@ static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, e
 						{
 							LD_PRINT("%s is a freeform_grid!\n", name);
 							echo_xml_node** first = new(echo_xml_node*);
-							LD_CHKPTR(first);
+							
 							if(echo_xml_get_first_child(txe, first) == WIN)
 							{
 								echo_xml_type type2 = ECHO_XML_TYPE_NULL;
@@ -1126,9 +1126,9 @@ static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, e
 								if(*first != NULL)
 								{
 									vector3f* dir_angle = new vector3f();
-									LD_CHKPTR(dir_angle);
+									
 									echo_xml_element** e = new(echo_xml_element*);
-									LD_CHKPTR(e);
+									
 									if(echo_xml_to_element(*first, e) == WIN 
 										&& get_vec(*e, dir_angle) == WIN)
 									{
@@ -1140,12 +1140,12 @@ static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, e
 											if(*first != NULL)
 											{
 												vector3f* width_angle = new vector3f();
-												LD_CHKPTR(width_angle);
+												
 												if(echo_xml_to_element(*first, e) == WIN 
 													&& get_vec(*e, width_angle) == WIN)
 												{
 													new_grid = new freeform_grid(info, prev, next, dir_angle, width_angle);
-													LD_CHKPTR(new_grid);
+													
 												}
 												else
 												{
@@ -1187,7 +1187,7 @@ static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, e
 							{
 								LD_PRINT("angle: %f\n", angle);
 								new_grid = new stair(info, prev, next, angle);
-								LD_CHKPTR(new_grid);
+								
 							}
 							else
 								lderr("couldn't get start direction!");
@@ -1263,7 +1263,7 @@ static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, e
 							}
 							/// Trigger check
 							echo_xml_node** first = new(echo_xml_node*);
-							LD_CHKPTR(first);
+							
 							if(echo_xml_get_first_child(txe, first) == WIN)
 							{
 								echo_xml_type type2 = ECHO_XML_TYPE_NULL;
@@ -1273,11 +1273,11 @@ static grid* parse_grid(echo_xml_element* txe, stage* st, DEPENDENCY_MAP* map, e
 								if(*first != NULL)
 								{
 									echo_xml_element** e = new(echo_xml_element*);
-									LD_CHKPTR(e);
+									
 									if(echo_xml_to_element(*first, e) == WIN)
 									{
 										char** tag = new(char*);
-										LD_CHKPTR(tag);
+										
 										if(echo_xml_get_tagname(*e, tag) == WIN 
 											&& !strcmp(*tag, "triggers"))
 										{

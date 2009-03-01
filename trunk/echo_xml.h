@@ -17,11 +17,9 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <echo_platform.h>
-#include <echo_debug.h>
-#include <echo_error.h>
-
-//#define 	USE_TIXML	1
+#include "echo_platform.h"
+#include "echo_debug.h"
+#include "echo_error.h"
 
 #ifndef __ECHO_XML__
 #define __ECHO_XML__

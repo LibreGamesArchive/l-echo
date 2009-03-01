@@ -17,7 +17,7 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <echo_debug.h>
+#include "echo_debug.h"
 
 #ifndef __ECHO_CHAR_JOINTS__
 #define __ECHO_CHAR_JOINTS__

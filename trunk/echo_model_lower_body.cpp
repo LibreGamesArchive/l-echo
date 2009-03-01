@@ -17,8 +17,8 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <echo_platform.h>
-#include <echo_gfx.h>
+#include "echo_platform.h"
+#include "echo_gfx.h"
 
 #ifdef ECHO_NDS
 	#include <nds.h>

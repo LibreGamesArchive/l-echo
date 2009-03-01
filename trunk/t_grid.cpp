@@ -17,12 +17,12 @@
     along with L-Echo.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <t_grid.h>
+#include "t_grid.h"
 #include <iostream>
-#include <echo_debug.h>
-#include <echo_gfx.h>
-#include <echo_math.h>
-#include <grid.h>
+#include "echo_debug.h"
+#include "echo_gfx.h"
+#include "echo_math.h"
+#include "grid.h"
 
 /// Init an empty t_grid with no neighbors and info
 t_grid::t_grid() : grid()

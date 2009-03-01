@@ -20,15 +20,15 @@
 #include <set>
 
 
-#include <echo_math.h>
+#include "echo_math.h"
 
 #ifndef __ECHO_CLASS_FILTER__
 #define __ECHO_CLASS_FILTER__
 class filter;
 
-#include <grid.h>
-#include <echo_platform.h>
-#include <echo_debug.h>
+#include "grid.h"
+#include "echo_platform.h"
+#include "echo_debug.h"
 /** @brief When a grid that has triggers is triggered, filters in each trigger determine
  * if the trigger's targets should be triggered too.
  */
