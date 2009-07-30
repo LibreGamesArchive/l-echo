@@ -103,4 +103,85 @@ They go like this (DO NOT COPY INTO FILE!):
 
 Basically, all of the escgrid's children are angles or ranges, and when one of them match the current camera angle, the escgrid will sort of "become" the first grid inside the angle/range.
 
-To be continued...
+==freeform_grid:==
+
+Not very well-named, these grids are any parallelograms; I use them only for obligatory walls for perspective absence and existence.
+
+{{{
+<freeform_grid [same attributes as basic grids]>
+<angle [x=...]/> <!-- a half-width -->
+<angle [x=...]/> <!-- a half-height -->
+</escgrid>
+}}}
+
+
+==stairs:==
+
+More appropriate stairs:
+
+{{{
+<stair [same attributes as basic grids] direction="180"/>
+}}}
+
+The "direction" attribute is the direction in which the stairs will face (rotation around Y-axis, in other words).
+
+==hole and launchers:==
+
+Holes and launchers are just like escgrids (for perspective absence and jumping).  Their implementations are a little broken, though...
+
+==triggers:==
+
+In the original game, goals can be triggered upon completion of another.  In L-Echo, here's how you do it.  In the grid which will trigger other goals, insert a *triggers* construct.  The one and only *triggers* construct (in each grid, at least), holds many *trigger* constructs, which trigger a grid to become a goal if the (optional) conditions are true:
+
+{{{
+<trigger id="grid-to-make-into-a-goal">
+<!-- optional conditions -->
+<trigger>
+}}}
+
+Optional conditions include a goal element that tests if the specified grid is a goal:
+
+{{{
+<goal id="grid-to-check" />
+}}}
+
+*not* elements to invert stuff:
+
+{{{
+<not>
+     <goal id="g1" />
+</not>
+}}}
+
+and *and* and *or* elements to round out the list of boolean operators:
+
+{{{
+<and>
+     <goal id="g1"/>
+     <goal id="g2"/>
+     <goal id="g3"/>
+     <goal id="g4"/>
+     <goal id="g5"/>
+</and>
+}}}
+
+A good *triggers* construct may look like:
+
+{{{
+<triggers>
+     <trigger id="g2">
+          <not>
+               <or>
+                    <goal id="g1" />
+                    <goal id="g3" />
+               </or>
+          </not>
+     </trigger>
+</triggers>
+}}}
+
+==Future Format?==
+
+It is likely that in the future redux of L-Echo (if any), that Lua or any managed code will be used for a more dynamic stage.  I'll probably still support XML, though.
+
+==Happy hacking!==
