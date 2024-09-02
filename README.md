@@ -5,12 +5,6 @@ L-Echo is a free and open source clone of the SCEJ game Echochrome
 ported to Windows, Mac OS X (10.4+) (NOT PPC64) and the Nintendo DS
 (the Nintendo DS port is named N-Echo and lives in the same source tree).
 
-## Videos
-
-[L-Echo 0.4.1](http://www.youtube.com/watch?v=-9M15RBDUDY)
-
-[N-Echo 0.4.0](https://www.youtube.com/watch?v=Rjv6s7molRI)
-
 ## Disclaimer by the original developer
 
 Notice: As of 3-20-09, I am no longer developing this. This is a failure
